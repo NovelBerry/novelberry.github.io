@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portafolio de Novelberryyt - Desarrollador & Gamer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #8a2be2; /* Azul violeta */
+            --color-secondary: #00ffff; /* Cian */
+            --color-background: #1a1a2e; /* Azul oscuro casi negro */
+            --color-text: #e0e0e0; /* Blanco grisáceo */
+            --color-highlight: #ff007f; /* Rosa neón */
+            --color-card: #2c2c4d; /* Azul oscuro para tarjetas */
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--color-background);
+            color: var(--color-text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            animation: fadeIn 2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at top left, rgba(138, 43, 226, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at bottom right, rgba(0, 255, 255, 0.3) 0%, transparent 50%);
+            opacity: 0.3;
+            z-index: -1;
+            animation: pulseBackground 10s infinite alternate;
+        }
+
+        @keyframes pulseBackground {
+            from { transform: scale(1); opacity: 0.3; }
+            to { transform: scale(1.05); opacity: 0.4; }
+        }
+
+        .container {
+            background-color: var(--color-card);
+            padding: 40px 60px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            text-align: center;
+            max-width: 800px;
+            margin: 20px;
+            border: 2px solid var(--color-secondary);
+            animation: slideIn 1s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border: 2px solid var(--color-highlight);
+            border-radius: 20px;
+            z-index: -1;
+            animation: glowBorder 2s infinite alternate;
+        }
+
+        @keyframes glowBorder {
+            from { box-shadow: 0 0 5px var(--color-highlight); }
+            to { box-shadow: 0 0 20px var(--color-highlight), 0 0 30px var(--color-highlight); }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            color: var(--color-primary);
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px var(--color-secondary);
+            animation: glitchText 1.5s infinite alternate;
+            display: inline-block;
+        }
+        
+        @keyframes glitchText {
+            0% { text-shadow: 0 0 10px var(--color-secondary); transform: translateX(0); }
+            20% { text-shadow: 1px 0 10px var(--color-highlight); transform: translateX(-2px); }
+            40% { text-shadow: -1px 0 10px var(--color-primary); transform: translateX(2px); }
+            60% { text-shadow: 0 0 10px var(--color-secondary); transform: translateX(-1px); }
+            80% { text-shadow: 2px 0 10px var(--color-highlight); transform: translateX(1px); }
+            100% { text-shadow: 0 0 10px var(--color-secondary); transform: translateX(0); }
+        }
+
+        p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .developer-section {
+            margin-top: 30px;
+            text-align: left;
+            padding: 0 20px;
+        }
+
+        .developer-section h2 {
+            font-family: 'Press Start 2P', cursive;
+            color: var(--color-highlight);
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            text-shadow: 0 0 8px var(--color-highlight);
+        }
+
+        .developer-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .developer-section ul li {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+        }
+
+        .developer-section ul li span {
+            margin-right: 10px;
+            font-size: 1.2em;
+            color: var(--color-secondary);
+        }
+
+        .social-links {
+            margin-top: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 25px;
+            background-color: var(--color-primary);
+            color: var(--color-text);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--color-secondary);
+            font-family: 'Roboto Mono', monospace;
+            font-size: 1em;
+        }
+
+        .social-links a:hover {
+            background-color: var(--color-highlight);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 255, 255, 0.5);
+            border-color: var(--color-highlight);
+        }
+
+        .social-links a img {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            filter: invert(1); /* Para que los iconos se vean bien en fondo oscuro */
+        }
+        
+        .social-links a.discord-name {
+            background-color: var(--color-card);
+            color: var(--color-secondary);
+            border: 1px dashed var(--color-secondary);
+            cursor: default;
+        }
+        .social-links a.discord-name:hover {
+            transform: none;
+            box-shadow: none;
+            background-color: var(--color-card);
+        }
+
+        footer {
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: rgba(224, 224, 224, 0.7);
+            animation: fadeIn 3s ease-out;
+        }
+
+        /* Emojis para iconos de lista */
+        .emoji-gear::before { content: '⚙️'; margin-right: 8px; }
+        .emoji-check::before { content: '✅'; margin-right: 8px; }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            .developer-section h2 {
+                font-size: 1.2em;
+            }
+            .social-links {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .social-links a {
+                width: 80%;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Hola, soy Novelberryyt</h1>
+        <p>Propietario de **WinteredMC**. Soy un desarrollador multifacético apasionado por crear experiencias digitales innovadoras. Mi expertise abarca desde el desarrollo de videojuegos hasta soluciones web y de comunicación.</p>
+
+        <div class="developer-section">
+            <h2><span class="emoji-gear"></span>Developer Skills</h2>
+            <ul>
+                <li><span class="emoji-check"></span>Minecraft (Plugins & Más)</li>
+                <li><span class="emoji-check"></span>Discord (Bots & Integraciones)</li>
+                <li><span class="emoji-check"></span>Roblox (Juegos & Scripts)</li>
+                <li><span class="emoji-check"></span>Páginas Web (HTML, CSS, JS)</li>
+            </ul>
+        </div>
+
+        <div class="social-links">
+            <a href="https://www.youtube.com/@NovelBerryYT/videos" target="_blank" rel="noopener noreferrer">
+                <img src="https://www.svgrepo.com/show/136706/youtube.svg" alt="YouTube">
+                Mi Canal de YouTube
+            </a>
+            <a class="discord-name">
+                <img src="https://www.svgrepo.com/show/353655/discord-icon.svg" alt="Discord">
+                Discord: novelberryyt
+            </a>
+            <a href="https://discord.gg/C5yhzSuU3J" target="_blank" rel="noopener noreferrer">
+                <img src="https://www.svgrepo.com/show/353655/discord-icon.svg" alt="Discord">
+                Mi Servidor de Discord
+            </a>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2023 Novelberryyt. Todos los derechos reservados.</p>
+    </footer>
+
+</body>
+</html>
