@@ -28,10 +28,39 @@
 
         /* Hacemos el main-container semitransparente para ver el video */
         .main-container {
-            /* Eliminamos la imagen de fondo */
             background-image: none !important;
-            /* Agregamos una sombra oscura para que el texto resalte sobre el video */
             background: rgba(0, 0, 0, 0.4); 
+        }
+
+        /* Estilos para el nuevo reproductor de audio */
+        .audio-player {
+            width: 300px;
+            margin-top: 20px;
+            padding: 10px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #playPauseButton {
+            background-color: var(--color-acento-celeste); /* Color celeste */
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        #playPauseButton:hover {
+            background-color: #00ffff; /* Celeste más claro al pasar el ratón */
+        }
+        #audio-status {
+            color: white;
+            margin-left: 10px;
+            font-size: 0.9em;
         }
     </style>
 </head>
@@ -72,20 +101,41 @@
             </a>
         </div>
         
-        <div class="spotify-embed">
-            <iframe style="border-radius:12px" 
-                src="https://open.spotify.com/embed/track/22sEfJxatkWlGVsqWKhtvY?utm_source=generator?autoplay=1" 
-                width="300" 
-                height="80" 
-                frameBorder="0" 
-                allowfullscreen="" 
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                loading="lazy">
-            </iframe>
+        <div class="audio-player">
+            <audio id="background-audio" loop>
+                <source src="musica_fondo.mp3" type="audio/mp3">
+            </audio>
+            <button id="playPauseButton">
+                ⏸️ Pause
+            </button>
+            <span id="audio-status">Música de Fondo</span>
         </div>
     </div>
     
     <script>
+        // 1. CONTROL DE LA MÚSICA
+        const audio = document.getElementById('background-audio');
+        const playPauseButton = document.getElementById('playPauseButton');
+        const audioStatus = document.getElementById('audio-status');
+
+        // Intenta iniciar la reproducción si index.html nos dijo que lo hiciéramos
+        if (sessionStorage.getItem('playAudio') === 'true') {
+            audio.play();
+        }
+
+        playPauseButton.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play();
+                playPauseButton.innerHTML = '⏸️ Pause';
+                audioStatus.textContent = 'Música de Fondo';
+            } else {
+                audio.pause();
+                playPauseButton.innerHTML = '▶️ Play';
+                audioStatus.textContent = 'Música pausada';
+            }
+        });
+
+        // 2. CÓDIGO DEL RASTRO DEL CURSOR (sin cambios)
         document.addEventListener('mousemove', function(e) {
             const dot = document.createElement('div');
             dot.classList.add('cursor-dot');
