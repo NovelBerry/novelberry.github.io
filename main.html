@@ -62,6 +62,43 @@
             margin-left: 10px;
             font-size: 0.9em;
         }
+
+        /* --- NUEVOS ESTILOS PARA EL BOTÓN DE CREACIONES --- */
+        .creations-button-container {
+            /* Posiciona el contenedor en la esquina inferior derecha, encima de todo */
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100; 
+            /* Estilo transparente y redondeado, similar al reproductor de audio */
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .creations-button {
+            /* Estilo visual del botón */
+            background-color: var(--color-acento-celeste);
+            color: black;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none; /* Quitar el subrayado del link */
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .creations-button:hover {
+            background-color: #00ffff; /* Celeste más claro al pasar el ratón */
+        }
+
+        .creations-button i {
+            margin-right: 8px; /* Espacio entre el ícono y el texto */
+        }
     </style>
 </head>
 <body>
@@ -116,6 +153,13 @@
         </div>
     </div>
     
+    <div class="creations-button-container">
+        <a href="creaciones.html" class="creations-button" title="Ver mis proyectos">
+            <i class="fas fa-hammer"></i> 
+            Mis Creaciones
+        </a>
+    </div>
+
     <script>
         // 1. CONTROL DE LA MÚSICA
         const audio = document.getElementById('background-audio');
