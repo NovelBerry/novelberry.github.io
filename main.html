@@ -86,6 +86,10 @@
                 <i class="fas fa-gamepad"></i> 
             </a>
             
+            <a href="https://www.youtube.com/@NovelBerryYT/videos" target="_blank" title="YouTube Channel">
+                <i class="fab fa-youtube"></i>
+            </a>
+
             <a href="https://open.spotify.com/user/31qoipzlf7qh3fze77opgxasxolu?si=c63bb430e63542dd" target="_blank" title="Spotify Profile">
                 <i class="fab fa-spotify"></i>
             </a>
@@ -118,11 +122,20 @@
         const playPauseButton = document.getElementById('playPauseButton');
         const audioStatus = document.getElementById('audio-status');
 
-        // Intenta iniciar la reproducción si index.html nos dijo que lo hiciéramos
-        if (sessionStorage.getItem('playAudio') === 'true') {
-            audio.play();
-        }
+        // Intenta iniciar la reproducción si index.html nos dio la instrucción
+        document.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('playAudio') === 'true') {
+                audio.play().then(() => {
+                    playPauseButton.innerHTML = '⏸️ Pause';
+                    audioStatus.textContent = 'Música de Fondo';
+                }).catch(e => {
+                    playPauseButton.innerHTML = '▶️ Play';
+                    audioStatus.textContent = 'Música pausada';
+                });
+            }
+        });
 
+        // Manejador del botón Play/Pause
         playPauseButton.addEventListener('click', () => {
             if (audio.paused) {
                 audio.play();
@@ -135,7 +148,7 @@
             }
         });
 
-        // 2. CÓDIGO DEL RASTRO DEL CURSOR (sin cambios)
+        // 2. CÓDIGO DEL RASTRO DEL CURSOR
         document.addEventListener('mousemove', function(e) {
             const dot = document.createElement('div');
             dot.classList.add('cursor-dot');
