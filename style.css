@@ -16,19 +16,28 @@
     font-family: 'Roboto', sans-serif;
 }
 
+/* --- REGLAS MODIFICADAS PARA PERMITIR EL SCROLL --- */
 html, body {
     height: 100%;
     width: 100%;
     background-color: var(--color-fondo-oscuro);
     color: var(--color-texto-claro);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden; 
+    
+    /* Estas líneas han sido ELIMINADAS/MODIFICADAS para que el body pueda desbordar: */
+    /* (QUITADAS: display: flex; justify-content: center; align-items: center;) */
+    /* SOLUCIÓN FINAL: Permite el scroll vertical si el contenido desborda. */
+    overflow-y: auto; 
+    overflow-x: hidden; /* Previene el scroll horizontal no deseado */
 }
 
 /* --- ESTILOS DE LA PÁGINA DE ENTRADA (index.html) --- */
 .splash-container {
+    /* Aquí se requiere centrado vertical, lo re-introducimos para esta clase */
+    position: absolute; /* Usamos posicionamiento absoluto para que no afecte el body */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
     text-align: center;
     cursor: pointer;
     font-size: 2em;
@@ -40,11 +49,12 @@ html, body {
 .splash-container:hover {
     color: var(--color-acento-celeste);
     border-color: var(--color-acento-celeste);
-    transform: scale(1.05);
+    transform: translate(-50%, -50%) scale(1.05); /* Modificado por el transform de centrado */
 }
 
 /* --- ESTILOS DE LA PÁGINA PRINCIPAL (main.html) --- */
 .main-container {
+    /* Esta clase ya manejaba su propio display: flex, por lo que no hay conflicto. */
     width: 100%;
     height: 100%;
     display: flex;
