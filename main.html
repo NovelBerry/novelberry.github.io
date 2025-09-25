@@ -73,50 +73,79 @@
             font-size: 0.9em;
         }
 
-        /* --- NUEVOS ESTILOS PARA EL BOTÓN DE CREACIONES --- */
-        .creations-button-container {
+        /* --- NUEVOS ESTILOS PARA LA AGRUPACIÓN DE BOTONES EN LA ESQUINA --- */
+        .action-buttons-container {
             /* Posiciona el contenedor en la esquina inferior derecha, encima de todo */
             position: fixed;
             bottom: 20px;
             right: 20px;
             z-index: 100; 
-            /* Estilo transparente y redondeado, similar al reproductor de audio */
+            display: flex;
+            flex-direction: column; /* Apilamos los botones verticalmente */
+            gap: 15px; /* Espacio entre los botones */
+        }
+        
+        .action-button-wrapper {
+             /* Estilo transparente y redondeado, similar al reproductor de audio */
             background: rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             padding: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-             /* Habilitamos la transición para el efecto hover */
             transition: box-shadow 0.3s ease, transform 0.3s ease, background 0.3s ease;
         }
-        
-        /* EFECTO HOVER EN CONTENEDOR DEL BOTÓN DE CREACIONES */
-        .creations-button-container:hover {
+
+        /* EFECTO HOVER EN CONTENEDOR DE BOTÓN */
+        .action-button-wrapper:hover {
             transform: translateY(-5px); /* Levantamos ligeramente */
             background: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8), 0 0 15px #00ffff;
+            /* La sombra se define por cada botón para tener colores distintos */
         }
 
 
-        .creations-button {
-            /* Estilo visual del botón */
-            background-color: var(--color-acento-celeste);
+        .action-button {
+            /* Estilo visual del botón base */
             color: black;
             border: none;
             padding: 10px 15px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
-            text-decoration: none; /* Quitar el subrayado del link */
+            text-decoration: none;
             transition: background-color 0.2s;
             display: flex;
             align-items: center;
         }
-
-        .creations-button:hover {
-            background-color: #00ffff; /* Celeste más claro al pasar el ratón */
+        
+        /* ESTILOS ESPECÍFICOS PARA EL BOTÓN DE CREACIONES (AZUL) */
+        #creations-wrapper {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+        #creations-wrapper:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8), 0 0 15px #00ffff;
+        }
+        #creations-button {
+            background-color: var(--color-acento-celeste);
+        }
+        #creations-button:hover {
+            background-color: #00ffff;
         }
 
-        .creations-button i {
+        /* ESTILOS ESPECÍFICOS PARA EL BOTÓN DE CONOCIMIENTOS (MAGENTA) */
+        #knowledge-wrapper {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+        #knowledge-wrapper:hover {
+             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8), 0 0 15px #ff00ff; /* Sombra magenta */
+        }
+        #knowledge-button {
+            background-color: #ff00ff; /* Color neón magenta */
+        }
+        #knowledge-button:hover {
+            background-color: #ff80ff; /* Magenta más claro */
+        }
+
+
+        .action-button i {
             margin-right: 8px; /* Espacio entre el ícono y el texto */
         }
         
@@ -189,27 +218,49 @@
         </div>
     </div>
     
-    <div class="creations-button-container">
-        <a href="#" onclick="goToCreations(); return false;" class="creations-button" title="Ver mis proyectos">
-            <i class="fas fa-hammer"></i> 
-            Mis Creaciones
-        </a>
+    <div class="action-buttons-container">
+        
+        <div class="action-button-wrapper" id="creations-wrapper">
+            <a href="#" onclick="goToCreations(); return false;" class="action-button" id="creations-button" title="Ver mis proyectos">
+                <i class="fas fa-hammer"></i> 
+                Mis Creaciones
+            </a>
+        </div>
+        
+        <div class="action-button-wrapper" id="knowledge-wrapper">
+            <a href="#" onclick="goToKnowledge(); return false;" class="action-button" id="knowledge-button" title="Ver mis habilidades">
+                <i class="fas fa-brain"></i> 
+                Mis Conocimientos
+            </a>
+        </div>
+        
     </div>
 
     <script>
-        // FUNCIÓN CLAVE PARA INICIAR EL AUDIO EN LA OTRA PÁGINA
+        // FUNCIÓN CLAVE PARA IR A CREACIONES
         function goToCreations() {
-            // 1. Pausamos la música de la página principal (si está sonando)
+            // Pausa el audio principal
             const mainAudio = document.getElementById('background-audio');
             if (mainAudio) {
                 mainAudio.pause();
             }
-            
-            // 2. Establecemos una bandera para que creaciones.html sepa que debe iniciar la música
+            // Establece la bandera para iniciar la música futurista
             sessionStorage.setItem('playFuturisticAudio', 'true');
-            
-            // 3. Navegamos a la nueva página
+            // Navega a la página
             window.location.href = 'creaciones.html';
+        }
+
+        // FUNCIÓN CLAVE PARA IR A CONOCIMIENTOS (NUEVA)
+        function goToKnowledge() {
+            // Pausa el audio principal
+            const mainAudio = document.getElementById('background-audio');
+            if (mainAudio) {
+                mainAudio.pause();
+            }
+            // Establece la bandera para iniciar la música de conocimientos (si la tuviera)
+            sessionStorage.setItem('playKnowledgeAudio', 'true');
+            // Navega a la nueva página
+            window.location.href = 'conocimientos.html';
         }
 
         // 1. CONTROL DE LA MÚSICA
