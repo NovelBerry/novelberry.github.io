@@ -17,8 +17,8 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            /* Fondo de circuito futurista */
-            background-image: url('fondo_circuito.jpg');
+            /* Fondo de circuito futurista - RUTA CORREGIDA */
+            background-image: url('fondo_creaciones.jpg'); 
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -110,6 +110,42 @@
         .back-button:hover {
             background-color: rgba(255, 255, 255, 0.2);
         }
+        
+        /* --- ESTILOS PARA EL REPRODUCTOR DE MÚSICA FUTURISTA --- */
+        .audio-player-creations {
+            width: 300px;
+            margin-top: 20px;
+            padding: 10px 0;
+            background: rgba(0, 0, 0, 0.5); /* Fondo más oscuro */
+            border-radius: 12px;
+            box-shadow: 0 0 10px #00ffff; /* Sombra de neón azul */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed; /* Lo fijamos en la esquina inferior */
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+        #playPauseButtonCreations {
+            background-color: #ff00ff; /* Color neón magenta */
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        #playPauseButtonCreations:hover {
+            background-color: #ff80ff; /* Magenta más claro al pasar el ratón */
+        }
+        #audio-status-creations {
+            color: white;
+            margin-left: 10px;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -123,7 +159,7 @@
 
         <div class="project-card">
             <h2>Winted Studio</h2>
-            <img src="WINTED-STUDIO.jpg" alt="Logo de Winted Studio">
+            <img src="winted_logo.jpg" alt="Logo de Winted Studio"> 
             <p><strong>Descripción:</strong> Winted Studio es nuestro proyecto principal. Es un lugar donde creamos videojuegos de alta calidad y ofrecemos servicios profesionales de desarrollo.</p>
             <p><strong>Enfoque:</strong> Desarrollo de los mejores videojuegos y provisión de servicios de desarrollo.</p>
             <a href="https://discord.gg/vMFpFMedSP" target="_blank" class="discord-btn">
@@ -133,7 +169,7 @@
 
         <div class="project-card">
             <h2>Zephyros Arcadia</h2>
-            <img src="zephyros_arcadia_logo.jpg" alt="Logo de Zephyros Arcadia"> 
+            <img src="zephyros_logo.jpg" alt="Logo de Zephyros Arcadia"> 
             <p><strong>Descripción:</strong> ¡Una comunidad y lugar donde cualquiera es bienvenido! Nuestro enfoque principal es crear un espacio acogedor y amigable para todos.</p>
             <p><strong>Enfoque:</strong> Comunidad, amistad y un espacio abierto para todos.</p>
             <a href="https://discord.gg/Jg53eZCr82" target="_blank" class="discord-btn">
@@ -142,5 +178,64 @@
         </div>
         
     </div>
+
+    <div class="audio-player-creations">
+        <audio id="futuristic-audio" loop>
+            <source src="musica_futurista.mp3" type="audio/mp3">
+        </audio>
+        <button id="playPauseButtonCreations">
+            ▶️ Play
+        </button>
+        <span id="audio-status-creations">Música Futurista</span>
+    </div>
+
+    <script>
+        // 1. CONTROL DE LA MÚSICA EN LA PÁGINA DE CREACIONES
+        const audioCreations = document.getElementById('futuristic-audio');
+        const playPauseButtonCreations = document.getElementById('playPauseButtonCreations');
+        const audioStatusCreations = document.getElementById('audio-status-creations');
+
+        // ** LÓGICA DE INICIO AUTOMÁTICO (activada por el clic en main.html) **
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verifica si la bandera fue establecida por el clic en el botón 'Mis Creaciones'
+            if (sessionStorage.getItem('playFuturisticAudio') === 'true') {
+                
+                // Eliminamos la bandera después de usarla
+                sessionStorage.removeItem('playFuturisticAudio'); 
+
+                // Intentamos iniciar la música
+                audioCreations.play().then(() => {
+                    playPauseButtonCreations.innerHTML = '⏸️ Pause';
+                    audioStatusCreations.textContent = 'Música Futurista';
+                }).catch(e => {
+                    // Si el navegador bloquea el play, se queda en Play
+                    playPauseButtonCreations.innerHTML = '▶️ Play';
+                    audioStatusCreations.textContent = 'Música pausada';
+                });
+            }
+        });
+
+        // Función para manejar el clic en el botón de Play/Pause (Manual)
+        playPauseButtonCreations.addEventListener('click', () => {
+            if (audioCreations.paused) {
+                audioCreations.play();
+                playPauseButtonCreations.innerHTML = '⏸️ Pause';
+                audioStatusCreations.textContent = 'Música Futurista';
+            } else {
+                audioCreations.pause();
+                playPauseButtonCreations.innerHTML = '▶️ Play';
+                audioStatusCreations.textContent = 'Música pausada';
+            }
+        });
+
+        // 2. SCRIPT PARA DESACTIVAR LA MÚSICA AL VOLVER A MAIN.HTML
+        document.querySelector('.back-button').addEventListener('click', () => {
+            // Detenemos la música de la página de creaciones antes de salir
+            audioCreations.pause();
+            
+            // Eliminamos la bandera de autoplay de la página principal para evitar conflictos
+            sessionStorage.removeItem('playAudio'); 
+        });
+    </script>
 </body>
 </html>
