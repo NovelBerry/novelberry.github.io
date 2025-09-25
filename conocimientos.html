@@ -126,7 +126,7 @@
             background-color: rgba(255, 0, 255, 0.2);
         }
         
-        /* --- ESTILOS PARA EL REPRODUCTOR DE MÚSICA FUTURISTA (copiado de creaciones.html) --- */
+        /* --- ESTILOS PARA EL REPRODUCTOR DE MÚSICA FUTURISTA --- */
         .audio-player-knowledge {
             width: 300px;
             margin-top: 20px;
@@ -202,12 +202,12 @@
 
     <div class="audio-player-knowledge">
         <audio id="knowledge-audio" loop>
-            <source src="musica_conocimientos.mp4" type="audio/mp4">
+            <source src="musica_conocimientos.mp3" type="audio/mpeg">
         </audio>
         <button id="playPauseButtonKnowledge">
             ▶️ Play
         </button>
-        <span id="audio-status-knowledge">Música de Concentración</span>
+        <span id="audio-status-knowledge">Música pausada</span>
     </div>
 
     <script>
@@ -216,32 +216,39 @@
         const playPauseButtonKnowledge = document.getElementById('playPauseButtonKnowledge');
         const audioStatusKnowledge = document.getElementById('audio-status-knowledge');
 
-        // ** LÓGICA DE INICIO AUTOMÁTICO (activada por el clic en main.html) **
+        // ** LÓGICA DE INICIO AUTOMÁTICO **
         document.addEventListener('DOMContentLoaded', () => {
             // Verifica si la bandera fue establecida por el clic en el botón 'Mis Conocimientos'
             if (sessionStorage.getItem('playKnowledgeAudio') === 'true') {
                 
-                // Eliminamos la bandera después de usarla
+                // Eliminamos la bandera para que no se reproduzca si el usuario recarga
                 sessionStorage.removeItem('playKnowledgeAudio'); 
 
-                // Intentamos iniciar la música
-                audioKnowledge.play().then(() => {
-                    playPauseButtonKnowledge.innerHTML = '⏸️ Pause';
-                    audioStatusKnowledge.textContent = 'Música de Concentración';
-                }).catch(e => {
-                    // Si el navegador bloquea el play, se queda en Play
-                    playPauseButtonKnowledge.innerHTML = '▶️ Play';
-                    audioStatusKnowledge.textContent = 'Música pausada';
-                });
+                // Intentamos iniciar la música.
+                setTimeout(() => {
+                    audioKnowledge.play().then(() => {
+                        playPauseButtonKnowledge.innerHTML = '⏸️ Pause';
+                        audioStatusKnowledge.textContent = 'Música de Concentración';
+                    }).catch(e => {
+                        // El navegador bloqueó la auto-reproducción. Dejamos el botón en Play.
+                        console.error('El navegador bloqueó la auto-reproducción.', e);
+                        playPauseButtonKnowledge.innerHTML = '▶️ Play';
+                        audioStatusKnowledge.textContent = 'Música pausada (Click Play)';
+                    });
+                }, 100); 
             }
         });
 
         // Función para manejar el clic en el botón de Play/Pause (Manual)
         playPauseButtonKnowledge.addEventListener('click', () => {
             if (audioKnowledge.paused) {
-                audioKnowledge.play();
-                playPauseButtonKnowledge.innerHTML = '⏸️ Pause';
-                audioStatusKnowledge.textContent = 'Música de Concentración';
+                audioKnowledge.play().then(() => {
+                    playPauseButtonKnowledge.innerHTML = '⏸️ Pause';
+                    audioStatusKnowledge.textContent = 'Música de Concentración';
+                }).catch(e => {
+                    console.error('Error al intentar reproducir el audio:', e);
+                    audioStatusKnowledge.textContent = 'Error de reproducción';
+                });
             } else {
                 audioKnowledge.pause();
                 playPauseButtonKnowledge.innerHTML = '▶️ Play';
@@ -254,8 +261,8 @@
             // Detenemos la música de la página de conocimientos antes de salir
             audioKnowledge.pause();
             
-            // Eliminamos la bandera de autoplay de la página principal para evitar conflictos
-            sessionStorage.removeItem('playAudio'); 
+            // Establecemos la bandera para que main.html inicie su música de nuevo
+            sessionStorage.setItem('playAudio', 'true');
         });
     </script>
 </body>
