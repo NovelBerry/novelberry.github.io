@@ -43,7 +43,17 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            /* Habilitamos la transición para el efecto hover */
+            transition: box-shadow 0.3s ease, transform 0.3s ease, background 0.3s ease;
         }
+        
+        /* EFECTO HOVER EN REPRODUCTOR DE MÚSICA */
+        .audio-player:hover {
+            transform: translateY(-5px); /* Levantamos ligeramente el reproductor */
+            background: rgba(255, 255, 255, 0.2); /* Fondo más opaco */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8), 0 0 15px #00ffff; /* Brillo más intenso */
+        }
+
         #playPauseButton {
             background-color: var(--color-acento-celeste); /* Color celeste */
             color: black;
@@ -75,7 +85,17 @@
             border-radius: 12px;
             padding: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+             /* Habilitamos la transición para el efecto hover */
+            transition: box-shadow 0.3s ease, transform 0.3s ease, background 0.3s ease;
         }
+        
+        /* EFECTO HOVER EN CONTENEDOR DEL BOTÓN DE CREACIONES */
+        .creations-button-container:hover {
+            transform: translateY(-5px); /* Levantamos ligeramente */
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8), 0 0 15px #00ffff;
+        }
+
 
         .creations-button {
             /* Estilo visual del botón */
@@ -98,6 +118,22 @@
 
         .creations-button i {
             margin-right: 8px; /* Espacio entre el ícono y el texto */
+        }
+        
+        /* --- EFECTOS HOVER EN ÍCONOS DE REDES SOCIALES --- */
+        .social-links a {
+            /* Habilitamos la transición para un movimiento suave */
+            transition: transform 0.3s ease, color 0.3s ease, text-shadow 0.3s ease;
+            color: white; /* Color base */
+        }
+
+        .social-links a:hover {
+            /* Agrandamos el ícono ligeramente (1.2 veces su tamaño) */
+            transform: scale(1.2);
+            /* Cambiamos el color a celeste neón */
+            color: var(--color-acento-celeste, #00ffff);
+            /* Añadimos un brillo al ícono */
+            text-shadow: 0 0 10px var(--color-acento-celeste, #00ffff);
         }
     </style>
 </head>
@@ -176,7 +212,7 @@
             window.location.href = 'creaciones.html';
         }
 
-        // 1. CONTROL DE LA MÚSICA (Sin cambios, pero con la función goToCreations ahora se pausa correctamente)
+        // 1. CONTROL DE LA MÚSICA
         const audio = document.getElementById('background-audio');
         const playPauseButton = document.getElementById('playPauseButton');
         const audioStatus = document.getElementById('audio-status');
@@ -185,7 +221,7 @@
         document.addEventListener('DOMContentLoaded', () => {
              // Usamos un pequeño retraso para darle tiempo al navegador de inicializar
             if (sessionStorage.getItem('playAudio') === 'true') {
-                 setTimeout(() => {
+                setTimeout(() => {
                     audio.play().then(() => {
                         playPauseButton.innerHTML = '⏸️ Pause';
                         audioStatus.textContent = 'Música de Fondo';
