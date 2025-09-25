@@ -109,7 +109,7 @@
             Tu navegador no soporta el video de fondo.
         </video>
 
-        <img src="NovelBerry.jpg" alt="Imagen de Perfil Principal" class="profile-img-main">
+        <img src="novelberry_perfil.jpg" alt="Imagen de Perfil Principal" class="profile-img-main">
         
         <h1 class="username-main">NovelBerry</h1>
 
@@ -154,28 +154,46 @@
     </div>
     
     <div class="creations-button-container">
-        <a href="creaciones.html" class="creations-button" title="Ver mis proyectos">
+        <a href="#" onclick="goToCreations(); return false;" class="creations-button" title="Ver mis proyectos">
             <i class="fas fa-hammer"></i> 
             Mis Creaciones
         </a>
     </div>
 
     <script>
-        // 1. CONTROL DE LA MÚSICA
+        // FUNCIÓN CLAVE PARA INICIAR EL AUDIO EN LA OTRA PÁGINA
+        function goToCreations() {
+            // 1. Pausamos la música de la página principal (si está sonando)
+            const mainAudio = document.getElementById('background-audio');
+            if (mainAudio) {
+                mainAudio.pause();
+            }
+            
+            // 2. Establecemos una bandera para que creaciones.html sepa que debe iniciar la música
+            sessionStorage.setItem('playFuturisticAudio', 'true');
+            
+            // 3. Navegamos a la nueva página
+            window.location.href = 'creaciones.html';
+        }
+
+        // 1. CONTROL DE LA MÚSICA (Sin cambios, pero con la función goToCreations ahora se pausa correctamente)
         const audio = document.getElementById('background-audio');
         const playPauseButton = document.getElementById('playPauseButton');
         const audioStatus = document.getElementById('audio-status');
 
         // Intenta iniciar la reproducción si index.html nos dio la instrucción
         document.addEventListener('DOMContentLoaded', () => {
+             // Usamos un pequeño retraso para darle tiempo al navegador de inicializar
             if (sessionStorage.getItem('playAudio') === 'true') {
-                audio.play().then(() => {
-                    playPauseButton.innerHTML = '⏸️ Pause';
-                    audioStatus.textContent = 'Música de Fondo';
-                }).catch(e => {
-                    playPauseButton.innerHTML = '▶️ Play';
-                    audioStatus.textContent = 'Música pausada';
-                });
+                 setTimeout(() => {
+                    audio.play().then(() => {
+                        playPauseButton.innerHTML = '⏸️ Pause';
+                        audioStatus.textContent = 'Música de Fondo';
+                    }).catch(e => {
+                        playPauseButton.innerHTML = '▶️ Play';
+                        audioStatus.textContent = 'Música pausada';
+                    });
+                }, 500);
             }
         });
 
