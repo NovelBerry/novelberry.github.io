@@ -8,12 +8,18 @@
     <link rel="stylesheet" href="style.css">
     
     <style>
+        /* REGLA CLAVE 1: Aseguramos que el elemento raíz pueda tener scroll */
+        html {
+            height: 100%; /* Ocupa toda la altura de la ventana */
+            overflow-y: scroll; /* Permite el scroll vertical si es necesario */
+        }
+
         /* Estilos para el fondo futurista */
         body {
             /* SOLUCIÓN AL PROBLEMA DE SCROLL: Cambiamos display: flex a block. */
             display: block; 
             
-            /* LÍNEA CLAVE: Asegura que el scroll vertical esté activo forzosamente */
+            /* LÍNEA CLAVE 2: Forzamos la aparición de la barra de desplazamiento */
             overflow-y: scroll !important; 
             height: 100%;
             min-height: 100vh; 
@@ -27,7 +33,7 @@
             color: white;
             font-family: Arial, sans-serif;
             
-            /* Aumentamos el padding superior e inferior para el scroll */
+            /* Aumentamos el padding superior e inferior */
             padding-top: 50px;
             padding-bottom: 100px; /* Espacio extra para que el reproductor no tape el contenido */
             position: relative;
@@ -43,7 +49,6 @@
             width: 90%;
             z-index: 5;
             text-align: center;
-            /* Centramos y permitimos que el contenido empuje la altura del body */
             margin: 50px auto 0; 
         }
 
@@ -62,7 +67,15 @@
             border-radius: 10px;
             border-left: 5px solid var(--color-acento-celeste);
             text-align: left;
+            /* Transición para efectos de hover */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
+        /* Efecto Hover para las tarjetas */
+        .project-card:hover {
+            transform: translateY(-5px); /* Se levanta un poco */
+            box-shadow: 0 10px 25px rgba(0, 255, 255, 0.7); /* Sombra de neón más fuerte */
+        }
+
         .project-card:last-child {
             margin-bottom: 0;
         }
@@ -132,6 +145,13 @@
             left: 50%;
             transform: translateX(-50%);
             z-index: 100;
+            /* Transición para efectos de hover */
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+        /* Efecto Hover en el reproductor */
+        .audio-player-creations:hover {
+            transform: translateX(-50%) translateY(-5px); /* Se levanta sutilmente */
+            box-shadow: 0 0 20px #ff00ff; /* Cambia a neón magenta en hover */
         }
         #playPauseButtonCreations {
             background-color: #ff00ff; /* Color neón magenta */
