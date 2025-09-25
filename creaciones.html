@@ -11,15 +11,14 @@
         /* Estilos para el fondo futurista */
         body {
             /* SOLUCIÓN AL PROBLEMA DE SCROLL: Cambiamos display: flex a block. */
-            /* El display: block permite que el contenido desborde la página y active el scroll. */
             display: block; 
             
+            /* LÍNEA CLAVE: Asegura que el scroll vertical esté activo forzosamente */
+            overflow-y: scroll !important; 
+            height: 100%;
             min-height: 100vh; 
             margin: 0;
             
-            /* QUITAMOS alineación y justificación que solo funcionan con display: flex */
-            /* (QUITADAS: flex-direction: column; align-items: center; justify-content: flex-start;) */
-
             /* RUTA DE FONDO */
             background-image: url('fondo_creaciones.jpg'); 
             background-size: cover;
