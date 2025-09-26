@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Millonario Clicker</title>
+    <!-- El CSS se carga en el siguiente paso -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,51 +12,107 @@
     <!-- Capa de decoración de fondo -->
     <div id="fondo-decoracion"></div>
 
-    <!-- Layout principal del juego (Grid de 3 columnas) -->
-    <div id="main-game-layout">
+    <!-- Barra de navegación (Controla la vista actual) -->
+    <div id="nav-bar">
+        <!-- Las funciones cambiarVista() y resetearJuego() están en script.js -->
+        <button onclick="cambiarVista('clicker')">CLIC & NEGOCIOS</button>
+        <button onclick="cambiarVista('propiedades')">ACTIVOS & LUJOS</button>
+        <button onclick="cambiarVista('stats')">INVENTARIO & ESTADÍSTICAS</button>
+        <button onclick="resetearJuego()" style="background-color: #d32f2f; border: 1px solid #b71c1c;">REINICIAR</button>
+    </div>
 
-        <!-- Panel Izquierdo: Mejoras de Clic (Gated) -->
-        <div id="mejoras-clic-panel" class="side-panel">
-            <h2>Mejoras de Clic</h2>
-            <div id="mejoras-clic-tienda">
-                <!-- Las mejoras de clic se cargarán aquí por script.js -->
+    <!-- Contenedor Principal de Vistas -->
+    <div id="game-view-container">
+
+        <!-- VISTA 1: Clicker & Mejoras (Predeterminada al iniciar) -->
+        <div id="view-clicker" class="game-view active">
+            <!-- Layout principal del juego (Grid de 3 columnas, se define en CSS) -->
+            <div id="main-game-layout">
+
+                <!-- Panel Izquierdo: Mejoras de Clic (IPC) -->
+                <div id="mejoras-clic-panel" class="side-panel">
+                    <h2>Mejoras de Clic</h2>
+                    <div id="mejoras-clic-tienda">
+                        <!-- Contenido cargado por script.js -->
+                    </div>
+                </div>
+
+                <!-- Área Central: Botón de Clic y Estadísticas -->
+                <div id="clicker-area">
+                    <h1>MILLONARIO CLICKER</h1>
+                    
+                    <!-- Contenedor de estadísticas principales -->
+                    <div id="info-dinero">
+                        <p>Dinero Actual: <span id="dinero-actual">$0.00</span></p>
+                        <p>Ingreso por Clic (IPC): <span id="ipc-actual">$1.00</span></p>
+                        <p>Ingreso por Segundo (IPS): <span id="ips-actual">0.00</span></p>
+                    </div>
+
+                    <!-- Área del Botón Principal -->
+                    <div id="area-clic">
+                        <button id="billete-btn" onclick="hacerClic()">
+                            <span class="emoji-billete">💰</span>
+                            CLIC
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Panel Derecho: Generadores Pasivos (IPS) -->
+                <div id="generadores-panel" class="side-panel">
+                    <h2>Generadores Pasivos</h2>
+                    <div id="generadores-tienda">
+                        <!-- Contenido cargado por script.js -->
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Área Central: Botón de Clic y Estadísticas -->
-        <div id="clicker-area">
-            <h1>MILLONARIO CLICKER</h1>
-            
-            <!-- Contenedor de estadísticas principales -->
-            <div id="info-dinero">
-                <p>Dinero Actual: <span id="dinero-actual">$0.00</span></p>
-                <p>Ingreso por Clic (IPC): <span id="ipc-actual">$1.00</span></p>
-                <p>Ingreso por Segundo (IPS): <span id="ips-actual">0.0</span></p>
-            </div>
+        <!-- VISTA 2: Activos y Lujos (Inicialmente oculta, se muestra con cambiarVista('propiedades')) -->
+        <div id="view-propiedades" class="game-view" style="display:none;">
+            <h1 class="view-title">Activos y Lujos</h1>
+            <div class="asset-grid">
+                
+                <!-- Sección de Vehículos (Lujo Único) -->
+                <div class="asset-section">
+                    <h2>Vehículos 🚗</h2>
+                    <div id="tienda-vehiculos" class="asset-shop">
+                        <!-- Contenido cargado por script.js -->
+                    </div>
+                </div>
 
-            <!-- Área del Botón Principal -->
-            <div id="area-clic">
-                <button id="billete-btn" onclick="hacerClic()">
-                    <span class="emoji-billete">💰</span>
-                    CLIC
-                </button>
+                <!-- Sección de Casas y Propiedades (Lujo Único) -->
+                <div class="asset-section">
+                    <h2>Propiedades Inmobiliarias 🏠</h2>
+                    <div id="tienda-propiedades" class="asset-shop">
+                        <!-- Contenido cargado por script.js -->
+                    </div>
+                </div>
+                
+                <!-- Sección de Acciones (Inversión Pasiva Múltiple) -->
+                <div class="asset-section">
+                    <h2>Inversiones Pasivas (Acciones) 📈</h2>
+                    <div id="tienda-acciones" class="asset-shop">
+                        <!-- Contenido cargado por script.js -->
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Panel Derecho: Generadores Pasivos -->
-        <div id="generadores-panel" class="side-panel">
-            <h2>Generadores Pasivos</h2>
-            <div id="generadores-tienda">
-                <!-- Los generadores se cargarán aquí por script.js -->
+        <!-- VISTA 3: Inventario y Estadísticas (Inicialmente oculta, se muestra con cambiarVista('stats')) -->
+        <div id="view-stats" class="game-view" style="display:none;">
+            <h1 class="view-title">Estadísticas e Inventario</h1>
+            <div id="stats-content">
+                <!-- Contenido generado por dibujarEstadisticas() en script.js -->
             </div>
         </div>
+
     </div>
 
     <!-- ============================================== -->
-    <!-- SCRIPTS (Incluyendo Firebase para compatibilidad futura y el script del juego) -->
+    <!-- SCRIPTS -->
     <!-- ============================================== -->
     
-    <!-- Incluir los módulos de Firebase (aunque no se usan activamente, se cargan para el entorno) -->
+    <!-- Configuración de Firebase (necesario para el entorno Canvas) -->
     <script type="module">
         // Variables globales necesarias por el entorno de Canvas
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -86,10 +143,12 @@
         }
     </script>
     
-    <!-- Función de Animación Flotante (Requerida por script.js) -->
+    <!-- Función de Animación Flotante (necesaria para 'hacerClic') -->
     <script>
         function crearAnimacionClic(cantidad) {
             const billeteBtn = document.getElementById('billete-btn');
+            if (!billeteBtn) return;
+            
             const rect = billeteBtn.getBoundingClientRect();
             
             const animacion = document.createElement('div');
@@ -102,7 +161,7 @@
             
             document.body.appendChild(animacion);
             
-            // Eliminar el elemento después de que termine la animación
+            // Eliminar el elemento después de que termine la animación (definido en CSS)
             animacion.addEventListener('animationend', () => {
                 animacion.remove();
             });
