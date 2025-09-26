@@ -145,8 +145,23 @@ html, body {
 }
 
 /* ================================================== */
-/* --- ESTILOS AÑADIDOS PARA EL JUEGO CLICKER (millonario.html) --- */
+/* --- ESTILOS AÑADIDOS Y MODIFICADOS PARA EL JUEGO CLICKER (millonario.html) --- */
 /* ================================================== */
+
+/* --- DECORACIÓN DE FONDO --- */
+#fondo-decoracion {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Patrón de red sutil */
+    background-image: radial-gradient(#1e1e1e 1px, transparent 0);
+    background-size: 20px 20px;
+    opacity: 0.2; 
+    z-index: -1;
+}
+
 
 /* Contenedor Principal: Se integra con el tema oscuro */
 #millonario-container {
@@ -154,8 +169,10 @@ html, body {
     margin: 40px auto;
     padding: 30px;
     
-    /* Fondo ligeramente más claro que el body para destacarse */
-    background-color: #1e1e1e; 
+    /* Hace que el fondo sea casi opaco para destacar sobre #fondo-decoracion */
+    background-color: rgba(30, 30, 30, 0.95); 
+    position: relative; /* Para que la sombra del container esté sobre el fondo */
+    z-index: 10; 
     
     color: var(--color-texto-claro);
     border: 1px solid var(--color-acento-celeste); /* Borde con tu color acento */
@@ -220,7 +237,7 @@ html, body {
     margin: 20px 0;
 }
 
-/* --- Tienda de Generadores --- */
+/* --- Tienda de Mejoras y Generadores --- */
 
 #millonario-container h2 {
     color: var(--color-texto-claro);
@@ -228,7 +245,8 @@ html, body {
     margin-bottom: 20px;
 }
 
-#generadores-tienda {
+/* Contenedores de tienda flexibles para que se vean bien en móvil */
+#generadores-tienda, #mejoras-clic-tienda {
     display: flex;
     flex-wrap: wrap;
     gap: 20px; 
@@ -236,26 +254,29 @@ html, body {
     margin-top: 15px;
 }
 
-.generador-item {
+/* Estilo unificado para items de tienda */
+.tienda-item {
     border: 1px solid var(--color-acento-celeste);
     background-color: #242424; /* Un fondo un poco más oscuro */
     padding: 15px;
     width: 180px;
     border-radius: 8px;
     text-align: left;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
 }
 
-.generador-item:hover {
-    background-color: #2e2e2e;
+.tienda-item:hover {
+    background-color: #383838;
+    transform: translateY(-2px); /* Pequeña elevación al pasar el ratón */
+    box-shadow: 0 5px 15px rgba(0, 189, 212, 0.2);
 }
 
-.generador-item p {
+.tienda-item p {
     margin-bottom: 5px;
     font-size: 0.95em;
 }
 
-.generador-item strong {
+.tienda-item strong {
     color: var(--color-acento-celeste);
     display: block;
     font-size: 1.1em;
