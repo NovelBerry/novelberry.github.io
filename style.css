@@ -6,7 +6,8 @@
 :root {
     --color-fondo-oscuro: #121212;
     --color-texto-claro: #f0f0f0;
-    --color-acento-celeste: #00bcd4;
+    --color-acento-celeste: #00bcd4; /* Color de acento para todo (portafolio y clicker) */
+    --color-secundario: #6495ed; /* Azul para el IPC del clicker y títulos de panel */
 }
 
 * {
@@ -22,16 +23,14 @@ html, body {
     width: 100%;
     background-color: var(--color-fondo-oscuro);
     color: var(--color-texto-claro);
-    
-    /* SOLUCIÓN FINAL: Permite el scroll vertical si el contenido desborda. */
-    overflow-y: auto; 
+    overflow-y: auto; /* Permite el scroll vertical si el contenido desborda. */
     overflow-x: hidden; /* Previene el scroll horizontal no deseado */
 }
 
 /* --- ESTILOS DE LA PÁGINA DE ENTRADA (index.html) --- */
 .splash-container {
-    /* Aquí se requiere centrado vertical, lo re-introducimos para esta clase */
-    position: absolute; /* Usamos posicionamiento absoluto para que no afecte el body */
+    /* Aquí se requiere centrado vertical para la página de bienvenida */
+    position: absolute; 
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -47,12 +46,11 @@ html, body {
 .splash-container:hover {
     color: var(--color-acento-celeste);
     border-color: var(--color-acento-celeste);
-    transform: translate(-50%, -50%) scale(1.05); /* Modificado por el transform de centrado */
+    transform: translate(-50%, -50%) scale(1.05); 
 }
 
-/* --- ESTILOS DE LA PÁGINA PRINCIPAL (main.html) --- */
+/* --- ESTILOS DE LA PÁGINA PRINCIPAL (main.html - PORTAFOLIO) --- */
 .main-container {
-    /* Esta clase ya manejaba su propio display: flex, por lo que no hay conflicto. */
     width: 100%;
     height: 100%;
     display: flex;
@@ -72,7 +70,7 @@ html, body {
     object-fit: cover;
     margin-bottom: 20px;
     filter: drop-shadow(0 0 10px var(--color-acento-celeste));
-    z-index: 10; /* Asegura que el perfil esté sobre el rastro */
+    z-index: 10;
 }
 
 .username-main {
@@ -134,18 +132,18 @@ html, body {
 /* --- ESTILOS PARA EL RASTRO DEL CURSOR --- */
 .cursor-dot {
     position: absolute;
-    width: 5px; /* Tamaño del punto */
+    width: 5px; 
     height: 5px;
     background-color: var(--color-acento-celeste); 
     border-radius: 50%;
-    pointer-events: none; /* Crucial para que no bloquee los clics */
+    pointer-events: none; 
     opacity: 1;
-    transition: opacity 0.5s, transform 0.5s; /* Añade transición para el desvanecimiento */
-    z-index: 9; /* Debe estar bajo los elementos de perfil */
+    transition: opacity 0.5s, transform 0.5s; 
+    z-index: 9; 
 }
 
 /* ================================================== */
-/* --- ESTILOS AÑADIDOS Y MODIFICADOS PARA EL JUEGO CLICKER (millonario.html) --- */
+/* --- ESTILOS PARA EL JUEGO CLICKER (millonario.html) --- */
 /* ================================================== */
 
 /* --- DECORACIÓN DE FONDO --- */
@@ -155,165 +153,168 @@ html, body {
     left: 0;
     width: 100%;
     height: 100%;
-    /* Patrón de red sutil */
     background-image: radial-gradient(#1e1e1e 1px, transparent 0);
     background-size: 20px 20px;
     opacity: 0.2; 
     z-index: -1;
 }
 
+/* ================================================== */
+/* --- LAYOUT PRINCIPAL (3 Columnas) --- */
+/* ================================================== */
 
-/* Contenedor Principal: Se integra con el tema oscuro */
-#millonario-container {
-    max-width: 700px;
-    margin: 40px auto;
-    padding: 30px;
-    
-    /* Hace que el fondo sea casi opaco para destacar sobre #fondo-decoracion */
-    background-color: rgba(30, 30, 30, 0.95); 
-    position: relative; /* Para que la sombra del container esté sobre el fondo */
-    z-index: 10; 
-    
-    color: var(--color-texto-claro);
-    border: 1px solid var(--color-acento-celeste); /* Borde con tu color acento */
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 0 20px rgba(0, 189, 212, 0.3); /* Sombra con color acento */
+#main-game-layout {
+    display: grid;
+    /* Grid de 3 columnas: Panel Izq (250px), Centro (Auto), Panel Der (250px) */
+    grid-template-columns: 250px auto 250px; 
+    width: 100%;
+    min-height: 100vh; /* Asegura que cubra toda la altura */
+    max-width: 1400px; 
+    margin: 0 auto;
 }
 
-/* Títulos y Texto de Información */
-#millonario-container h1 {
+/* --- ESTILOS DEL PANEL LATERAL (Tienda/Mejoras) --- */
+
+.side-panel {
+    background-color: #1e1e1e;
+    border-right: 2px solid var(--color-acento-celeste);
+    padding: 10px 5px;
+    overflow-y: auto; /* Scroll dentro del panel */
+    height: 100vh; /* Ocupa toda la altura visible */
+    position: sticky;
+    top: 0;
+}
+
+#generadores-panel {
+    border-right: none;
+    border-left: 2px solid var(--color-acento-celeste);
+    grid-column: 3;
+}
+
+/* Título del Panel */
+.side-panel h2 {
+    text-align: center;
+    color: var(--color-secundario); /* Usando color secundario (azul) */
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(100, 149, 237, 0.5);
+    padding-bottom: 5px;
+    font-size: 1.3em;
+}
+
+/* Estilo de cada elemento de tienda */
+.tienda-item {
+    border: 1px solid #333;
+    background-color: #242424; 
+    margin-bottom: 8px;
+    padding: 10px;
+    border-radius: 4px;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.1s;
+}
+
+.tienda-item:hover {
+    background-color: #2e2e2e;
+}
+
+/* Estilo para items que no se pueden comprar (bloqueados por gating o costo) */
+.item-bloqueado {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #1a1a1a !important;
+}
+
+.item-comprado {
+    border: 1px solid #388e3c; /* Borde verde para items ya comprados */
+    background-color: #2e3d30;
+    opacity: 0.7;
+}
+
+/* --- ESTILOS DEL ÁREA CENTRAL (Clicker y Stats) --- */
+
+#clicker-area {
+    padding: 20px;
+    text-align: center;
+    grid-column: 2; /* Columna central */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* Alinea los elementos arriba */
+}
+
+#clicker-area h1 {
     color: var(--color-acento-celeste);
     font-size: 2.5em;
     margin-bottom: 20px;
     letter-spacing: 1px;
 }
 
+/* Sección de Información */
+#info-dinero {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 15px 30px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    border: 1px solid var(--color-acento-celeste);
+}
+
 #info-dinero p {
-    font-size: 1.3em;
+    font-size: 1.5em;
     font-weight: 700;
-    margin: 10px 0;
+    margin: 5px 0;
 }
 
-/* El Billete (Botón Principal de Click) */
-#area-clic {
-    padding: 30px 0;
-}
-
+/* Botón de Clic */
 #billete-btn {
-    width: 180px;
-    height: 180px;
+    width: 250px;
+    height: 250px;
     border-radius: 50%;
-    
-    /* Colores relacionados con el dinero (Verde para el billete) */
-    background-color: #388e3c; 
+    background-color: #388e3c;
     color: var(--color-texto-claro);
     font-size: 1.2em;
     cursor: pointer;
-    
-    border: 5px solid #2e7d32;
-    box-shadow: 0 0 15px rgba(56, 142, 60, 0.7);
+    border: 8px solid #2e7d32;
+    box-shadow: 0 0 25px rgba(56, 142, 60, 0.9);
     transition: transform 0.1s, box-shadow 0.3s;
-    outline: none; /* Quita el contorno feo al hacer clic */
+    outline: none;
+    margin-top: 50px;
 }
 
-/* Efecto al hacer clic (Presión) */
 #billete-btn:active {
-    transform: scale(0.92);
-    box-shadow: 0 0 5px rgba(56, 142, 60, 0.9);
+    transform: scale(0.95);
+    box-shadow: 0 0 10px rgba(56, 142, 60, 1);
 }
 
 .emoji-billete {
     display: block;
-    font-size: 3.5em; /* Emoji más grande */
+    font-size: 5em; 
 }
 
-/* Separador (HR) */
-#millonario-container hr {
-    border: 0;
-    height: 1px;
-    /* Usa el color acento para la línea divisoria */
-    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), var(--color-acento-celeste), rgba(0, 0, 0, 0));
-    margin: 20px 0;
-}
-
-/* --- Tienda de Mejoras y Generadores --- */
-
-#millonario-container h2 {
-    color: var(--color-texto-claro);
-    font-size: 1.8em;
-    margin-bottom: 20px;
-}
-
-/* Contenedores de tienda flexibles para que se vean bien en móvil */
-#generadores-tienda, #mejoras-clic-tienda {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px; 
-    justify-content: center;
-    margin-top: 15px;
-}
-
-/* Estilo unificado para items de tienda */
-.tienda-item {
-    border: 1px solid var(--color-acento-celeste);
-    background-color: #242424; /* Un fondo un poco más oscuro */
-    padding: 15px;
-    width: 180px;
-    border-radius: 8px;
-    text-align: left;
-    transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
-}
-
-.tienda-item:hover {
-    background-color: #383838;
-    transform: translateY(-2px); /* Pequeña elevación al pasar el ratón */
-    box-shadow: 0 5px 15px rgba(0, 189, 212, 0.2);
-}
-
-.tienda-item p {
-    margin-bottom: 5px;
-    font-size: 0.95em;
-}
-
-.tienda-item strong {
-    color: var(--color-acento-celeste);
-    display: block;
-    font-size: 1.1em;
-    margin-bottom: 10px;
-}
-
-/* Botones de Compra */
-.btn-comprar {
+/* Botones dentro de la Tienda */
+.tienda-item button {
     background-color: var(--color-acento-celeste);
-    color: var(--color-fondo-oscuro); /* Texto oscuro para contraste */
+    color: var(--color-fondo-oscuro);
     font-weight: 700;
-    padding: 10px;
+    padding: 8px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     width: 100%;
-    margin-top: 10px;
-    transition: background-color 0.2s, transform 0.1s;
+    margin-top: 5px;
+    font-size: 0.9em;
 }
 
-.btn-comprar:hover {
-    background-color: #00e5ff; /* Tono más claro al pasar el ratón */
-    transform: translateY(-1px);
+.tienda-item button:hover:not(:disabled) {
+    background-color: #00e5ff;
 }
 
-.btn-bloqueado {
-    background-color: #444; /* Gris oscuro para deshabilitado */
+.tienda-item button:disabled {
+    background-color: #444; 
     color: #888;
-    padding: 10px;
-    border: none;
-    border-radius: 4px;
-    width: 100%;
-    margin-top: 10px;
     cursor: not-allowed;
 }
 
-/* --- Estilos para la Animación de Clic --- */
+/* Animación de Clic */
 @keyframes floatAndFade {
     0% { transform: translate(-50%, 0); opacity: 1; }
     100% { transform: translate(-50%, -50px); opacity: 0; }
@@ -323,8 +324,41 @@ html, body {
     position: absolute;
     font-size: 1.5em;
     font-weight: bold;
-    color: #ffd700; /* Dorado para el dinero flotante */
-    pointer-events: none; /* Crucial: permite que el clic "atraviese" la animación */
+    color: #ffd700; 
+    pointer-events: none; 
     animation: floatAndFade 0.8s ease-out;
-    z-index: 1000; /* Asegura que esté por encima de todo */
+    z-index: 1000; 
+}
+
+/* --- RESPONSIVENESS para el Clicker --- */
+@media (max-width: 900px) {
+    #main-game-layout {
+        /* En pantallas pequeñas, apila los paneles (el clicker va primero) */
+        grid-template-columns: 1fr;
+    }
+
+    /* Ordena los paneles: Clicker (1), Mejoras (2), Generadores (3) */
+    #mejoras-clic-panel {
+        grid-row: 2;
+        border-right: none;
+        border-bottom: 2px solid var(--color-acento-celeste);
+    }
+    
+    #generadores-panel {
+        grid-column: 1;
+        grid-row: 3;
+        border-left: none;
+        border-top: 2px solid var(--color-acento-celeste);
+    }
+
+    .side-panel {
+        height: auto; /* Permite que el panel crezca con el contenido */
+        position: static;
+        padding: 10px;
+    }
+    
+    .tienda-item {
+        width: 45%; /* Dos columnas en móvil para items de tienda */
+        margin: 5px auto;
+    }
 }
