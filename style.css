@@ -144,11 +144,11 @@ html, body {
     z-index: 9; /* Debe estar bajo los elementos de perfil */
 }
 
-/* =================================== */
-/* --- ESTILOS PARA MILLONARIO CLICKER --- */
-/* =================================== */
+/* ================================================== */
+/* --- ESTILOS AÑADIDOS PARA EL JUEGO CLICKER (millonario.html) --- */
+/* ================================================== */
 
-/* Contenedor Principal: Usa tu fondo oscuro, pero con un ligero toque diferente si es necesario. */
+/* Contenedor Principal: Se integra con el tema oscuro */
 #millonario-container {
     max-width: 700px;
     margin: 40px auto;
@@ -211,10 +211,11 @@ html, body {
     font-size: 3.5em; /* Emoji más grande */
 }
 
-/* Separador */
+/* Separador (HR) */
 #millonario-container hr {
     border: 0;
     height: 1px;
+    /* Usa el color acento para la línea divisoria */
     background-image: linear-gradient(to right, rgba(0, 0, 0, 0), var(--color-acento-celeste), rgba(0, 0, 0, 0));
     margin: 20px 0;
 }
@@ -230,7 +231,7 @@ html, body {
 #generadores-tienda {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px; /* Aumento el espacio entre ítems */
+    gap: 20px; 
     justify-content: center;
     margin-top: 15px;
 }
@@ -289,4 +290,20 @@ html, body {
     width: 100%;
     margin-top: 10px;
     cursor: not-allowed;
+}
+
+/* --- Estilos para la Animación de Clic --- */
+@keyframes floatAndFade {
+    0% { transform: translate(-50%, 0); opacity: 1; }
+    100% { transform: translate(-50%, -50px); opacity: 0; }
+}
+
+.animacion-clic {
+    position: absolute;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #ffd700; /* Dorado para el dinero flotante */
+    pointer-events: none; /* Crucial: permite que el clic "atraviese" la animación */
+    animation: floatAndFade 0.8s ease-out;
+    z-index: 1000; /* Asegura que esté por encima de todo */
 }
