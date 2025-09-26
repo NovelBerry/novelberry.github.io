@@ -50,7 +50,7 @@
                     await window.firebase.auth.signInAnonymously(window.auth);
                 }
                 console.log("Autenticación Firebase exitosa. Iniciando juego...");
-                // **CORRECCIÓN CLAVE:** Llamar a initGame aquí
+                // **CLAVE:** Llamar a initGame aquí después de la autenticación
                 if (typeof window.initGame === 'function') {
                     window.initGame(); 
                 }
@@ -553,7 +553,7 @@
                 <div id="mejoras-clic-panel" class="side-panel">
                     <h2>Mejoras de Clic (IPC)</h2>
                     <div id="mejoras-clic-tienda">
-                        <!-- Mensaje de Carga mientras se dibuja la tienda -->
+                        <!-- Aquí se dibujarán los ítems de mejora -->
                         <p style="text-align:center; color:#555;">Cargando mejoras...</p>
                     </div>
                 </div>
@@ -579,7 +579,7 @@
                 <div id="generadores-panel" class="side-panel">
                     <h2>Generadores Pasivos (IPS)</h2>
                     <div id="generadores-tienda">
-                        <!-- Mensaje de Carga mientras se dibuja la tienda -->
+                        <!-- Aquí se dibujarán los ítems de generador -->
                          <p style="text-align:center; color:#555;">Cargando generadores...</p>
                     </div>
                 </div>
@@ -978,12 +978,14 @@
             const contenedor = document.getElementById('mejoras-clic-tienda');
             contenedor.innerHTML = ''; 
 
+            let mejorasPendientes = false;
             ITEMS_IPC.forEach(item => {
                 const yaComprado = estadoJuego.mejoras[item.id];
                 const costo = item.costo; 
                 
                 // Si ya fue comprada, se oculta (pues son mejoras de un solo uso)
                 if (yaComprado) return; 
+                mejorasPendientes = true;
 
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'tienda-item';
@@ -998,6 +1000,10 @@
                 `;
                 contenedor.appendChild(itemDiv);
             });
+            
+            if (!mejorasPendientes) {
+                 contenedor.innerHTML = '<p style="text-align: center; color: #999;">Todas las mejoras de IPC han sido adquiridas.</p>';
+            }
         }
 
         /**
@@ -1430,7 +1436,8 @@
                 document.getElementById('user-id-display').textContent = userId;
 
                 // Finaliza la inicialización
-                dibujarTiendasIniciales();
+                // **CLAVE DE SOLUCIÓN:** Dibujar las tiendas DESPUÉS de cargar el estado
+                dibujarTiendasIniciales(); 
                 actualizarDisplay();
                 actualizarBotones();
                 
