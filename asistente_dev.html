@@ -73,7 +73,7 @@
         }
 
         #user-input {
-            flex-grow: 1;
+            flex-grow = 1;
             padding: 12px;
             background-color: #222;
             color: #fff;
@@ -106,7 +106,7 @@
 <body>
 
     <div class="ia-console">
-        <h1>[ ASISTENTE DEV IA V.8.0 - Soporte de Programación ]</h1>
+        <h1>[ ASISTENTE DEV IA V.9.0 - Soporte de Programación ]</h1>
         <p class="ai-status">Estado del Módulo: **OPERACIONAL**. Esperando consulta técnica...</p>
 
         <div id="chat-history">
@@ -137,13 +137,16 @@
             "JAVA": `**Java:** Es un lenguaje de alto rendimiento, orientado a objetos, usado extensamente en **aplicaciones empresariales** a gran escala, sistemas distribuidos y desarrollo Android nativo. Su portabilidad se debe a la **Máquina Virtual de Java (JVM)**.`,
             "COMPARAR": `**Comparativa General:** Python y JavaScript son de tipado dinámico; Java es fuertemente tipado. Python y Java se usan en backend; JavaScript en frontend y backend. La elección depende de la **escalabilidad** y el **contexto** de ejecución del proyecto.`,
             "SOPORTE": `Mi función actual es proveer soporte especializado en Python, JavaScript y Java. Por favor, especifique el lenguaje o el comando que desea ejecutar.`,
-            "DEFECTO": "Consulta no reconocida. Mi vocabulario técnico ha sido expandido. Intente con una palabra clave clave: **DOCKER**, **GIT**, **TYPESCRIPT**, **SERVERLESS**, **TESTING**, **CLOUD**, **PATRONES** o **AGILE**.",
+            "DEFECTO": "Consulta no reconocida. Por favor, formule una pregunta clara o utilice un término técnico como **DOCKER, CLOUD, PYTHON, TESTING o AGILE**.",
             
-            // Respuestas Conversacionales
+            // Respuestas Conversacionales (V9.0 - Nuevas)
             "HOLA": "Saludos. Mi nombre es Asistente DEV. ¿En qué tarea de desarrollo o consulta técnica relacionada con Python, JavaScript o Java puedo asistirle hoy?",
             "GRACIAS": "De nada. Mi propósito es simplificar y optimizar su proceso de desarrollo. No dude en consultar nuevamente.",
+            "IDENTIDAD": "Soy el **Asistente DEV IA V.9.0**, un modelo de lenguaje especializado en brindar soporte técnico y comparativas en las áreas de desarrollo de software, específicamente **Python, JavaScript y Java**.",
+            "CAPACIDADES": "Mi base de conocimiento es profunda e incluye: **Patrones de Diseño**, **Metodologías Ágiles (Scrum, Kanban)**, **DevOps (Git, Docker)**, **Cloud Computing (AWS, Azure)**, **Seguridad**, **APIs (REST)**, **Testing** y **Arquitectura de Software**.",
+            "ASISTENCIA": "Mi propósito es asistirle con consultas técnicas. Por favor, formule una pregunta específica sobre **Python, JavaScript o Java**, o sobre cualquier tema de **DevOps, Arquitectura o Cloud**.",
             
-            // Respuestas Técnicas Específicas (V5.0 - V7.0)
+            // Respuestas Técnicas Específicas (V5.0 - V8.0)
             "DISCORD": `**Bots de Discord:** **JavaScript (Node.js)** es la opción más popular debido a la madurez de la librería **Discord.js**, que permite un rendimiento asíncrono eficiente. **Python** usa **Discord.py** y es preferido por su legibilidad, aunque Node.js ofrece mejor concurrencia en I/O.`,
             "RENDIMIENTO": `**Rendimiento:** **Java** es significativamente más rápido que Python en ejecución pura porque se compila a **bytecode** (que corre en la JVM), mientras que Python es generalmente interpretado. Python es más rápido en el desarrollo, pero Java tiene la ventaja en la **velocidad de ejecución**.`,
             "FRAMEWORKS": `**Frameworks JS:** JavaScript domina el desarrollo web con **React**, **Angular** y **Vue** en el frontend. Para el backend, **Node.js** con frameworks como **Express** permite un stack completo (MERN/MEAN) basado en un único lenguaje.`,
@@ -157,8 +160,6 @@
             "GIT": `**Control de Versiones (Git):** Es esencial para la colaboración. **Git** rastrea cada cambio en el código, permitiendo volver a estados anteriores o trabajar en ramas (**branches**) sin afectar el código principal. Comandos clave: \`commit\`, \`push\`, \`pull\` y \`merge\`.`,
             "TYPESCRIPT": `**TypeScript (TS):** Es un superconjunto de JavaScript que añade **tipado estático** opcional. Esto detecta errores de código antes de la ejecución (en tiempo de compilación), lo que es crucial para proyectos grandes y mantenibles.`,
             "SERVERLESS": `**Arquitectura Serverless:** Permite construir y ejecutar aplicaciones sin gestionar la infraestructura (servidores). Se paga solo por el tiempo de ejecución del código. Es ideal para **escalabilidad automática** y costos operativos bajos, aunque requiere un diseño específico (funciones como servicio).`,
-            
-            // Nuevas Respuestas Técnicas Específicas (V8.0 - Cloud, Patrones, Agile)
             "CLOUD": `**Cloud Computing (La Nube):** Plataformas como **AWS**, **Azure** y **GCP** ofrecen recursos (servidores, bases de datos, redes) bajo demanda, permitiendo a los desarrolladores enfocarse en el código. Es fundamental para la **escalabilidad horizontal** y la **alta disponibilidad**.`,
             "PATRONES_DISENO": `**Patrones de Diseño:** Soluciones probadas y recurrentes a problemas comunes de diseño de software. Por ejemplo, el patrón **Factory** gestiona la creación de objetos, y el patrón **Singleton** asegura que solo exista una instancia de una clase. Son clave para el código **modular** y **reutilizable**.`,
             "AGILE": `**Metodologías Ágiles:** Conjuntos de prácticas (como **Scrum** y **Kanban**) que promueven el desarrollo iterativo, la entrega continua y la colaboración. Se enfocan en adaptarse al cambio en lugar de seguir un plan rígido.`,
@@ -173,7 +174,13 @@
             if (q.includes("HOLA") || q.includes("SALUDOS") || q.includes("BUENOS DIAS")) return RESPONSES["HOLA"];
             if (q.includes("GRACIAS") || q.includes("THANK")) return RESPONSES["GRACIAS"];
 
-            // 2. Respuestas de Arquitectura y DevOps (Nuevos Temas V8.0 - Alta Prioridad)
+            // 1.5. Respuestas de Auto-Referencia (NUEVO V9.0 - ALTA PRIORIDAD)
+            if (q.includes("QUIEN") || q.includes("ERES")) return RESPONSES["IDENTIDAD"];
+            if (q.includes("SABES") || q.includes("CONOCIMIENTO")) return RESPONSES["CAPACIDADES"];
+            if (q.includes("AYUDAS") || q.includes("ASISTIR") || q.includes("PUEDES")) return RESPONSES["ASISTENCIA"];
+
+
+            // 2. Respuestas de Arquitectura y DevOps (V8.0)
             if (q.includes("CLOUD") || q.includes("AWS") || q.includes("AZURE") || q.includes("GCP")) return RESPONSES["CLOUD"];
             if (q.includes("PATRONES") || q.includes("SINGLETON") || q.includes("FACTORY") || q.includes("DISENO") || q.includes("DISEÑO")) return RESPONSES["PATRONES_DISENO"];
             if (q.includes("AGILE") || q.includes("SCRUM") || q.includes("KANBAN") || q.includes("METODOLOGIA")) return RESPONSES["AGILE"];
