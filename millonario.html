@@ -3,49 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💰 Millonario Clicker | El Juego de la Riqueza</title>
-    <link rel="stylesheet" href="style.css"> 
+    <title>Millonario Clicker</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-    <div id="fondo-decoracion"></div> 
 
-    <div id="millonario-container">
-        <h1>💰 La Máquina de la Riqueza 💰</h1>
-        
+    <!-- Capa de decoración de fondo -->
+    <div id="fondo-decoracion"></div>
 
-        <div id="info-dinero">
-            <p>DINERO TOTAL: <span id="dinero-actual">$0.00</span></p>
-            <p>Ganancia por Clic (IPC): <span id="ipc-actual">$1.00</span></p>
-            <p>Ingreso por Segundo (IPS): <span id="ips-actual">0.0</span></p>
-        </div>
+    <!-- Layout principal del juego (Grid de 3 columnas) -->
+    <div id="main-game-layout">
 
-        <hr>
-
-        <div id="area-clic">
-            <button id="billete-btn" onclick="hacerClic()">
-                <span class="emoji-billete">💵</span>
-                <p>¡HAZ CLIC!</p>
-            </button>
-        </div>
-
-        <hr>
-
-        <h2>🖱️ Mejoras de Clic y Ratón</h2>
-        <div id="mejoras-clic-tienda">
+        <!-- Panel Izquierdo: Mejoras de Clic (Gated) -->
+        <div id="mejoras-clic-panel" class="side-panel">
+            <h2>Mejoras de Clic</h2>
+            <div id="mejoras-clic-tienda">
+                <!-- Las mejoras de clic se cargarán aquí por script.js -->
             </div>
-        
-        <hr>
-
-        <h2>🏭 Generadores de Ingreso Pasivo</h2>
-        <div id="generadores-tienda">
-            <p>Cargando generadores...</p>
         </div>
-        
-        <hr>
-        
+
+        <!-- Área Central: Botón de Clic y Estadísticas -->
+        <div id="clicker-area">
+            <h1>MILLONARIO CLICKER</h1>
+            
+            <!-- Contenedor de estadísticas principales -->
+            <div id="info-dinero">
+                <p>Dinero Actual: <span id="dinero-actual">$0.00</span></p>
+                <p>Ingreso por Clic (IPC): <span id="ipc-actual">$1.00</span></p>
+                <p>Ingreso por Segundo (IPS): <span id="ips-actual">0.0</span></p>
+            </div>
+
+            <!-- Área del Botón Principal -->
+            <div id="area-clic">
+                <button id="billete-btn" onclick="hacerClic()">
+                    <span class="emoji-billete">💰</span>
+                    CLIC
+                </button>
+            </div>
+        </div>
+
+        <!-- Panel Derecho: Generadores Pasivos -->
+        <div id="generadores-panel" class="side-panel">
+            <h2>Generadores Pasivos</h2>
+            <div id="generadores-tienda">
+                <!-- Los generadores se cargarán aquí por script.js -->
+            </div>
+        </div>
     </div>
 
+    <!-- ============================================== -->
+    <!-- SCRIPTS (Incluyendo Firebase para compatibilidad futura y el script del juego) -->
+    <!-- ============================================== -->
+    
+    <!-- Incluir los módulos de Firebase (aunque no se usan activamente, se cargan para el entorno) -->
+    <script type="module">
+        // Variables globales necesarias por el entorno de Canvas
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const authToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        // Importaciones de Firebase (necesarias para la ejecución en el entorno)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // Inicialización básica
+        if (Object.keys(firebaseConfig).length > 0) {
+            window.app = initializeApp(firebaseConfig);
+            window.db = getFirestore(window.app);
+            window.auth = getAuth(window.app);
+        
+            // Autenticación: preferir token personalizado, si no, anónimo.
+            if (authToken) {
+                signInWithCustomToken(window.auth, authToken)
+                    .catch(error => console.error("Error al iniciar sesión con Custom Token:", error));
+            } else {
+                signInAnonymously(window.auth)
+                    .catch(error => console.error("Error al iniciar sesión anónimamente:", error));
+            }
+        } else {
+            console.warn("Firebase no inicializado: configuración no proporcionada.");
+        }
+    </script>
+    
+    <!-- Función de Animación Flotante (Requerida por script.js) -->
+    <script>
+        function crearAnimacionClic(cantidad) {
+            const billeteBtn = document.getElementById('billete-btn');
+            const rect = billeteBtn.getBoundingClientRect();
+            
+            const animacion = document.createElement('div');
+            animacion.textContent = "+" + cantidad;
+            animacion.className = 'animacion-clic';
+            
+            // Posiciona la animación justo encima del botón
+            animacion.style.left = `${rect.left + rect.width / 2}px`;
+            animacion.style.top = `${rect.top}px`;
+            
+            document.body.appendChild(animacion);
+            
+            // Eliminar el elemento después de que termine la animación
+            animacion.addEventListener('animationend', () => {
+                animacion.remove();
+            });
+        }
+    </script>
+
+    <!-- Script del Juego Principal -->
     <script src="script.js"></script>
 
 </body>
