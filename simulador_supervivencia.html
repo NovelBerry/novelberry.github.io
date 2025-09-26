@@ -153,9 +153,9 @@
         'KOOPA_TROOPA': { power: 25, recruitChance: 40, emoji: '🐢' },
         'LAKITU': { power: 35, recruitChance: 25, emoji: '☁️' },
         'PLANTA_PIRAÑA': { power: 45, recruitChance: 5, emoji: '🪴' },
-        'BOWSER_JR': { power: 65, recruitChance: 0, emoji: '🐢' }, // Finalista - No reclutable
+        'BOWSER_JR': { power: 65, recruitChance: 0, emoji: '🐢' }, 
         'BOO_KING': { power: 70, recruitChance: 0, emoji: '👻' },
-        'BOWSER': { power: 100, recruitChance: 0, emoji: '🔥' } // Jefe Final
+        'BOWSER': { power: 100, recruitChance: 0, emoji: '🔥' } 
     };
 
     // --- FUNCIONES CORE ---
@@ -175,13 +175,11 @@
     function applyChanges(changes) {
         if (!changes) return;
 
-        // 1. Manejo de Puntos de Potencia (PE)
         if (changes.pe) {
             gameStatus.potencia_pe += changes.pe;
             gameStatus.potencia_pe = Math.max(0, gameStatus.potencia_pe); 
         }
 
-        // 2. Manejo de Equipo (Reclutar)
         if (changes.reclutar) {
             changes.reclutar.forEach(newMember => {
                 if (!gameStatus.equipo.includes(newMember) && gameStatus.equipo.length < 6) {
@@ -190,7 +188,6 @@
             });
         }
         
-        // 3. Manejo de Items
         if (changes.item) {
             changes.item.forEach(newItem => {
                 gameStatus.items.push(newItem);
@@ -205,11 +202,11 @@
         if (requirements.min_pe && gameStatus.potencia_pe < requirements.min_pe) {
             return { isMet: false, reason: `Necesitas ${requirements.min_pe} PE.` };
         }
-        if (requirements.requires_member && !gameStatus.equipo.includes(requirements.requires_member)) {
-            // Un pequeño hack: si tiene más de 1 miembro (MARIO + 1), se considera que cumple
-            if (requirements.requires_member === "TOAD" && gameStatus.equipo.length > 1) {
-                 return { isMet: true, reason: '' };
-            }
+        // Requerimiento "TOAD" es un marcador para "al menos 1 compañero extra"
+        if (requirements.requires_member === "TOAD" && gameStatus.equipo.length < 2) {
+             return { isMet: false, reason: `Necesitas al menos 1 compañero reclutado.` };
+        }
+        if (requirements.requires_member && requirements.requires_member !== "TOAD" && !gameStatus.equipo.includes(requirements.requires_member)) {
             return { isMet: false, reason: `Requiere tener a ${requirements.requires_member}.` };
         }
         return { isMet: true, reason: '' };
@@ -341,7 +338,7 @@
         }, 1500);
     }
     
-    // --- UTILITIES y RENDERIZADO PRINCIPAL (sin cambios) ---
+    // --- UTILITIES y RENDERIZADO PRINCIPAL ---
     function createButton(text, className, onClick) {
         const button = document.createElement('button');
         button.className = 'choice-button ' + className;
@@ -394,7 +391,8 @@
             
             if (!requirementsMet.isMet) {
                 button.disabled = true;
-                button.textContent = `${choice.text} (REQUERIMIENTO: ${requirementsMet.reason})`;
+                const reason = choice.requirements && choice.requirements.requires_member === "TOAD" ? "Requiere 1 compañero extra" : requirementsMet.reason;
+                button.textContent = `${choice.text} (REQUERIMIENTO: ${reason})`;
             }
 
             button.onclick = () => {
@@ -442,13 +440,85 @@
         's2_battle_goomba': { is_battle: true, foe: 'GOOMBA', next_success: 's3_after_goomba', next_fail: 's1_intro', text: "El GOOMBA te bloquea." },
         's4_battle_koopa': { is_battle: true, foe: 'KOOPA_TROOPA', next_success: 's5_koopa_win', next_fail: 's4_road', text: "¡El Koopa Troopa te ataca con su caparazón giratorio!" },
         's9_battle_piraña': { is_battle: true, foe: 'PLANTA_PIRAÑA', next_success: 's10_end_jungle', next_fail: 's6_jungle_entrance', text: "¡La PLANTA PIRAÑA es fuerte! ¡Cuidado con el fuego!" },
-        's3_after_goomba': { text: "Tras la batalla, el camino está abierto. Ves una extraña tubería brillante que parece un atajo.", choices: [ { text: "Entrar en la Tubería (Acceso Rápido)", next: 's4_pipe', changes: { pe: -10 } }, { text: "Continuar por el camino", next: 's4_road', changes: { pe: 5 } } ] },
-        's2_toad_house': { text: "La casa de Toad está tranquila. Encuentras un kit de primeros auxilios. ¿Recogerlos o no?", choices: [ { text: "Recoger Super Hongos", next: 's3_after_toad', changes: { item: ["SUPER HONGO"], pe: 5 } }, { text: "Dejar los objetos y salir", next: 's4_road', changes: { pe: -5 } } ] },
-        's3_after_toad': { text: "Un Koopa Troopa te ve saliendo de la casa. Te desafía a una batalla por el territorio.", choices: [ { text: "Aceptar el Desafío", next: 's4_battle_koopa', changes: { pe: -10 } }, { text: "Intentar razonar con él (Requiere TOAD)", next: 's5_reason', changes: { pe: -5 }, requirements: { requires_member: "TOAD" } } ] },
-        's5_reason': { text: "¡Toad interviene! El Koopa, al ver a un compañero, acepta dialogar y te ofrece un Huevo de Yoshi como disculpa.", choices: [ { text: "Aceptar y ECLOSIONAR HUEVO (Reclutar YOSHI)", next: 's7_yoshi_joins', changes: { reclutar: ["YOSHI"], pe: 20 } }, { text: "Rechazar y seguir buscando aventuras", next: 's6_jungle_entrance', changes: { pe: 5 } } ] },
-        's5_koopa_win': { text: "Has vencido al Koopa. Obtienes un caparazón. Encuentras un huevo abandonado.", choices: [ { text: "ECLOSIONAR EL HUEVO (Reclutar a YOSHI)", next: 's7_yoshi_joins', changes: { reclutar: ["YOSHI"], pe: 30 } }, { text: "Vender el caparazón (+20 PE)", next: 's6_jungle_entrance', changes: { pe: 20 } } ] },
-        's7_yoshi_joins': { text: "¡Yoshi se une! Puedes explorar la peligrosa Jungla de las Sombras.", choices: [ { text: "Ir a la Jungla de las Sombras", next: 's8_jungle_start', changes: { pe: -15 } }, { text: "Volver a la Pradera Champiñón", next: 's4_road', changes: { pe: 5 } } ] },
-        's8_jungle_start': { text: "La jungla es densa y peligrosa. ¡Una Planta Piraña salvaje te ataca!", choices: [ { text: "¡COMBATE!", next: 's9_battle_piraña', changes: { pe: -10 } } ] },
+        
+        's3_after_goomba': { 
+            text: "Tras la batalla, el camino está abierto. Ves una extraña tubería brillante que parece un atajo.", 
+            choices: [ 
+                { text: "Entrar en la Tubería (Atajo rápido)", next: 's4_pipe', changes: { pe: -10 } }, 
+                { text: "Continuar por el camino", next: 's4_road', changes: { pe: 5 } } 
+            ] 
+        },
+        
+        's2_toad_house': { 
+            text: "La casa de Toad está tranquila. Encuentras un kit de primeros auxilios. ¿Recogerlos o no?", 
+            choices: [ 
+                { text: "Recoger Super Hongos", next: 's3_after_toad', changes: { item: ["SUPER HONGO"], pe: 5 } }, 
+                { text: "Dejar los objetos y salir", next: 's4_road', changes: { pe: -5 } } 
+            ] 
+        },
+        
+        's3_after_toad': { 
+            text: "Un Koopa Troopa te ve saliendo de la casa. Te desafía a una batalla por el territorio.", 
+            choices: [ 
+                { text: "Aceptar el Desafío", next: 's4_battle_koopa', changes: { pe: -10 } }, 
+                { text: "Intentar razonar con él (Requiere Compañero)", next: 's5_reason', changes: { pe: -5 }, requirements: { requires_member: "TOAD" } } 
+            ] 
+        },
+        
+        's5_reason': { 
+            text: "¡Tu compañero interviene! El Koopa acepta dialogar y te ofrece un Huevo de Yoshi como disculpa.", 
+            choices: [ 
+                { text: "Aceptar y ECLOSIONAR HUEVO (Reclutar YOSHI)", next: 's7_yoshi_joins', changes: { reclutar: ["YOSHI"], pe: 20 } }, 
+                { text: "Rechazar y seguir (Ir a la Jungla)", next: 's6_jungle_entrance', changes: { pe: 5 } } 
+            ] 
+        },
+        
+        's5_koopa_win': { 
+            text: "Has vencido al Koopa. Obtienes un caparazón. Encuentras un huevo abandonado.", 
+            choices: [ 
+                { text: "ECLOSIONAR EL HUEVO (Reclutar a YOSHI)", next: 's7_yoshi_joins', changes: { reclutar: ["YOSHI"], pe: 30 } }, 
+                { text: "Vender el caparazón (+20 PE)", next: 's6_jungle_entrance', changes: { pe: 20 } } 
+            ] 
+        },
+        
+        's7_yoshi_joins': { 
+            text: "¡Yoshi se une! Puedes explorar la peligrosa Jungla de las Sombras.", 
+            choices: [ 
+                { text: "Ir a la Jungla de las Sombras", next: 's8_jungle_start', changes: { pe: -15 } }, 
+                { text: "Volver a la Pradera Champiñón", next: 's4_road', changes: { pe: 5 } } 
+            ] 
+        },
+        
+        's8_jungle_start': { 
+            text: "La jungla es densa y peligrosa. ¡Una Planta Piraña salvaje te ataca!", 
+            choices: [ 
+                { text: "¡COMBATE!", next: 's9_battle_piraña', changes: { pe: -10 } } 
+            ] 
+        },
+        
+        // **NODOS CORREGIDOS PARA CONTINUIDAD**
+        's4_pipe': { 
+            text: "La tubería te lleva a un campo de bonificación, pero la salida es directamente a la entrada de la Jungla, ¡cuidado con las trampas!", 
+            choices: [ 
+                { text: "Avanzar a la entrada de la Jungla", next: 's6_jungle_entrance', changes: { pe: -5 } } 
+            ] 
+        },
+        
+        's4_road': { 
+            text: "Sigues el camino principal. Es seguro y te lleva directamente a la Jungla de las Sombras.", 
+            choices: [ 
+                { text: "Avanzar a la Jungla", next: 's6_jungle_entrance', changes: { pe: -5 } } 
+            ] 
+        },
+        
+        's6_jungle_entrance': { 
+            text: "Has llegado a la entrada de la Jungla. El aire es denso. ¿Entras o descansas para recuperar fuerzas?", 
+            choices: [ 
+                { text: "Entrar directamente (¡A la batalla!)", next: 's8_jungle_start', changes: { pe: -5 } },
+                { text: "Descansar y continuar (+10 PE, luego ir a la batalla)", next: 's8_jungle_start', changes: { pe: 10 } }
+            ] 
+        },
+        // **FIN DE NODOS CORREGIDOS**
         
         // **NODO DE TRANSICIÓN AL ACTO 2**
         's10_end_jungle': {
@@ -460,14 +530,14 @@
 
         // --- ACTO 2: EL GRAN TORNEO (Rondas Preliminares) ---
         's100_tournament_start': {
-            text: "La Princesa Peach te da la bienvenida al Gran Torneo. Hay 3 rondas. Necesitas un equipo fuerte.",
+            text: "La Princesa Peach te da la bienvenida. Debes tener un equipo fuerte para participar.",
             choices: [
                 { 
                     text: "Mostrar tu Equipo (Comenzar Rondas)", 
                     next: 's101_round_1', 
-                    requirements: { requires_member: "TOAD" } // Requiere al menos un compañero extra (Mario + 1)
+                    requirements: { requires_member: "TOAD" } 
                 },
-                { text: "Entrenar más antes de empezar", next: 's4_road' } 
+                { text: "Entrenar más antes de empezar (Volver a la Pradera)", next: 's4_road' } 
             ]
         },
         
@@ -476,7 +546,7 @@
             is_battle: true,
             foe: 'LAKITU',
             next_success: 's102_after_round_1',
-            next_fail: 's100_tournament_start',
+            next_fail: 's100_tournament_start', // Vuelve al inicio del torneo
         },
         
         's102_after_round_1': {
@@ -484,7 +554,7 @@
             choices: [
                 { text: "Curarte (Recuperas +40 PE)", next: 's105_round_2', changes: { pe: 40 } },
                 { text: "Buscar la Tienda Secreta (Requiere KOOPA_TROOPA)", next: 's103_secret_shop', changes: { pe: -10 }, requirements: { requires_member: "KOOPA_TROOPA" } },
-                { text: "Contar un chiste pésimo a Toad (-10 PE por vergüenza ajena, ¡pero fue gracioso!)", next: 's105_round_2', changes: { pe: -10 } } // Acción humorística
+                { text: "Contar un chiste pésimo a Toad (-10 PE por vergüenza ajena, ¡pero fue gracioso!)", next: 's105_round_2', changes: { pe: -10 } } 
             ]
         },
         
@@ -500,7 +570,7 @@
             is_battle: true,
             foe: 'BOO_KING',
             next_success: 's106_after_round_2',
-            next_fail: 's100_tournament_start',
+            next_fail: 's100_tournament_start', // Vuelve al inicio del torneo
         },
         
         's106_after_round_2': {
@@ -510,13 +580,13 @@
             ]
         },
 
-        // --- ACTO 3: LA FINAL Y BOWSER (Nodos 200+) ---
+        // --- ACTO 3: LA FINAL Y BOWSER ---
 
         's200_final_round': {
             text: "¡La arena explota! Te enfrentas a **BOWSER JR.**, el invicto campeón. Te mira con desdén desde su Koopa Clown Car.",
             choices: [
                 { text: "¡A LA CARGA! (Comenzar Batalla)", next: 's201_battle_bowser_jr', changes: { pe: -20 } },
-                { text: "Distraer a Bowser Jr. con un plátano imaginario (-5 PE de concentración)", next: 's200_distraction', changes: { pe: -5 } } // Acción divertida
+                { text: "Distraer a Bowser Jr. con un plátano imaginario (-5 PE de concentración)", next: 's200_distraction', changes: { pe: -5 } } 
             ]
         },
         
@@ -531,19 +601,19 @@
             is_battle: true,
             foe: 'BOWSER_JR',
             next_success: 's202_tournament_win',
-            next_fail: 's100_tournament_start', 
+            next_fail: 's100_tournament_start', // Vuelve al inicio del torneo si pierde la final
             text: "¡La batalla final por el Trofeo!"
         },
         
         's202_tournament_win': {
-            text: "¡GANAS! El castillo estalla en vítores. Peach te entrega el Trofeo. Bowser Jr. hace un berrinche y... ¡la pared se desmorona con un rugido! ",
+            text: "¡GANAS! Peach te entrega el Trofeo. Bowser Jr. hace un berrinche y... ¡la pared se desmorona con un rugido! ",
             choices: [
                 { text: "¡PLOT TWIST! Enfrentar la nueva amenaza", next: 's205_bowser_attack', changes: { pe: 50 } }
             ]
         },
 
         's205_bowser_attack': {
-            text: "¡Es **BOWSER**! Está furioso por la derrota de su hijo. '¡Este torneo es FALSO!', ruge. '¡Ahora lucharán contra el verdadero campeón!'",
+            text: "¡Es **BOWSER**! Está furioso. '¡Este torneo es FALSO!', ruge. '¡Ahora lucharán contra el verdadero campeón!'",
             choices: [
                 { text: "Usar el Trofeo como Escudo (Pierdes -25 PE)", next: 's206_battle_bowser', changes: { pe: -25 } },
                 { text: "Llamar a todos tus compañeros a la vez (Potencia máxima)", next: 's206_battle_bowser', changes: { pe: -10 } }
@@ -554,20 +624,17 @@
             is_battle: true,
             foe: 'BOWSER',
             next_success: 's210_game_end',
-            next_fail: 'E_NO_PE', 
+            next_fail: 'E_NO_PE', // Si pierdes contra Bowser, es el fin de la aventura.
             text: "¡LA BATALLA FINAL! Bowser tiene una potencia de 100. ¡Todo o nada!"
         },
         
         's210_game_end': {
             is_ending: true,
-            text: "¡HAS DERROTADO A BOWSER! La princesa Peach está a salvo, el Reino Champiñón celebra, y tu equipo es reconocido como el más poderoso de la historia. ¡**FINAL BUENO!**",
+            text: "¡HAS DERROTADO A BOWSER! 🏆 El Reino Champiñón está a salvo. Tu equipo es el más poderoso. ¡**FINAL BUENO!**\n\n Gracias por jugar.",
             choices: []
         },
-
-        // --- Nodos de Finalización Temporal ---
-        's4_pipe': { text: "La tubería te llevó a un campo de bonificación, pero la salida está bloqueada. Tienes que retroceder.", choices: [ { text: "Continuar la aventura...", next: 's500_final', changes: { pe: -15 } } ] },
-        's4_road': { text: "Sigues el camino, es seguro, pero lento. Pierdes un poco de tiempo.", choices: [ { text: "Continuar la aventura...", next: 's500_final', changes: { pe: -5 } } ] },
-        's6_jungle_entrance': { text: "Has llegado a la entrada de la Jungla, pero estás cansado. Debes descansar antes de entrar.", choices: [ { text: "Descansar y continuar (FIN DE DEMO)", next: 's500_final', changes: { pe: 5 } } ] }
+        
+        // El nodo s500_final ya no se usa, ya que todas las rutas se han unido al flujo principal.
     };
 
     // Iniciar el juego
