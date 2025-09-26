@@ -164,6 +164,27 @@
             /* Añadimos un brillo al ícono */
             text-shadow: 0 0 10px var(--color-acento-celeste, #00ffff);
         }
+        
+        /* --- ESTILOS DEL BOTÓN SECRETO (NUEVO) --- */
+        #secret-button {
+            position: fixed;
+            bottom: 20px; /* Distancia desde la parte inferior */
+            left: 20px;  /* Distancia desde la izquierda */
+            z-index: 1000; /* Asegura que esté por encima de todo */
+            width: 70px; /* Área de clic */
+            height: 70px; /* Área de clic */
+            background-color: transparent; 
+            border: none;
+            cursor: pointer;
+            opacity: 0; /* ¡Invisible! */
+            transition: opacity 0.3s;
+        }
+
+        #secret-button:hover {
+            opacity: 0.1; /* Se vuelve apenas visible para el usuario astuto */
+            background-color: rgba(0, 255, 255, 0.1); /* Tono muy suave de celeste */
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body>
@@ -218,6 +239,8 @@
         </div>
     </div>
     
+    <a href="secreto.html" id="secret-button" aria-label="Sección Secreta"></a>
+
     <div class="action-buttons-container">
         
         <div class="action-button-wrapper" id="creations-wrapper">
