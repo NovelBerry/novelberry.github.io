@@ -693,11 +693,24 @@
         });
         
         // --- Mejoras de Clic (IPC - Ingreso Por Clic) ---
-        const ITEMS_IPC = [
-            { id: 'mano_trabajadora', nombre: 'Mano Trabajadora', costo: 50, multiplicador_ipc: 2, descripcion: 'Duplica tu IPC base.' },
-            { id: 'teclado_gamer', nombre: 'Teclado Mecánico', costo: 500, multiplicador_ipc: 3, descripcion: 'Triplica el IPC actual.' },
-            { id: 'asistente_personal', nombre: 'Asistente Personal', costo: 5000, multiplicador_ipc: 5, descripcion: 'Multiplica el IPC por 5.' },
-        ];
+        const ITEMS_IPC = [];
+        
+        // Generar 40 niveles de mejoras de IPC
+        for (let i = 1; i <= 40; i++) {
+            const costoBase = 50;
+            const factorCosto = 1.6;
+            const costo = Math.round(costoBase * Math.pow(factorCosto, i));
+            const multiplicador = 2; // Duplica el IPC base por cada nivel
+            
+            ITEMS_IPC.push({
+                id: `mejora_ipc_${i}`, 
+                nombre: `Eficiencia de Clic Nivel ${i}`, 
+                costo: costo, 
+                multiplicador_ipc: multiplicador, 
+                descripcion: `Aumenta el ingreso base de tu clic en x${multiplicador} (aplica sobre el IPC base).` 
+            });
+        }
+
 
         // --- Generadores Pasivos (IPS - Ingreso Por Segundo) ---
         const ITEMS_IPS = [
@@ -705,9 +718,11 @@
             { id: 'vendedor_ambulante', nombre: 'Vendedor Ambulante', costo: 1100, ips_base: 1, factor: 1.15, descripcion: 'Genera $1 por segundo.' },
             { id: 'tienda_online', nombre: 'Tienda Online', costo: 12000, ips_base: 8, factor: 1.15, descripcion: 'Genera $8 por segundo.' },
             { id: 'bienes_raices', nombre: 'Agencia de Bienes Raíces', costo: 150000, ips_base: 50, factor: 1.15, descripcion: 'Genera $50 por segundo.' },
+            { id: 'granja_servidores', nombre: 'Granja de Servidores 🖥️', costo: 1800000, ips_base: 400, factor: 1.17, descripcion: 'Ingreso constante por procesamiento de datos.' },
+            { id: 'planta_solar', nombre: 'Planta de Energía Solar ☀️', costo: 25000000, ips_base: 3000, factor: 1.18, descripcion: 'Venta de energía renovable a la red.' },
         ];
         
-        // --- Activos y Lujos (Propiedades y Acciones) ---
+        // --- Activos y Lujos (Propiedades, Vehículos y Acciones) ---
         const ITEMS_ACTIVOS = [
             // Vehículos (Binario)
             { id: 'auto_deportivo', nombre: 'Auto Deportivo 🏎️', costo: 1000000, tipo: 'vehiculo', ips_fijo: 100, descripcion: 'Lujo. Aumenta tu IPS en $100.' },
@@ -719,9 +734,11 @@
             { id: 'mansion_lujo', nombre: 'Mansión de Lujo 🏰', costo: 5000000, tipo: 'propiedad', ips_fijo: 500, descripcion: 'Propiedad. Aumenta tu IPS en $500.' },
             { id: 'isla_privada', nombre: 'Isla Privada 🏝️', costo: 50000000, tipo: 'propiedad', ips_fijo: 5000, descripcion: 'El máximo lujo. Aumenta tu IPS en $5,000.' },
 
-            // Acciones (Escalable)
+            // Acciones (Escalable) - Sección solicitada por el usuario
             { id: 'acciones_bluechip', nombre: 'Acciones Blue Chip 📊', costo: 100000, tipo: 'accion', ips_por_unidad: 5, factor: 1.2, descripcion: 'Inversión estable. Genera $5 IPS por unidad.' },
-            { id: 'acciones_growth', nombre: 'Acciones de Crecimiento 🚀', costo: 500000, tipo: 'accion', ips_por_unidad: 30, factor: 1.4, descripcion: 'Inversión agresiva. Genera $30 IPS por unidad.' },
+            { id: 'techcorp_stock', nombre: 'Acciones TechCorp (TC) 💻', costo: 800000, tipo: 'accion', ips_por_unidad: 45, factor: 1.3, descripcion: 'Gigante tecnológico. Genera $45 IPS por unidad.' },
+            { id: 'winted_studio_stock', nombre: 'Acciones Winted Studio (WS) 🎮', costo: 2500000, tipo: 'accion', ips_por_unidad: 150, factor: 1.4, descripcion: 'Estudio de videojuegos. Genera $150 IPS por unidad.' },
+            { id: 'energia_verde_stock', nombre: 'Acciones Energia Verde (EV) 🌱', costo: 10000000, tipo: 'accion', ips_por_unidad: 500, factor: 1.5, descripcion: 'Futuro de la energía. Genera $500 IPS por unidad.' },
         ];
         
         // --- Empresas Propias (Escalable) ---
@@ -730,6 +747,7 @@
             { id: 'consultoria_it', nombre: 'Consultoría IT', costo: 150000, ips_por_unidad: 40, factor: 1.3, descripcion: 'Servicios de desarrollo de software.' },
             { id: 'produccion_cine', nombre: 'Estudio de Producción 🎬', costo: 1000000, ips_por_unidad: 200, factor: 1.4, descripcion: 'Crea contenido de entretenimiento digital.' },
             { id: 'startup_saas', nombre: 'Startup SaaS', costo: 5000000, ips_por_unidad: 1000, factor: 1.5, descripcion: 'Empresa escalable con suscripciones mensuales.' },
+            { id: 'cadena_hotelera', nombre: 'Cadena Hotelera 🏨', costo: 50000000, ips_por_unidad: 8000, factor: 1.6, descripcion: 'Bienes raíces y hospitalidad global.' },
         ];
 
         // --- Inversiones Fijas (Binario - Almacenadas en estadoJuego.propiedades por simplicidad) ---
@@ -772,7 +790,7 @@
             let esBinario = false;
             
             // 1. Identificar el catálogo, almacenamiento y tipo de ítem
-            if (['ipc'].includes(tipo)) {
+            if (ITEMS_IPC.some(i => i.id === id)) {
                 catalogo = ITEMS_IPC;
                 almacenamiento = estadoJuego.mejoras;
                 esBinario = true;
@@ -785,7 +803,7 @@
                 almacenamiento = estadoJuego.propiedades;
                 esBinario = true;
             } else if (['accion'].includes(tipo)) {
-                catalogo = ITEMS_ACTIVOS;
+                catalogo = ITEMS_ACTIVOS.filter(i => i.tipo === 'accion');
                 almacenamiento = estadoJuego.acciones;
             } else if (['empresa'].includes(tipo)) {
                 catalogo = ITEMS_COMPANIES;
@@ -821,7 +839,12 @@
 
             // 4. Actualizar la cantidad o estado de compra
             if (esBinario) {
-                almacenamiento[id] = true;
+                // Para las mejoras de IPC, guardamos el nivel como un contador para saber cuántas se han comprado
+                if (ITEMS_IPC.some(i => i.id === id)) {
+                    almacenamiento[id] = true; 
+                } else {
+                    almacenamiento[id] = true;
+                }
             } else { // Escalable
                 almacenamiento[id] = (almacenamiento[id] || 0) + 1;
             }
@@ -831,18 +854,17 @@
             actualizarDisplay();
             
             // Redibujar las vistas afectadas por cambios binarios/escalables para actualizar el estado del botón/costo
-            if (['ipc', 'vehiculo', 'propiedad'].includes(tipo)) {
+            if (ITEMS_IPC.some(i => i.id === id)) {
                  dibujarTiendaIPC();
-                 dibujarTiendaActivos(); 
             } else if (tipo === 'ips') {
                 dibujarTiendaIPS(); 
+            } else if (['vehiculo', 'propiedad', 'accion'].includes(tipo)) {
+                dibujarTiendaActivos(); 
             } else if (tipo === 'empresa') {
                 dibujarTiendaEmpresas();
             } else if (tipo === 'inversion') {
                 dibujarTiendaInversiones();
-            } else if (tipo === 'accion') {
-                dibujarTiendaActivos(); 
-            }
+            } 
             
             actualizarBotones(); // CLAVE: Vuelve a chequear todos los botones
             guardarJuego();
@@ -861,7 +883,8 @@
                 }
             });
 
-            return ipc_base;
+            // Si no se ha comprado ninguna mejora, el IPC es 1
+            return ipc_base || 1; 
         }
 
         /**
@@ -869,31 +892,35 @@
          */
         function recalcularIPS() {
             let ips_total = 0;
+            
+            // Unificar ITEMS_ACTIVOS y ITEMS_INVESTMENTS para simplificar la búsqueda
+            const TODOS_LOS_ITEMS_PASIVOS = [...ITEMS_IPS, ...ITEMS_ACTIVOS, ...ITEMS_COMPANIES, ...ITEMS_INVESTMENTS];
 
-            // 1. Sumar IPS de Generadores Básicos (IPS)
-            ITEMS_IPS.forEach(item => {
-                const cantidad = estadoJuego.generadores[item.id] || 0;
-                ips_total += cantidad * item.ips_base;
-            });
 
-            // 2. Sumar IPS de Activos Binarios (Vehículos/Propiedades/Inversiones Fijas)
-            [...ITEMS_ACTIVOS, ...ITEMS_INVESTMENTS].forEach(item => {
-                // Solo considera activos binarios que estén en estadoJuego.propiedades
-                if (item.tipo !== 'accion' && estadoJuego.propiedades[item.id]) {
-                    ips_total += item.ips_fijo;
+            TODOS_LOS_ITEMS_PASIVOS.forEach(item => {
+                if (item.ips_base || item.ips_por_unidad) {
+                    
+                    if (ITEMS_IPS.includes(item)) { // Generadores IPS (Escalable)
+                        const cantidad = estadoJuego.generadores[item.id] || 0;
+                        ips_total += cantidad * item.ips_base;
+                    } 
+                    
+                    else if (item.tipo === 'accion') { // Acciones (Escalable)
+                        const cantidad = estadoJuego.acciones[item.id] || 0;
+                        ips_total += cantidad * item.ips_por_unidad;
+                    } 
+                    
+                    else if (item.tipo === 'empresa') { // Empresas Propias (Escalable)
+                        const cantidad = estadoJuego.empresas[item.id] || 0;
+                        ips_total += cantidad * item.ips_por_unidad;
+                    } 
+                    
+                    else if (['vehiculo', 'propiedad', 'inversion'].includes(item.tipo)) { // Activos Binarios (IPS Fijo)
+                        if (estadoJuego.propiedades[item.id]) {
+                            ips_total += item.ips_fijo;
+                        }
+                    }
                 }
-            });
-
-            // 3. Sumar IPS de Acciones (Activos Escalables)
-            ITEMS_ACTIVOS.filter(i => i.tipo === 'accion').forEach(item => {
-                const cantidad = estadoJuego.acciones[item.id] || 0;
-                ips_total += cantidad * item.ips_por_unidad;
-            });
-
-            // 4. Sumar IPS de Empresas Propias (Empresas Escalables)
-            ITEMS_COMPANIES.forEach(item => {
-                const cantidad = estadoJuego.empresas[item.id] || 0;
-                ips_total += cantidad * item.ips_por_unidad;
             });
 
             estadoJuego.ips = ips_total;
@@ -911,10 +938,10 @@
             document.getElementById('ipc-actual').textContent = formatMoneda.format(calcularIPC());
             document.getElementById('ips-actual').textContent = formatMoneda.format(estadoJuego.ips);
 
-            if (document.getElementById('view-stats').classList.contains('active')) {
+            if (document.getElementById('view-stats')?.classList.contains('active')) {
                 dibujarEstadisticas();
             }
-            if (document.getElementById('view-companies').classList.contains('active')) {
+            if (document.getElementById('view-companies')?.classList.contains('active')) {
                 dibujarEmpresasActivas();
             }
         }
@@ -929,17 +956,18 @@
             ITEMS_IPC.forEach(item => {
                 const yaComprado = estadoJuego.mejoras[item.id];
                 const costo = item.costo; 
-
-                if (yaComprado) return; // Si ya fue comprada, no se muestra
+                
+                // Si ya fue comprada, se oculta (pues son mejoras de un solo uso)
+                if (yaComprado) return; 
 
                 const itemDiv = document.createElement('div');
-                itemDiv.className = `tienda-item ${yaComprado ? 'item-comprado' : ''}`;
+                itemDiv.className = 'tienda-item';
                 itemDiv.setAttribute('data-costo', costo);
                 itemDiv.innerHTML = `
                     <p><strong>${item.nombre}</strong></p>
                     <p style="font-size:0.8em; margin-top:5px;">${item.descripcion}</p>
                     <p style="color:#ffd700; font-weight:700;">Costo: ${formatMoneda.format(costo)}</p>
-                    <button id="btn-${item.id}" onclick="comprarItem('ipc', '${item.id}')">
+                    <button id="btn-${item.id}" onclick="comprarItem('ipc_mejora', '${item.id}')">
                         COMPRAR
                     </button>
                 `;
@@ -957,14 +985,15 @@
             ITEMS_IPS.forEach(item => {
                 const cantidad = estadoJuego.generadores[item.id] || 0;
                 const costo = item.costo * Math.pow(item.factor, cantidad);
-                const ips_generado = item.ips_base;
+                const ips_generado = item.ips_base * (cantidad > 0 ? cantidad + 1 : 1); // El siguiente generará el base.
+                const siguiente_ips_unitario = item.ips_base;
 
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'tienda-item';
                 itemDiv.setAttribute('data-costo', costo); 
                 itemDiv.innerHTML = `
                     <p><strong>${item.nombre} (x${cantidad})</strong></p>
-                    <p style="font-size:0.8em; margin-top:5px;">Genera ${formatMoneda.format(ips_generado)}/s</p>
+                    <p style="font-size:0.8em; margin-top:5px;">Genera ${formatMoneda.format(siguiente_ips_unitario)}/s por unidad</p>
                     <p style="color:#ffd700; font-weight:700;">Costo Siguiente: ${formatMoneda.format(costo)}</p>
                     <button id="btn-${item.id}" onclick="comprarItem('ips', '${item.id}')">
                         COMPRAR
@@ -1018,7 +1047,7 @@
                 contenedorObjetivo.appendChild(itemDiv);
             });
 
-            // Dibujar Acciones (Escalable)
+            // Dibujar Acciones (Escalable) - CLAVE: Aquí están las acciones
             ITEMS_ACTIVOS.filter(i => i.tipo === 'accion').forEach(item => {
                 const cantidad = estadoJuego.acciones[item.id] || 0;
                 const costo = item.costo * Math.pow(item.factor, cantidad);
@@ -1029,9 +1058,9 @@
                 itemDiv.innerHTML = `
                     <p><strong>${item.nombre} (x${cantidad})</strong></p>
                     <p style="font-size:0.8em; margin-top:5px;">Genera ${formatMoneda.format(item.ips_por_unidad)} IPS por unidad.</p>
-                    <p style="color:#ffd700; font-weight:700;">Costo Siguiente: ${formatMoneda.format(costo)}</p>
+                    <p style="color:var(--color-secundario); font-weight:700;">Costo Siguiente: ${formatMoneda.format(costo)}</p>
                     <button id="btn-${item.id}" onclick="comprarItem('${item.tipo}', '${item.id}')">
-                        COMPRAR
+                        COMPRAR ACCIÓN
                     </button>
                 `;
                 contAcciones.appendChild(itemDiv);
@@ -1138,17 +1167,17 @@
                 const itemDiv = button.closest('.tienda-item');
                 if (itemDiv) {
                     const costoAttr = itemDiv.getAttribute('data-costo');
+                    
+                    // Comprobar si es un activo binario que ya fue comprado (ej. 'ADQUIRIDO' o 'INVERTIDO')
+                    if (itemDiv.classList.contains('item-comprado')) {
+                         button.disabled = true;
+                         return; 
+                    }
+                    
                     if (!costoAttr) return; // Si no tiene data-costo (ej. un activo comprado)
                     
                     const costo = parseFloat(costoAttr);
                     
-                    // Si el botón ya está deshabilitado permanentemente (ej. 'INVERTIDO'), no hacer nada
-                    if (button.textContent === 'ADQUIRIDO ✅' || button.textContent === 'INVERTIDO') {
-                        button.disabled = true;
-                        itemDiv.classList.add('item-comprado');
-                        return;
-                    }
-
                     // Lógica principal de habilitar/deshabilitar
                     if (estadoJuego.dineroActual >= costo) {
                         button.disabled = false;
@@ -1187,7 +1216,8 @@
                 const simbolo = ITEMS_IPS.includes(item) ? '⚙️' : '🏢';
                 const cantidad = almacenamiento[item.id] || 0;
                 if (cantidad > 0) {
-                    const ipsTotal = cantidad * item.ips_por_unidad || cantidad * item.ips_base;
+                    const ipsBase = item.ips_por_unidad || item.ips_base;
+                    const ipsTotal = cantidad * ipsBase;
                     inventarioHTML += `<li style="margin-bottom: 5px;">${simbolo} ${item.nombre} (x${cantidad}) | IPS: ${formatMoneda.format(ipsTotal)}</li>`;
                     inventarioVacio = false;
                 }
@@ -1290,6 +1320,9 @@
                 dibujarEstadisticas();
             } else if (vista === 'companies') {
                 dibujarTiendaEmpresas();
+            } else if (vista === 'assets') {
+                // Forzar la actualización de la vista de Activos para reflejar las acciones/lujos
+                dibujarTiendaActivos(); 
             }
             // Asegurar que los botones se actualizan en cualquier cambio de vista
             actualizarBotones();
@@ -1329,7 +1362,7 @@
         // Referencia a la colección de datos privados del usuario (usando el esquema de Canvas)
         const getDocRef = () => {
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-            return firebase.firestore().doc(window.db, `/artifacts/${appId}/users/${userId}/clicker_data/game_state`);
+            return window.firebase.firestore.doc(window.db, `/artifacts/${appId}/users/${userId}/clicker_data/game_state`);
         };
 
 
@@ -1341,7 +1374,7 @@
             try {
                 const gameRef = getDocRef();
                 // Firestore solo acepta serializables.
-                await firebase.firestore().setDoc(gameRef, estadoJuego);
+                await window.firebase.firestore.setDoc(gameRef, estadoJuego);
             } catch (e) {
                 console.error("Error guardando el juego: ", e);
             }
@@ -1354,7 +1387,7 @@
             if (!db || !userId) return;
             try {
                 const gameRef = getDocRef();
-                const docSnap = await firebase.firestore().getDoc(gameRef);
+                const docSnap = await window.firebase.firestore.getDoc(gameRef);
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
