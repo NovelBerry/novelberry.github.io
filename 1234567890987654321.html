@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Acceso Desbloqueado! - WD Community</title>
+    
+    <style>
+        /* Fondo y estilo general de terminal con tema de éxito */
+        body {
+            background-color: #000000;
+            color: #00ff00; /* Texto en verde neón para éxito */
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+
+        /* Contenedor principal con efecto de neón verde */
+        .success-container {
+            padding: 40px;
+            border: 2px solid #00ff00;
+            box-shadow: 0 0 25px #00ff00; /* Sombra de neón verde */
+            border-radius: 8px;
+            background-color: rgba(0, 0, 0, 0.8);
+            max-width: 700px;
+        }
+
+        /* Título de felicitación */
+        h1 {
+            font-size: 2.5em;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            text-shadow: 0 0 10px #00ff00;
+            color: #00ffff; /* Título en cian neón para destacar */
+        }
+
+        /* Texto del mensaje */
+        p {
+            font-size: 1.4em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        /* Estilo del enlace a Discord */
+        .discord-link {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #7289da; /* Color oficial de Discord */
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 1.3em;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0 10px rgba(114, 137, 218, 0.7); /* Sombra suave de Discord */
+        }
+
+        .discord-link:hover {
+            background-color: #677eb4; /* Tono más oscuro al pasar el ratón */
+            transform: translateY(-3px); /* Efecto de levitación */
+            box-shadow: 0 5px 20px rgba(114, 137, 218, 0.9), 0 0 25px #00ffff; /* Brillo más intenso */
+        }
+
+        /* Icono de Discord (opcional, si usas Font Awesome en esta página) */
+        .discord-link i {
+            margin-right: 10px;
+        }
+        
+        /* Enlace para volver al perfil (opcional) */
+        .back-to-profile {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.1em;
+            border: 1px solid #00ff00;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+        .back-to-profile:hover {
+            background-color: rgba(0, 255, 0, 0.1);
+            box-shadow: 0 0 10px #00ff00;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <a href="main.html" class="back-to-profile">← Volver al Perfil</a>
+
+    <div class="success-container">
+        <h1>¡FELICIDADES!</h1>
+        <p>Has desbloqueado el acceso a mi comunidad secreta:<br>"WD COMMUNITY, la mejor comunidad de raiders."</p>
+        
+        <a href="https://discord.gg/9pdxtnGvag" target="_blank" class="discord-link">
+            <i class="fab fa-discord"></i> Únete a la WD Community
+        </a>
+    </div>
+
+</body>
+</html>
