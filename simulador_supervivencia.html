@@ -351,6 +351,7 @@
     }
     
     function renderScene(sceneId) {
+        // La única forma de "morir" es agotando el PE
         if (gameStatus.potencia_pe <= 0) {
             renderEnding('E_NO_PE');
             return;
@@ -496,7 +497,6 @@
             ] 
         },
         
-        // **NODOS CORREGIDOS PARA CONTINUIDAD**
         's4_pipe': { 
             text: "La tubería te lleva a un campo de bonificación, pero la salida es directamente a la entrada de la Jungla, ¡cuidado con las trampas!", 
             choices: [ 
@@ -518,7 +518,6 @@
                 { text: "Descansar y continuar (+10 PE, luego ir a la batalla)", next: 's8_jungle_start', changes: { pe: 10 } }
             ] 
         },
-        // **FIN DE NODOS CORREGIDOS**
         
         // **NODO DE TRANSICIÓN AL ACTO 2**
         's10_end_jungle': {
@@ -541,12 +540,22 @@
             ]
         },
         
+        // *** NODO DE RECUPERACIÓN TRAS DERROTA ***
+        's100_tournament_loss': {
+            text: "Has perdido la ronda y te han descalificado (por ahora). La Princesa Peach te permite curarte antes de volver a registrarte.",
+            choices: [
+                { text: "Recuperar fuerzas (+50 PE)", next: 's100_tournament_start', changes: { pe: 50 } },
+                { text: "Volver a la Pradera para entrenar", next: 's4_road' } // Opción para ir a grindear
+            ]
+        },
+        // ***************************************
+        
         's101_round_1': {
             text: "Ronda 1: ¡Te enfrentas al Entrenador **LAKITU**!",
             is_battle: true,
             foe: 'LAKITU',
             next_success: 's102_after_round_1',
-            next_fail: 's100_tournament_start', // Vuelve al inicio del torneo
+            next_fail: 's100_tournament_loss', // CORREGIDO: Va a la pantalla de recuperación
         },
         
         's102_after_round_1': {
@@ -554,7 +563,7 @@
             choices: [
                 { text: "Curarte (Recuperas +40 PE)", next: 's105_round_2', changes: { pe: 40 } },
                 { text: "Buscar la Tienda Secreta (Requiere KOOPA_TROOPA)", next: 's103_secret_shop', changes: { pe: -10 }, requirements: { requires_member: "KOOPA_TROOPA" } },
-                { text: "Contar un chiste pésimo a Toad (-10 PE por vergüenza ajena, ¡pero fue gracioso!)", next: 's105_round_2', changes: { pe: -10 } } 
+                { text: "Contar un chiste pésimo a Toad (-10 PE, ¡fue gracioso!)", next: 's105_round_2', changes: { pe: -10 } } 
             ]
         },
         
@@ -570,7 +579,7 @@
             is_battle: true,
             foe: 'BOO_KING',
             next_success: 's106_after_round_2',
-            next_fail: 's100_tournament_start', // Vuelve al inicio del torneo
+            next_fail: 's100_tournament_loss', // CORREGIDO: Va a la pantalla de recuperación
         },
         
         's106_after_round_2': {
@@ -601,7 +610,7 @@
             is_battle: true,
             foe: 'BOWSER_JR',
             next_success: 's202_tournament_win',
-            next_fail: 's100_tournament_start', // Vuelve al inicio del torneo si pierde la final
+            next_fail: 's100_tournament_loss', // CORREGIDO: Va a la pantalla de recuperación
             text: "¡La batalla final por el Trofeo!"
         },
         
@@ -624,7 +633,7 @@
             is_battle: true,
             foe: 'BOWSER',
             next_success: 's210_game_end',
-            next_fail: 'E_NO_PE', // Si pierdes contra Bowser, es el fin de la aventura.
+            next_fail: 'E_NO_PE', 
             text: "¡LA BATALLA FINAL! Bowser tiene una potencia de 100. ¡Todo o nada!"
         },
         
@@ -634,7 +643,20 @@
             choices: []
         },
         
-        // El nodo s500_final ya no se usa, ya que todas las rutas se han unido al flujo principal.
+        // Nodos de mapeado (Acto 1)
+        's4_pipe': { 
+            text: "La tubería te lleva a un campo de bonificación, pero la salida es directamente a la entrada de la Jungla, ¡cuidado con las trampas!", 
+            choices: [ 
+                { text: "Avanzar a la entrada de la Jungla", next: 's6_jungle_entrance', changes: { pe: -5 } } 
+            ] 
+        },
+        
+        's4_road': { 
+            text: "Sigues el camino principal. Es seguro y te lleva directamente a la Jungla de las Sombras.", 
+            choices: [ 
+                { text: "Avanzar a la Jungla", next: 's6_jungle_entrance', changes: { pe: -5 } } 
+            ] 
+        },
     };
 
     // Iniciar el juego
