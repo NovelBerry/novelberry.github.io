@@ -9,7 +9,6 @@
         body {
             background-color: #2c3e50; /* Azul Oscuro (Color Game Boy) */
             color: #ecf0f1; /* Gris Claro */
-            font-family: 'Press Start 2P', monospace; /* Fuente Pixelada (Si está disponible) */
             font-family: 'Courier New', monospace; /* Alternativa simple */
             display: flex;
             flex-direction: column;
@@ -50,6 +49,7 @@
         }
         .stat-pe { color: #f39c12; }
         .stat-team { color: #3498db; }
+        .stat-items { color: #9b59b6; } 
 
         /* PANTALLA DE BATALLA/HISTORIA */
         #story-text {
@@ -74,6 +74,12 @@
         }
         .battle-foe { color: #e74c3c; font-size: 1.5em; }
         .battle-ally { color: #2ecc71; font-size: 1.5em; }
+        #battle-log {
+            font-size: 1em;
+            margin-top: 15px;
+            min-height: 40px;
+            color: #e0e0e0;
+        }
 
         /* BOTONES DE OPCIÓN */
         #choice-buttons {
@@ -83,7 +89,7 @@
         }
 
         .choice-button {
-            background-color: #27ae60; /* Verde de Acción */
+            background-color: #27ae60; 
             color: #ffffff;
             border: 2px solid #2ecc71;
             padding: 10px 15px;
@@ -91,6 +97,7 @@
             cursor: pointer;
             border-radius: 5px;
             transition: background-color 0.1s;
+            text-transform: uppercase;
         }
 
         .choice-button:hover:not(:disabled) {
@@ -107,20 +114,20 @@
         
         /* Estilos de Batalla Específicos */
         .battle-action { background-color: #3498db; }
-        .battle-capture { background-color: #e74c3c; }
-        .battle-item { background-color: #f1c40f; }
+        .battle-capture { background-color: #9b59b6; }
+        .battle-item { background-color: #f1c40f; color: #000; }
         
     </style>
-    </head>
+</head>
 <body>
 
 <div class="game-container">
     <h1>REINO CHAMPIÑÓN: BATALLA DE COMPAÑEROS</h1>
     <div id="status-display"></div>
     <div id="battle-view" style="display:none;" class="battle-screen">
-        <div class="battle-foe">Enemigo: <span id="foe-name"></span> 🍄</div>
+        <div class="battle-foe">Enemigo: <span id="foe-name"></span> </div>
         <div class="battle-ally">Tú: <span id="ally-name">MARIO</span> ⭐</div>
-        <p id="battle-log"></p>
+        <div id="battle-log"></div>
     </div>
     <div id="story-text"></div>
     <div id="choice-buttons"></div>
@@ -128,25 +135,27 @@
 
 <script>
     // =================================================================================
-    // === SISTEMA DE JUEGO MARIO-POKÉMON (Mejorado) ===
+    // === SISTEMA DE JUEGO MARIO-POKÉMON ===
     // =================================================================================
 
     let gameStatus = {
         potencia_pe: 100,
-        equipo: ["MARIO"], // MARIO siempre es el líder
-        items: ["SUPER HONGO", "SUPER HONGO"], // Objeto inicial
+        equipo: ["MARIO"],
+        items: ["SUPER HONGO", "SUPER HONGO"], 
         currentSceneId: 's1_intro'
     };
     
-    // El Pokémon enemigo actual para la batalla
     let currentFoe = null; 
 
-    // Lista de enemigos/compañeros posibles
+    // Lista de enemigos/compañeros posibles (Actos 1, 2 y 3)
     const COMPANIONS_AND_FOES = {
         'GOOMBA': { power: 15, recruitChance: 60, emoji: '🍄' },
         'KOOPA_TROOPA': { power: 25, recruitChance: 40, emoji: '🐢' },
         'LAKITU': { power: 35, recruitChance: 25, emoji: '☁️' },
-        'BOWSER_JR': { power: 50, recruitChance: 10, emoji: '🔥' }
+        'PLANTA_PIRAÑA': { power: 45, recruitChance: 5, emoji: '🪴' },
+        'BOWSER_JR': { power: 65, recruitChance: 0, emoji: '🐢' }, // Finalista - No reclutable
+        'BOO_KING': { power: 70, recruitChance: 0, emoji: '👻' },
+        'BOWSER': { power: 100, recruitChance: 0, emoji: '🔥' } // Jefe Final
     };
 
     // --- FUNCIONES CORE ---
@@ -177,9 +186,6 @@
             changes.reclutar.forEach(newMember => {
                 if (!gameStatus.equipo.includes(newMember) && gameStatus.equipo.length < 6) {
                     gameStatus.equipo.push(newMember);
-                    alert(`¡${newMember} se ha unido a tu equipo!`);
-                } else if (gameStatus.equipo.length >= 6) {
-                    alert('Tu equipo está lleno (Máx. 6 miembros).');
                 }
             });
         }
@@ -200,19 +206,23 @@
             return { isMet: false, reason: `Necesitas ${requirements.min_pe} PE.` };
         }
         if (requirements.requires_member && !gameStatus.equipo.includes(requirements.requires_member)) {
+            // Un pequeño hack: si tiene más de 1 miembro (MARIO + 1), se considera que cumple
+            if (requirements.requires_member === "TOAD" && gameStatus.equipo.length > 1) {
+                 return { isMet: true, reason: '' };
+            }
             return { isMet: false, reason: `Requiere tener a ${requirements.requires_member}.` };
         }
         return { isMet: true, reason: '' };
     }
 
-    // --- FUNCIONES DE BATALLA (NUEVO) ---
+    // --- FUNCIONES DE BATALLA ---
     
     function startBattle(foeId, nextSuccess, nextFail) {
-        // Inicializa el estado de batalla
+        const baseFoe = COMPANIONS_AND_FOES[foeId];
         currentFoe = { 
             id: foeId, 
-            ...COMPANIONS_AND_FOES[foeId], 
-            hp: COMPANIONS_AND_FOES[foeId].power * 2 // HP es el doble de su poder base
+            ...baseFoe, 
+            hp: baseFoe.power * 2 
         };
         
         document.getElementById('story-text').style.display = 'none';
@@ -220,7 +230,6 @@
         document.getElementById('foe-name').textContent = `${currentFoe.id} (${currentFoe.hp} HP) ${currentFoe.emoji}`;
         document.getElementById('battle-log').textContent = `¡Un ${currentFoe.id} salvaje aparece! ¿Qué hará MARIO?`;
         
-        // Renderiza las opciones de batalla
         renderBattleOptions(nextSuccess, nextFail);
     }
     
@@ -228,26 +237,27 @@
         const buttonsContainer = document.getElementById('choice-buttons');
         buttonsContainer.innerHTML = '';
         
-        // Opción 1: Atacar
         const attackButton = createButton('ATACAR (Poder Base)', 'battle-action', () => performAttack(nextSuccess, nextFail));
         buttonsContainer.appendChild(attackButton);
         
-        // Opción 2: Usar Objeto (Hongo)
         const itemButton = createButton('USAR SUPER HONGO', 'battle-item', () => useItem('SUPER HONGO', nextSuccess, nextFail));
         if (!gameStatus.items.includes('SUPER HONGO')) itemButton.disabled = true;
         buttonsContainer.appendChild(itemButton);
+
+        const itemUltraButton = createButton('USAR ULTRA ESTRELLA', 'battle-item', () => useItem('ULTRA ESTRELLA', nextSuccess, nextFail));
+        if (!gameStatus.items.includes('ULTRA ESTRELLA')) itemUltraButton.disabled = true;
+        buttonsContainer.appendChild(itemUltraButton);
         
-        // Opción 3: Intentar Reclutar (Capturar)
         const captureButton = createButton('INTENTAR RECLUTAR', 'battle-capture', () => attemptRecruit(nextSuccess, nextFail));
+        if (currentFoe.recruitChance === 0) captureButton.disabled = true; 
         buttonsContainer.appendChild(captureButton);
         
-        // Opción 4: Huir (Siempre posible, pero con costo de PE)
         const runButton = createButton('HUIR (-15 PE)', '', () => endBattle(nextFail, { pe: -15 }));
         buttonsContainer.appendChild(runButton);
     }
     
     function performAttack(nextSuccess, nextFail) {
-        const damage = 20 + Math.floor(Math.random() * 10); // Daño de 20 a 30
+        const damage = 20 + Math.floor(Math.random() * 10); 
         currentFoe.hp -= damage;
         
         let log = `MARIO ataca con un Super Salto. ¡${currentFoe.id} recibe ${damage} de daño! `;
@@ -255,11 +265,10 @@
         if (currentFoe.hp <= 0) {
             log += `¡El ${currentFoe.id} ha sido derrotado!`;
             document.getElementById('battle-log').textContent = log;
-            endBattle(nextSuccess, { pe: currentFoe.power * 2 }); // Ganas PE
+            endBattle(nextSuccess, { pe: currentFoe.power * 2 }); 
             return;
         }
 
-        // El enemigo contraataca
         const foeDamage = currentFoe.power;
         gameStatus.potencia_pe -= foeDamage;
         updateStatus();
@@ -274,22 +283,37 @@
         
         document.getElementById('foe-name').textContent = `${currentFoe.id} (${currentFoe.hp} HP) ${currentFoe.emoji}`;
         document.getElementById('battle-log').textContent = log;
-        renderBattleOptions(nextSuccess, nextFail); // Siguiente turno
+        renderBattleOptions(nextSuccess, nextFail); 
     }
     
     function useItem(item, nextSuccess, nextFail) {
         if (item === 'SUPER HONGO') {
             gameStatus.potencia_pe += 30;
-            gameStatus.items.splice(gameStatus.items.indexOf(item), 1); // Quitar uno
+            gameStatus.items.splice(gameStatus.items.indexOf(item), 1); 
             
             document.getElementById('battle-log').textContent = `MARIO usa un ${item}. ¡Recupera 30 PE!`;
             updateStatus();
+            renderBattleOptions(nextSuccess, nextFail);
+        } else if (item === 'ULTRA ESTRELLA') {
+            gameStatus.items.splice(gameStatus.items.indexOf(item), 1);
+            currentFoe.hp -= 50; 
+            
+            let log = `¡MARIO usa la ${item}! El ${currentFoe.id} recibe 50 de daño! `;
+             if (currentFoe.hp <= 0) {
+                log += `¡El ${currentFoe.id} ha sido derrotado!`;
+                document.getElementById('battle-log').textContent = log;
+                endBattle(nextSuccess, { pe: currentFoe.power * 2 + 50 }); 
+                return;
+            }
+            
+            document.getElementById('foe-name').textContent = `${currentFoe.id} (${currentFoe.hp} HP) ${currentFoe.emoji}`;
+            document.getElementById('battle-log').textContent = log;
             renderBattleOptions(nextSuccess, nextFail);
         }
     }
     
     function attemptRecruit(nextSuccess, nextFail) {
-        const captureChance = currentFoe.recruitChance + (100 - currentFoe.hp); // Más fácil si tiene menos HP
+        const captureChance = currentFoe.recruitChance + (currentFoe.power * 2 - currentFoe.hp); 
         
         if (Math.random() * 100 < captureChance && gameStatus.equipo.length < 6) {
             document.getElementById('battle-log').textContent = `¡MARIO lanza una Super Bola! ¡Capturaste a ${currentFoe.id}!`;
@@ -312,13 +336,12 @@
         document.getElementById('battle-view').style.display = 'none';
         document.getElementById('story-text').style.display = 'block';
         
-        // Pausa breve para que el jugador lea el resultado
         setTimeout(() => {
             renderScene(nextScene);
         }, 1500);
     }
     
-    // --- UTILITIES ---
+    // --- UTILITIES y RENDERIZADO PRINCIPAL (sin cambios) ---
     function createButton(text, className, onClick) {
         const button = document.createElement('button');
         button.className = 'choice-button ' + className;
@@ -330,30 +353,31 @@
         document.querySelectorAll('.choice-button').forEach(btn => btn.disabled = true);
     }
     
-    // --- RENDERIZADO PRINCIPAL ---
-    
     function renderScene(sceneId) {
         if (gameStatus.potencia_pe <= 0) {
             renderEnding('E_NO_PE');
             return;
         }
+        
         const scene = STORY_TREE[sceneId];
-        if (!scene) { renderEnding(sceneId); return; }
+        
+        if (!scene) { 
+             renderEnding('E_UNDEFINED_NODE'); 
+             return; 
+        }
         
         gameStatus.currentSceneId = sceneId;
         document.getElementById('story-text').innerHTML = scene.text;
         const buttonsContainer = document.getElementById('choice-buttons');
         buttonsContainer.innerHTML = '';
-        
+
         if (scene.is_ending) { renderEnding(sceneId); return; }
         
-        // Verifica si la escena es una batalla
         if (scene.is_battle) {
             startBattle(scene.foe, scene.next_success, scene.next_fail);
             return;
         }
         
-        // Renderiza opciones normales
         scene.choices.forEach(choice => {
             const button = document.createElement('button');
             button.className = 'choice-button';
@@ -387,8 +411,8 @@
     // --- FINALES ---
     const ENDINGS = {
         'E_NO_PE': "GAME OVER. ¡MARIO HA PERDIDO TODA SU ENERGÍA! Tu aventura se detiene aquí. **FIN POR AGOTAMIENTO.**",
-        'E_WIN': "¡FELICITACIONES! Has derrotado al gran jefe y reunido el equipo legendario. El Reino Champiñón está a salvo. **FINAL BUENO.**",
         's500_final': ">>> FIN DE DEMOSTRACIÓN. ¡GRACIAS POR JUGAR! <<<",
+        'E_UNDEFINED_NODE': "!!! ERROR DE SIMULACIÓN !!! El nudo de la historia no está definido. Has llegado al fin de la demo actual. ¡Reinicia para elegir otro camino!"
     };
 
     function renderEnding(endingId) {
@@ -402,11 +426,12 @@
 
 
     // =================================================================================
-    // === ÁRBOL DE HISTORIA (ACTO 1 CON BATALLAS) ===
+    // === ÁRBOL DE HISTORIA (ACTOS 1, 2 Y 3) ===
     // =================================================================================
 
     const STORY_TREE = {
         
+        // --- ACTO 1 (Pradera y Jungla) ---
         's1_intro': {
             text: "Eres MARIO, el Maestro Entrenador. Llegas a la Pradera Champiñón en busca de un equipo. Un Goomba salvaje te ha visto.",
             choices: [
@@ -414,72 +439,135 @@
                 { text: "Escapar a la Casa de Toad", next: 's2_toad_house', changes: { pe: -10 } }
             ]
         },
-
-        // --- NODOS DE BATALLA (NUEVO FORMATO) ---
-        's2_battle_goomba': {
-            is_battle: true,
-            foe: 'GOOMBA',
-            next_success: 's3_after_goomba', // Si ganas o reclutas
-            next_fail: 's1_intro', // Si huyes o pierdes PE pero no mueres
-            text: "El GOOMBA te bloquea. Es hora de la primera BATALLA."
-        },
+        's2_battle_goomba': { is_battle: true, foe: 'GOOMBA', next_success: 's3_after_goomba', next_fail: 's1_intro', text: "El GOOMBA te bloquea." },
+        's4_battle_koopa': { is_battle: true, foe: 'KOOPA_TROOPA', next_success: 's5_koopa_win', next_fail: 's4_road', text: "¡El Koopa Troopa te ataca con su caparazón giratorio!" },
+        's9_battle_piraña': { is_battle: true, foe: 'PLANTA_PIRAÑA', next_success: 's10_end_jungle', next_fail: 's6_jungle_entrance', text: "¡La PLANTA PIRAÑA es fuerte! ¡Cuidado con el fuego!" },
+        's3_after_goomba': { text: "Tras la batalla, el camino está abierto. Ves una extraña tubería brillante que parece un atajo.", choices: [ { text: "Entrar en la Tubería (Acceso Rápido)", next: 's4_pipe', changes: { pe: -10 } }, { text: "Continuar por el camino", next: 's4_road', changes: { pe: 5 } } ] },
+        's2_toad_house': { text: "La casa de Toad está tranquila. Encuentras un kit de primeros auxilios. ¿Recogerlos o no?", choices: [ { text: "Recoger Super Hongos", next: 's3_after_toad', changes: { item: ["SUPER HONGO"], pe: 5 } }, { text: "Dejar los objetos y salir", next: 's4_road', changes: { pe: -5 } } ] },
+        's3_after_toad': { text: "Un Koopa Troopa te ve saliendo de la casa. Te desafía a una batalla por el territorio.", choices: [ { text: "Aceptar el Desafío", next: 's4_battle_koopa', changes: { pe: -10 } }, { text: "Intentar razonar con él (Requiere TOAD)", next: 's5_reason', changes: { pe: -5 }, requirements: { requires_member: "TOAD" } } ] },
+        's5_reason': { text: "¡Toad interviene! El Koopa, al ver a un compañero, acepta dialogar y te ofrece un Huevo de Yoshi como disculpa.", choices: [ { text: "Aceptar y ECLOSIONAR HUEVO (Reclutar YOSHI)", next: 's7_yoshi_joins', changes: { reclutar: ["YOSHI"], pe: 20 } }, { text: "Rechazar y seguir buscando aventuras", next: 's6_jungle_entrance', changes: { pe: 5 } } ] },
+        's5_koopa_win': { text: "Has vencido al Koopa. Obtienes un caparazón. Encuentras un huevo abandonado.", choices: [ { text: "ECLOSIONAR EL HUEVO (Reclutar a YOSHI)", next: 's7_yoshi_joins', changes: { reclutar: ["YOSHI"], pe: 30 } }, { text: "Vender el caparazón (+20 PE)", next: 's6_jungle_entrance', changes: { pe: 20 } } ] },
+        's7_yoshi_joins': { text: "¡Yoshi se une! Puedes explorar la peligrosa Jungla de las Sombras.", choices: [ { text: "Ir a la Jungla de las Sombras", next: 's8_jungle_start', changes: { pe: -15 } }, { text: "Volver a la Pradera Champiñón", next: 's4_road', changes: { pe: 5 } } ] },
+        's8_jungle_start': { text: "La jungla es densa y peligrosa. ¡Una Planta Piraña salvaje te ataca!", choices: [ { text: "¡COMBATE!", next: 's9_battle_piraña', changes: { pe: -10 } } ] },
         
-        's3_after_goomba': {
-            text: "Tras la batalla, el camino está abierto. Ves una extraña tubería brillante. ¿Entrar o continuar por el camino?",
+        // **NODO DE TRANSICIÓN AL ACTO 2**
+        's10_end_jungle': {
+            text: "Has superado la jungla. ¡El Castillo de Peach se ve! Es hora del Gran Torneo.",
             choices: [
-                { text: "Entrar en la Tubería (Acceso Rápido)", next: 's4_pipe', changes: { pe: -10 } },
-                { text: "Continuar por el camino", next: 's4_road', changes: { pe: 5 } }
-            ]
-        },
-        
-        // --- NODOS NORMALES ---
-        's2_toad_house': {
-            text: "La casa de Toad está tranquila. Encuentras un kit de primeros auxilios. ¿Recogerlos o no?",
-            choices: [
-                { text: "Recoger Super Hongos", next: 's3_after_toad', changes: { item: ["SUPER HONGO"], pe: 5 } },
-                { text: "Dejar los objetos y salir", next: 's4_road', changes: { pe: -5 } }
-            ]
-        },
-        
-        's3_after_toad': {
-            text: "Un Koopa Troopa te ve saliendo de la casa. Te desafía a una batalla por el territorio.",
-            choices: [
-                { text: "Aceptar el Desafío", next: 's4_battle_koopa', changes: { pe: -10 } },
-                { text: "Intentar razonar con él (Requiere TOAD en el equipo)", next: 's5_reason', changes: { pe: -5 }, requirements: { requires_member: "TOAD" } }
+                { text: "Entrar al Castillo y Registrarse (INICIO ACTO 2)", next: 's100_tournament_start', changes: { pe: 10 } }
             ]
         },
 
-        's4_battle_koopa': {
+        // --- ACTO 2: EL GRAN TORNEO (Rondas Preliminares) ---
+        's100_tournament_start': {
+            text: "La Princesa Peach te da la bienvenida al Gran Torneo. Hay 3 rondas. Necesitas un equipo fuerte.",
+            choices: [
+                { 
+                    text: "Mostrar tu Equipo (Comenzar Rondas)", 
+                    next: 's101_round_1', 
+                    requirements: { requires_member: "TOAD" } // Requiere al menos un compañero extra (Mario + 1)
+                },
+                { text: "Entrenar más antes de empezar", next: 's4_road' } 
+            ]
+        },
+        
+        's101_round_1': {
+            text: "Ronda 1: ¡Te enfrentas al Entrenador **LAKITU**!",
             is_battle: true,
-            foe: 'KOOPA_TROOPA',
-            next_success: 's5_koopa_win',
-            next_fail: 's4_road',
-            text: "¡El Koopa Troopa te ataca con su caparazón giratorio!"
+            foe: 'LAKITU',
+            next_success: 's102_after_round_1',
+            next_fail: 's100_tournament_start',
         },
         
-        's5_koopa_win': {
-            text: "Has vencido al Koopa. ¡Obtienes un nuevo Huevo de Yoshi!",
+        's102_after_round_1': {
+            text: "¡Victoria! El público grita tu nombre. Tienes una hora para descansar. ¿Qué haces?",
             choices: [
-                { text: "ECLOSIONAR EL HUEVO (Reclutar a YOSHI)", next: 's500_final', changes: { reclutar: ["YOSHI"], pe: 30 } },
+                { text: "Curarte (Recuperas +40 PE)", next: 's105_round_2', changes: { pe: 40 } },
+                { text: "Buscar la Tienda Secreta (Requiere KOOPA_TROOPA)", next: 's103_secret_shop', changes: { pe: -10 }, requirements: { requires_member: "KOOPA_TROOPA" } },
+                { text: "Contar un chiste pésimo a Toad (-10 PE por vergüenza ajena, ¡pero fue gracioso!)", next: 's105_round_2', changes: { pe: -10 } } // Acción humorística
             ]
         },
         
-        's4_pipe': {
-            text: "La tubería te lleva a una zona de bonificación, pero pierdes PE por la prisa.",
+        's103_secret_shop': {
+            text: "Gracias a Koopa, encuentras la tienda. Compras una Ultra Estrella. ¡Ahora tienes ventaja!",
             choices: [
-                { text: "Continuar la aventura...", next: 's500_final', changes: { pe: -15 } },
+                { text: "Continuar a la Ronda 2", next: 's105_round_2', changes: { item: ["ULTRA ESTRELLA"] } }
             ]
         },
         
-        's4_road': {
-            text: "Sigues el camino, es seguro, pero lento. Pierdes un poco de tiempo.",
+        's105_round_2': {
+            text: "Ronda 2: ¡Un desafío espectral! ¡Te enfrentas al temible **REY BOO**!",
+            is_battle: true,
+            foe: 'BOO_KING',
+            next_success: 's106_after_round_2',
+            next_fail: 's100_tournament_start',
+        },
+        
+        's106_after_round_2': {
+            text: "¡El Rey Boo cayó! Solo queda una batalla: ¡La final!",
             choices: [
-                { text: "Continuar la aventura...", next: 's500_final', changes: { pe: -5 } },
+                { text: "Avanzar a la FINAL (INICIO ACTO 3)", next: 's200_final_round', changes: { pe: 50 } }
+            ]
+        },
+
+        // --- ACTO 3: LA FINAL Y BOWSER (Nodos 200+) ---
+
+        's200_final_round': {
+            text: "¡La arena explota! Te enfrentas a **BOWSER JR.**, el invicto campeón. Te mira con desdén desde su Koopa Clown Car.",
+            choices: [
+                { text: "¡A LA CARGA! (Comenzar Batalla)", next: 's201_battle_bowser_jr', changes: { pe: -20 } },
+                { text: "Distraer a Bowser Jr. con un plátano imaginario (-5 PE de concentración)", next: 's200_distraction', changes: { pe: -5 } } // Acción divertida
             ]
         },
         
-        // ... (Aquí continuarían cientos de nodos: s6_... hasta s500+) ...
+        's200_distraction': {
+             text: "Intentas distraerlo con mímica de plátano. Él se confunde. '¿Qué? ¡Aquí no hay plátanos!', y pierde tiempo.",
+             choices: [
+                 { text: "¡Ahora es el momento! ¡Ataca!", next: 's201_battle_bowser_jr', changes: { pe: -5 } }
+             ]
+        },
+
+        's201_battle_bowser_jr': {
+            is_battle: true,
+            foe: 'BOWSER_JR',
+            next_success: 's202_tournament_win',
+            next_fail: 's100_tournament_start', 
+            text: "¡La batalla final por el Trofeo!"
+        },
         
+        's202_tournament_win': {
+            text: "¡GANAS! El castillo estalla en vítores. Peach te entrega el Trofeo. Bowser Jr. hace un berrinche y... ¡la pared se desmorona con un rugido! ",
+            choices: [
+                { text: "¡PLOT TWIST! Enfrentar la nueva amenaza", next: 's205_bowser_attack', changes: { pe: 50 } }
+            ]
+        },
+
+        's205_bowser_attack': {
+            text: "¡Es **BOWSER**! Está furioso por la derrota de su hijo. '¡Este torneo es FALSO!', ruge. '¡Ahora lucharán contra el verdadero campeón!'",
+            choices: [
+                { text: "Usar el Trofeo como Escudo (Pierdes -25 PE)", next: 's206_battle_bowser', changes: { pe: -25 } },
+                { text: "Llamar a todos tus compañeros a la vez (Potencia máxima)", next: 's206_battle_bowser', changes: { pe: -10 } }
+            ]
+        },
+        
+        's206_battle_bowser': {
+            is_battle: true,
+            foe: 'BOWSER',
+            next_success: 's210_game_end',
+            next_fail: 'E_NO_PE', 
+            text: "¡LA BATALLA FINAL! Bowser tiene una potencia de 100. ¡Todo o nada!"
+        },
+        
+        's210_game_end': {
+            is_ending: true,
+            text: "¡HAS DERROTADO A BOWSER! La princesa Peach está a salvo, el Reino Champiñón celebra, y tu equipo es reconocido como el más poderoso de la historia. ¡**FINAL BUENO!**",
+            choices: []
+        },
+
+        // --- Nodos de Finalización Temporal ---
+        's4_pipe': { text: "La tubería te llevó a un campo de bonificación, pero la salida está bloqueada. Tienes que retroceder.", choices: [ { text: "Continuar la aventura...", next: 's500_final', changes: { pe: -15 } } ] },
+        's4_road': { text: "Sigues el camino, es seguro, pero lento. Pierdes un poco de tiempo.", choices: [ { text: "Continuar la aventura...", next: 's500_final', changes: { pe: -5 } } ] },
+        's6_jungle_entrance': { text: "Has llegado a la entrada de la Jungla, pero estás cansado. Debes descansar antes de entrar.", choices: [ { text: "Descansar y continuar (FIN DE DEMO)", next: 's500_final', changes: { pe: 5 } } ] }
     };
 
     // Iniciar el juego
