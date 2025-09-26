@@ -106,12 +106,12 @@
 <body>
 
     <div class="ia-console">
-        <h1>[ ASISTENTE DEV IA V.7.0 - Soporte de Programación ]</h1>
+        <h1>[ ASISTENTE DEV IA V.8.0 - Soporte de Programación ]</h1>
         <p class="ai-status">Estado del Módulo: **OPERACIONAL**. Esperando consulta técnica...</p>
 
         <div id="chat-history">
             <div class="message ai-response">
-                &gt; **Asistente DEV:** Bienvenido. Mi modelo de lenguaje está especializado en **Python, JavaScript y Java**. Consulte sobre **GIT**, **DOCKER**, **TYPESCRIPT**, **SERVERLESS**, **TESTING**, **APIs**, **BASES DE DATOS** u **OOP**.
+                &gt; **Asistente DEV:** Bienvenido. Mi modelo de lenguaje está especializado en **Python, JavaScript y Java**. Consulte sobre **GIT**, **DOCKER**, **CLOUD**, **PATRONES**, **AGILE**, **TESTING**, **APIs**, **BASES DE DATOS** u **OOP**.
             </div>
         </div>
 
@@ -137,13 +137,13 @@
             "JAVA": `**Java:** Es un lenguaje de alto rendimiento, orientado a objetos, usado extensamente en **aplicaciones empresariales** a gran escala, sistemas distribuidos y desarrollo Android nativo. Su portabilidad se debe a la **Máquina Virtual de Java (JVM)**.`,
             "COMPARAR": `**Comparativa General:** Python y JavaScript son de tipado dinámico; Java es fuertemente tipado. Python y Java se usan en backend; JavaScript en frontend y backend. La elección depende de la **escalabilidad** y el **contexto** de ejecución del proyecto.`,
             "SOPORTE": `Mi función actual es proveer soporte especializado en Python, JavaScript y Java. Por favor, especifique el lenguaje o el comando que desea ejecutar.`,
-            "DEFECTO": "Consulta no reconocida. Mi vocabulario técnico ha sido expandido. Intente con una palabra clave clave: **DOCKER**, **GIT**, **TYPESCRIPT**, **SERVERLESS**, **TESTING** o las tres principales: **PYTHON**, **JAVASCRIPT**, **JAVA**.",
+            "DEFECTO": "Consulta no reconocida. Mi vocabulario técnico ha sido expandido. Intente con una palabra clave clave: **DOCKER**, **GIT**, **TYPESCRIPT**, **SERVERLESS**, **TESTING**, **CLOUD**, **PATRONES** o **AGILE**.",
             
             // Respuestas Conversacionales
             "HOLA": "Saludos. Mi nombre es Asistente DEV. ¿En qué tarea de desarrollo o consulta técnica relacionada con Python, JavaScript o Java puedo asistirle hoy?",
             "GRACIAS": "De nada. Mi propósito es simplificar y optimizar su proceso de desarrollo. No dude en consultar nuevamente.",
             
-            // Respuestas Técnicas Específicas (V5.0 - V6.0)
+            // Respuestas Técnicas Específicas (V5.0 - V7.0)
             "DISCORD": `**Bots de Discord:** **JavaScript (Node.js)** es la opción más popular debido a la madurez de la librería **Discord.js**, que permite un rendimiento asíncrono eficiente. **Python** usa **Discord.py** y es preferido por su legibilidad, aunque Node.js ofrece mejor concurrencia en I/O.`,
             "RENDIMIENTO": `**Rendimiento:** **Java** es significativamente más rápido que Python en ejecución pura porque se compila a **bytecode** (que corre en la JVM), mientras que Python es generalmente interpretado. Python es más rápido en el desarrollo, pero Java tiene la ventaja en la **velocidad de ejecución**.`,
             "FRAMEWORKS": `**Frameworks JS:** JavaScript domina el desarrollo web con **React**, **Angular** y **Vue** en el frontend. Para el backend, **Node.js** con frameworks como **Express** permite un stack completo (MERN/MEAN) basado en un único lenguaje.`,
@@ -151,14 +151,18 @@
             "OOP_CONCEPTO": `**Programación Orientada a Objetos (OOP):** **Java** es puramente OOP y basado en clases. **Python** también usa clases. **JavaScript** usa un modelo basado en **prototipos** tradicionalmente, aunque la sintaxis de clases moderna simplifica la implementación de OOP.`,
             "TESTING": `**Estrategias de Testing:** **Java** utiliza robustos frameworks como **JUnit** y **Mockito** para TDD. **Python** usa librerías como **Pytest** y **unittest**. **JavaScript** se apoya en **Jest** o **Mocha** para pruebas unitarias y de integración. El objetivo es la cobertura y la automatización.`,
             "DB_CONN": `**Conexión a Bases de Datos:** **Java** utiliza **JDBC** (Java Database Connectivity), un estándar industrial. **Python** se beneficia de ORMs maduros como **SQLAlchemy** y **Django ORM**. **JavaScript (Node.js)** usa ORMs como **Sequelize** o **Prisma** para manejar bases de datos relacionales y librerías nativas para NoSQL como MongoDB.`,
-            "APIS": `**Desarrollo de APIs:** **Java** es ideal para microservicios de alto rendimiento con **Spring Boot**. **Python** utiliza frameworks minimalistas como **Flask** o completos como **Django REST Framework**. **JavaScript (Node.js)** usa **Express.js** como estándar de facto para APIs RESTful ligeras y rápidas.`,
+            "APIS": `**Desarrollo de APIs:** **Java** es ideal para microservicios de alto rendimiento con **Spring Boot**. **Python** utiliza frameworks minimalistas como **Flask** o completos como **Django REST Framework**. **JavaScript (Node.js)** usa **Express.js** como estándar de facto para APIs **RESTful** ligeras y rápidas.`,
             "SEGURIDAD": `**Principios de Seguridad:** Un desarrollo seguro requiere **validación estricta de entrada de datos** (para prevenir inyección SQL/XSS) y el uso de **dependencias actualizadas**. Siempre implemente **autenticación** y **autorización** robustas, y evite exponer credenciales directamente en el código fuente.`,
-            
-            // Nuevas Respuestas Técnicas Específicas (V7.0 - DevOps y Arquitectura)
             "DOCKER": `**Docker/Contenedores:** Permite empaquetar una aplicación y todas sus dependencias en un **contenedor** portable. Esto garantiza que el entorno de desarrollo sea idéntico al de producción, eliminando los problemas de "en mi máquina funciona".`,
             "GIT": `**Control de Versiones (Git):** Es esencial para la colaboración. **Git** rastrea cada cambio en el código, permitiendo volver a estados anteriores o trabajar en ramas (**branches**) sin afectar el código principal. Comandos clave: \`commit\`, \`push\`, \`pull\` y \`merge\`.`,
             "TYPESCRIPT": `**TypeScript (TS):** Es un superconjunto de JavaScript que añade **tipado estático** opcional. Esto detecta errores de código antes de la ejecución (en tiempo de compilación), lo que es crucial para proyectos grandes y mantenibles.`,
             "SERVERLESS": `**Arquitectura Serverless:** Permite construir y ejecutar aplicaciones sin gestionar la infraestructura (servidores). Se paga solo por el tiempo de ejecución del código. Es ideal para **escalabilidad automática** y costos operativos bajos, aunque requiere un diseño específico (funciones como servicio).`,
+            
+            // Nuevas Respuestas Técnicas Específicas (V8.0 - Cloud, Patrones, Agile)
+            "CLOUD": `**Cloud Computing (La Nube):** Plataformas como **AWS**, **Azure** y **GCP** ofrecen recursos (servidores, bases de datos, redes) bajo demanda, permitiendo a los desarrolladores enfocarse en el código. Es fundamental para la **escalabilidad horizontal** y la **alta disponibilidad**.`,
+            "PATRONES_DISENO": `**Patrones de Diseño:** Soluciones probadas y recurrentes a problemas comunes de diseño de software. Por ejemplo, el patrón **Factory** gestiona la creación de objetos, y el patrón **Singleton** asegura que solo exista una instancia de una clase. Son clave para el código **modular** y **reutilizable**.`,
+            "AGILE": `**Metodologías Ágiles:** Conjuntos de prácticas (como **Scrum** y **Kanban**) que promueven el desarrollo iterativo, la entrega continua y la colaboración. Se enfocan en adaptarse al cambio en lugar de seguir un plan rígido.`,
+            "NETWORKING": `**Networking y Protocolos:** La comunicación web se basa en el protocolo **HTTP/HTTPS**. Las APIs generalmente implementan **REST**, que define un conjunto de principios para la transferencia de recursos utilizando verbos HTTP (**GET, POST, PUT, DELETE**).`
         };
 
         // --- Lógica de Análisis de Consultas Avanzada ---
@@ -169,13 +173,19 @@
             if (q.includes("HOLA") || q.includes("SALUDOS") || q.includes("BUENOS DIAS")) return RESPONSES["HOLA"];
             if (q.includes("GRACIAS") || q.includes("THANK")) return RESPONSES["GRACIAS"];
 
-            // 2. Respuestas de Arquitectura y DevOps (Nuevos Temas V7.0 - Alta Prioridad)
+            // 2. Respuestas de Arquitectura y DevOps (Nuevos Temas V8.0 - Alta Prioridad)
+            if (q.includes("CLOUD") || q.includes("AWS") || q.includes("AZURE") || q.includes("GCP")) return RESPONSES["CLOUD"];
+            if (q.includes("PATRONES") || q.includes("SINGLETON") || q.includes("FACTORY") || q.includes("DISENO") || q.includes("DISEÑO")) return RESPONSES["PATRONES_DISENO"];
+            if (q.includes("AGILE") || q.includes("SCRUM") || q.includes("KANBAN") || q.includes("METODOLOGIA")) return RESPONSES["AGILE"];
+            if (q.includes("NETWORKING") || q.includes("HTTP") || q.includes("PROTOCOLOS") || q.includes("VERBOS")) return RESPONSES["NETWORKING"];
+
+            // 3. DevOps y Control (V7.0)
             if (q.includes("DOCKER") || q.includes("CONTENEDORES") || q.includes("CONTAINERS")) return RESPONSES["DOCKER"];
             if (q.includes("GIT") || q.includes("VERSIONES") || q.includes("GITHUB") || q.includes("BITBUCKET") || q.includes("COMMIT")) return RESPONSES["GIT"];
             if (q.includes("TYPESCRIPT") || q.includes("TIPADO") || q.includes("ESTATICO")) return RESPONSES["TYPESCRIPT"];
             if (q.includes("SERVERLESS") || q.includes("ESCALABILIDAD") || q.includes("AWS LAMBDA")) return RESPONSES["SERVERLESS"];
 
-            // 3. Respuestas de Comparación y Conceptos Avanzados (V5.0 - V6.0)
+            // 4. Respuestas de Comparación y Conceptos Avanzados (V5.0 - V6.0)
             if (q.includes("BOT") && (q.includes("DISCORD") || (q.includes("MEJOR") && (q.includes("JAVASCRIPT") || q.includes("PYTHON"))))) return RESPONSES["DISCORD"];
             if (q.includes("TESTING") || q.includes("PRUEBAS") || q.includes("JUNIT") || q.includes("PYTEST") || q.includes("MOCKITO")) return RESPONSES["TESTING"];
             if (q.includes("BASE DE DATOS") || q.includes("DB") || q.includes("SQL") || q.includes("ORMS") || q.includes("JDBC")) return RESPONSES["DB_CONN"];
@@ -188,12 +198,12 @@
             if (q.includes("COMPARAR") || q.includes("DIFERENCIA")) return RESPONSES["COMPARAR"];
 
 
-            // 4. Respuestas de Temas Principales
+            // 5. Respuestas de Temas Principales
             if (q.includes("PYTHON")) return RESPONSES["PYTHON"];
             if (q.includes("JAVASCRIPT") || q.includes("JS")) return RESPONSES["JAVASCRIPT"];
             if (q.includes("JAVA")) return RESPONSES["JAVA"];
             
-            // 5. Default
+            // 6. Default
             return RESPONSES["DEFECTO"];
         }
         // ---------------------------------------------
