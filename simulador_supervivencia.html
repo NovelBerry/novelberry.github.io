@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BÚNKER 7-DELTA: La Nieve Roja</title>
+    <title>REINO CHAMPIÑÓN: Batalla de Compañeros</title>
     <style>
+        /* Estilo de Consola Retro */
         body {
-            background-color: #0d1a26; /* Azul Oscuro de Búnker */
-            color: #c0c0c0; /* Gris de metal */
-            font-family: 'Consolas', monospace;
+            background-color: #2c3e50; /* Azul Oscuro (Color Game Boy) */
+            color: #ecf0f1; /* Gris Claro */
+            font-family: 'Press Start 2P', monospace; /* Fuente Pixelada (Si está disponible) */
+            font-family: 'Courier New', monospace; /* Alternativa simple */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -19,508 +21,465 @@
         }
 
         .game-container {
-            padding: 30px;
-            border: 4px solid #1a839e; /* Cian frío */
-            box-shadow: 0 0 30px rgba(26, 131, 158, 0.6);
-            border-radius: 15px;
-            background-color: rgba(0, 0, 0, 0.8);
-            max-width: 900px;
+            padding: 20px;
+            border: 6px solid #f1c40f; /* Borde Amarillo "Poder" */
+            border-radius: 10px;
+            background-color: #34495e; /* Azul/Gris Interior */
+            max-width: 700px;
             min-height: 550px;
             position: relative;
+            box-shadow: 0 0 0 10px #2c3e50;
         }
 
         h1 {
-            color: #90ee90; /* Verde de monitor */
-            font-size: 2.2em;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px #90ee90;
+            color: #1abc9c; /* Verde Menta */
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px #000000;
         }
 
+        /* DISPLAY DE ESTADO */
         #status-display {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             padding: 10px;
-            border-bottom: 1px solid #1a839e;
-            font-size: 1.1em;
-            font-weight: bold;
-        }
-
-        .resource {
-            padding: 5px 15px;
+            border: 1px solid #7f8c8d;
             border-radius: 5px;
-            background-color: rgba(26, 131, 158, 0.2);
-            min-width: 100px;
+            font-size: 0.9em;
+            text-align: left;
+            background-color: #2c3e50;
         }
-        
-        .low-resource {
-            color: #ff6347; /* Rojo para recursos bajos */
-            animation: blink 1s infinite alternate;
-        }
+        .stat-pe { color: #f39c12; }
+        .stat-team { color: #3498db; }
 
-        @keyframes blink {
-            from { opacity: 1; }
-            to { opacity: 0.7; }
-        }
-
+        /* PANTALLA DE BATALLA/HISTORIA */
         #story-text {
-            font-size: 1.1em;
-            line-height: 1.6;
-            margin-bottom: 30px;
+            font-size: 1em;
+            line-height: 1.5;
+            margin-bottom: 20px;
             white-space: pre-wrap;
             text-align: left;
             min-height: 150px;
+            padding: 10px;
+            border: 2px solid #e74c3c; /* Rojo Peligro */
+            background-color: #252d37;
         }
+        
+        /* VISUAL DE BATALLA */
+        .battle-screen {
+            border: 3px solid #f39c12;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #1d2630;
+            text-align: center;
+        }
+        .battle-foe { color: #e74c3c; font-size: 1.5em; }
+        .battle-ally { color: #2ecc71; font-size: 1.5em; }
 
+        /* BOTONES DE OPCIÓN */
         #choice-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
         }
 
         .choice-button {
-            background-color: #1f3743;
-            color: #90ee90;
-            border: 2px solid #1a839e;
-            padding: 10px 20px;
-            font-size: 1em;
+            background-color: #27ae60; /* Verde de Acción */
+            color: #ffffff;
+            border: 2px solid #2ecc71;
+            padding: 10px 15px;
+            font-size: 0.9em;
             cursor: pointer;
-            border-radius: 8px;
-            transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+            border-radius: 5px;
+            transition: background-color 0.1s;
         }
 
         .choice-button:hover:not(:disabled) {
-            background-color: #1a839e;
-            color: #000000;
-            box-shadow: 0 0 15px #90ee90;
+            background-color: #2ecc71;
+            box-shadow: 0 0 10px #2ecc71;
         }
         
         .choice-button:disabled {
-            background-color: #333;
-            color: #777;
+            background-color: #555;
+            color: #aaa;
             cursor: not-allowed;
-            border-color: #333;
+            border-color: #777;
         }
-
-        .ending {
-            text-align: center !important;
-            font-size: 1.8em !important;
-            color: #ff6347;
-            font-weight: bold;
-            text-shadow: 0 0 10px #ff6347;
-            animation: pulse 2s infinite;
-        }
+        
+        /* Estilos de Batalla Específicos */
+        .battle-action { background-color: #3498db; }
+        .battle-capture { background-color: #e74c3c; }
+        .battle-item { background-color: #f1c40f; }
+        
     </style>
-</head>
+    </head>
 <body>
 
 <div class="game-container">
-    <h1>BÚNKER 7-DELTA: La Nieve Roja</h1>
+    <h1>REINO CHAMPIÑÓN: BATALLA DE COMPAÑEROS</h1>
     <div id="status-display"></div>
+    <div id="battle-view" style="display:none;" class="battle-screen">
+        <div class="battle-foe">Enemigo: <span id="foe-name"></span> 🍄</div>
+        <div class="battle-ally">Tú: <span id="ally-name">MARIO</span> ⭐</div>
+        <p id="battle-log"></p>
+    </div>
     <div id="story-text"></div>
     <div id="choice-buttons"></div>
 </div>
 
 <script>
     // =================================================================================
-    // === SISTEMA DE SUPERVIVENCIA (RECURSOS) ===
+    // === SISTEMA DE JUEGO MARIO-POKÉMON (Mejorado) ===
     // =================================================================================
 
     let gameStatus = {
-        oxygen: 75,
-        food: 75,
-        energy: 75,
+        potencia_pe: 100,
+        equipo: ["MARIO"], // MARIO siempre es el líder
+        items: ["SUPER HONGO", "SUPER HONGO"], // Objeto inicial
         currentSceneId: 's1_intro'
     };
-
-    const RESOURCE_LIMITS = {
-        max_oxygen: 100,
-        max_food: 100,
-        max_energy: 100
-    };
     
-    // Nodos de Muerte por Recurso
-    const ENDINGS = {
-        'DEATH_OXYGEN': "FIN POR ASFIXIA. El aire se agotó. Tu último pensamiento es el frío y la inutilidad de tus esfuerzos. La escarcha cubre el visor. **Muerte por Oxígeno Cero.**",
-        'DEATH_FOOD': "FIN POR INANICIÓN. Tus fuerzas te abandonan. El hambre se vuelve un dolor sordo y luego... silencio. No queda energía ni para un último suspiro. **Muerte por Hambre.**",
-        'DEATH_ENERGY': "FIN POR EXPOSICIÓN. Tu traje se apaga. El frío del planeta se filtra al búnker y te envuelve. Te conviertes en una estatua de hielo. **Muerte por Energía Cero.**",
-        'END_ESCAPE': "ÉXITO: ESCAPE. Lograste escapar del Búnker 7-Delta y alcanzar el módulo de rescate. El cielo es rojo, pero estás vivo. **Final de Supervivencia Máxima.**",
-        'END_SABOTAGE': "FINAL DE SABOTAJE. Destruyes el Búnker para evitar que el contagio de la Nieve Roja se propague. El sacrificio te consume, pero salvas el planeta. **Final de Sacrificio.**",
-        'END_REVELATION': "FINAL DE LA REVELACIÓN. Descubres que la 'Nieve Roja' no es un contagio, sino una forma de vida simbiótica. Decides vivir en el búnker, adaptándote a ella. **Final Simbiótico.**"
+    // El Pokémon enemigo actual para la batalla
+    let currentFoe = null; 
+
+    // Lista de enemigos/compañeros posibles
+    const COMPANIONS_AND_FOES = {
+        'GOOMBA': { power: 15, recruitChance: 60, emoji: '🍄' },
+        'KOOPA_TROOPA': { power: 25, recruitChance: 40, emoji: '🐢' },
+        'LAKITU': { power: 35, recruitChance: 25, emoji: '☁️' },
+        'BOWSER_JR': { power: 50, recruitChance: 10, emoji: '🔥' }
     };
 
-    // Función principal para verificar la muerte
-    function checkResources() {
-        if (gameStatus.oxygen <= 0) return 'DEATH_OXYGEN';
-        if (gameStatus.food <= 0) return 'DEATH_FOOD';
-        if (gameStatus.energy <= 0) return 'DEATH_ENERGY';
-        return false;
-    }
+    // --- FUNCIONES CORE ---
 
-    // Función para actualizar la pantalla de recursos
     function updateStatus() {
         const display = document.getElementById('status-display');
+        const teamList = gameStatus.equipo.length > 0 ? gameStatus.equipo.join(', ') : 'VACÍO';
+        const itemsList = gameStatus.items.length > 0 ? gameStatus.items.join(', ') : 'NINGUNO';
+        
         display.innerHTML = `
-            <span class="resource ${gameStatus.oxygen < 20 ? 'low-resource' : ''}">OXÍGENO: ${gameStatus.oxygen}</span>
-            <span class="resource ${gameStatus.food < 20 ? 'low-resource' : ''}">COMIDA: ${gameStatus.food}</span>
-            <span class="resource ${gameStatus.energy < 20 ? 'low-resource' : ''}">ENERGÍA: ${gameStatus.energy}</span>
+            <div class="stat-pe">⚡ POTENCIA (PE): ${gameStatus.potencia_pe}</div>
+            <div class="stat-team">⭐ EQUIPO: ${teamList} (${gameStatus.equipo.length}/6)</div>
+            <div class="stat-items">🎒 OBJETOS: ${itemsList}</div>
         `;
     }
 
-    // Función para aplicar cambios de recursos
-    function applyResourceChanges(changes) {
+    function applyChanges(changes) {
         if (!changes) return;
 
-        for (const resource in changes) {
-            if (gameStatus.hasOwnProperty(resource)) {
-                gameStatus[resource] += changes[resource];
-                
-                // Aplicar límites (0 y 100)
-                gameStatus[resource] = Math.max(0, gameStatus[resource]);
-                gameStatus[resource] = Math.min(gameStatus[resource], RESOURCE_LIMITS[`max_${resource}`]);
-            }
+        // 1. Manejo de Puntos de Potencia (PE)
+        if (changes.pe) {
+            gameStatus.potencia_pe += changes.pe;
+            gameStatus.potencia_pe = Math.max(0, gameStatus.potencia_pe); 
         }
+
+        // 2. Manejo de Equipo (Reclutar)
+        if (changes.reclutar) {
+            changes.reclutar.forEach(newMember => {
+                if (!gameStatus.equipo.includes(newMember) && gameStatus.equipo.length < 6) {
+                    gameStatus.equipo.push(newMember);
+                    alert(`¡${newMember} se ha unido a tu equipo!`);
+                } else if (gameStatus.equipo.length >= 6) {
+                    alert('Tu equipo está lleno (Máx. 6 miembros).');
+                }
+            });
+        }
+        
+        // 3. Manejo de Items
+        if (changes.item) {
+            changes.item.forEach(newItem => {
+                gameStatus.items.push(newItem);
+            });
+        }
+        
         updateStatus();
     }
 
-    // Función para renderizar el fin del juego
-    function renderEnding(endingId) {
-        document.getElementById('story-text').innerHTML = ENDINGS[endingId];
-        document.getElementById('story-text').classList.add('ending');
-        document.getElementById('choice-buttons').innerHTML = `<button class="choice-button" onclick="window.location.reload()">Reiniciar Simulación</button>`;
-        document.getElementById('story-text').style.textAlign = 'center';
+    function checkRequirements(requirements) {
+        if (!requirements) return { isMet: true, reason: '' };
+        if (requirements.min_pe && gameStatus.potencia_pe < requirements.min_pe) {
+            return { isMet: false, reason: `Necesitas ${requirements.min_pe} PE.` };
+        }
+        if (requirements.requires_member && !gameStatus.equipo.includes(requirements.requires_member)) {
+            return { isMet: false, reason: `Requiere tener a ${requirements.requires_member}.` };
+        }
+        return { isMet: true, reason: '' };
     }
 
-    // Función principal para renderizar las escenas
-    function renderScene(sceneId) {
-        // Si ya hay un estado de muerte, no avanzar
-        if (checkResources()) {
-            renderEnding(checkResources());
+    // --- FUNCIONES DE BATALLA (NUEVO) ---
+    
+    function startBattle(foeId, nextSuccess, nextFail) {
+        // Inicializa el estado de batalla
+        currentFoe = { 
+            id: foeId, 
+            ...COMPANIONS_AND_FOES[foeId], 
+            hp: COMPANIONS_AND_FOES[foeId].power * 2 // HP es el doble de su poder base
+        };
+        
+        document.getElementById('story-text').style.display = 'none';
+        document.getElementById('battle-view').style.display = 'block';
+        document.getElementById('foe-name').textContent = `${currentFoe.id} (${currentFoe.hp} HP) ${currentFoe.emoji}`;
+        document.getElementById('battle-log').textContent = `¡Un ${currentFoe.id} salvaje aparece! ¿Qué hará MARIO?`;
+        
+        // Renderiza las opciones de batalla
+        renderBattleOptions(nextSuccess, nextFail);
+    }
+    
+    function renderBattleOptions(nextSuccess, nextFail) {
+        const buttonsContainer = document.getElementById('choice-buttons');
+        buttonsContainer.innerHTML = '';
+        
+        // Opción 1: Atacar
+        const attackButton = createButton('ATACAR (Poder Base)', 'battle-action', () => performAttack(nextSuccess, nextFail));
+        buttonsContainer.appendChild(attackButton);
+        
+        // Opción 2: Usar Objeto (Hongo)
+        const itemButton = createButton('USAR SUPER HONGO', 'battle-item', () => useItem('SUPER HONGO', nextSuccess, nextFail));
+        if (!gameStatus.items.includes('SUPER HONGO')) itemButton.disabled = true;
+        buttonsContainer.appendChild(itemButton);
+        
+        // Opción 3: Intentar Reclutar (Capturar)
+        const captureButton = createButton('INTENTAR RECLUTAR', 'battle-capture', () => attemptRecruit(nextSuccess, nextFail));
+        buttonsContainer.appendChild(captureButton);
+        
+        // Opción 4: Huir (Siempre posible, pero con costo de PE)
+        const runButton = createButton('HUIR (-15 PE)', '', () => endBattle(nextFail, { pe: -15 }));
+        buttonsContainer.appendChild(runButton);
+    }
+    
+    function performAttack(nextSuccess, nextFail) {
+        const damage = 20 + Math.floor(Math.random() * 10); // Daño de 20 a 30
+        currentFoe.hp -= damage;
+        
+        let log = `MARIO ataca con un Super Salto. ¡${currentFoe.id} recibe ${damage} de daño! `;
+        
+        if (currentFoe.hp <= 0) {
+            log += `¡El ${currentFoe.id} ha sido derrotado!`;
+            document.getElementById('battle-log').textContent = log;
+            endBattle(nextSuccess, { pe: currentFoe.power * 2 }); // Ganas PE
             return;
         }
 
-        const scene = STORY_TREE[sceneId];
+        // El enemigo contraataca
+        const foeDamage = currentFoe.power;
+        gameStatus.potencia_pe -= foeDamage;
+        updateStatus();
         
-        // Si la escena no existe, es un final de trama
-        if (!scene) {
-             renderEnding(sceneId);
-             return;
+        log += `El ${currentFoe.id} contraataca. Pierdes ${foeDamage} PE. `;
+        
+        if (gameStatus.potencia_pe <= 0) {
+            document.getElementById('battle-log').textContent = log + '¡MARIO ha sido vencido!';
+            renderEnding('E_NO_PE');
+            return;
         }
         
-        gameStatus.currentSceneId = sceneId; // Guarda la escena actual
+        document.getElementById('foe-name').textContent = `${currentFoe.id} (${currentFoe.hp} HP) ${currentFoe.emoji}`;
+        document.getElementById('battle-log').textContent = log;
+        renderBattleOptions(nextSuccess, nextFail); // Siguiente turno
+    }
+    
+    function useItem(item, nextSuccess, nextFail) {
+        if (item === 'SUPER HONGO') {
+            gameStatus.potencia_pe += 30;
+            gameStatus.items.splice(gameStatus.items.indexOf(item), 1); // Quitar uno
+            
+            document.getElementById('battle-log').textContent = `MARIO usa un ${item}. ¡Recupera 30 PE!`;
+            updateStatus();
+            renderBattleOptions(nextSuccess, nextFail);
+        }
+    }
+    
+    function attemptRecruit(nextSuccess, nextFail) {
+        const captureChance = currentFoe.recruitChance + (100 - currentFoe.hp); // Más fácil si tiene menos HP
+        
+        if (Math.random() * 100 < captureChance && gameStatus.equipo.length < 6) {
+            document.getElementById('battle-log').textContent = `¡MARIO lanza una Super Bola! ¡Capturaste a ${currentFoe.id}!`;
+            endBattle(nextSuccess, { reclutar: [currentFoe.id], pe: 10 });
+        } else {
+            document.getElementById('battle-log').textContent = `¡El ${currentFoe.id} se libera! Pierdes turno y 10 PE.`;
+            gameStatus.potencia_pe -= 10;
+            updateStatus();
+            if (gameStatus.potencia_pe <= 0) {
+                renderEnding('E_NO_PE');
+                return;
+            }
+            renderBattleOptions(nextSuccess, nextFail);
+        }
+    }
+    
+    function endBattle(nextScene, changes = {}) {
+        applyChanges(changes);
+        currentFoe = null;
+        document.getElementById('battle-view').style.display = 'none';
+        document.getElementById('story-text').style.display = 'block';
+        
+        // Pausa breve para que el jugador lea el resultado
+        setTimeout(() => {
+            renderScene(nextScene);
+        }, 1500);
+    }
+    
+    // --- UTILITIES ---
+    function createButton(text, className, onClick) {
+        const button = document.createElement('button');
+        button.className = 'choice-button ' + className;
+        button.textContent = text.toUpperCase();
+        button.onclick = onClick;
+        return button;
+    }
+    function disableButtons() {
+        document.querySelectorAll('.choice-button').forEach(btn => btn.disabled = true);
+    }
+    
+    // --- RENDERIZADO PRINCIPAL ---
+    
+    function renderScene(sceneId) {
+        if (gameStatus.potencia_pe <= 0) {
+            renderEnding('E_NO_PE');
+            return;
+        }
+        const scene = STORY_TREE[sceneId];
+        if (!scene) { renderEnding(sceneId); return; }
+        
+        gameStatus.currentSceneId = sceneId;
         document.getElementById('story-text').innerHTML = scene.text;
         const buttonsContainer = document.getElementById('choice-buttons');
         buttonsContainer.innerHTML = '';
-
-        // Si es una escena de final predefinido
-        if (scene.is_ending) {
-            renderEnding(sceneId);
+        
+        if (scene.is_ending) { renderEnding(sceneId); return; }
+        
+        // Verifica si la escena es una batalla
+        if (scene.is_battle) {
+            startBattle(scene.foe, scene.next_success, scene.next_fail);
             return;
         }
         
-        // Renderiza los botones de opción
+        // Renderiza opciones normales
         scene.choices.forEach(choice => {
             const button = document.createElement('button');
             button.className = 'choice-button';
-            
-            // Muestra los cambios de recursos en el texto del botón
             let costText = "";
-            if (choice.resourceChange) {
-                const changes = choice.resourceChange;
-                const parts = [];
-                for (const res in changes) {
-                    const sign = changes[res] >= 0 ? '+' : '';
-                    parts.push(`${sign}${changes[res]} ${res.toUpperCase().substring(0, 1)}`);
-                }
-                costText = ` [${parts.join(', ')}]`;
+            let requirementsMet = checkRequirements(choice.requirements);
+            
+            if (choice.changes && choice.changes.pe) {
+                const peChange = choice.changes.pe;
+                const sign = peChange >= 0 ? '+' : '';
+                costText = ` [${sign}${peChange} PE]`;
             }
 
             button.textContent = choice.text + costText;
             
+            if (!requirementsMet.isMet) {
+                button.disabled = true;
+                button.textContent = `${choice.text} (REQUERIMIENTO: ${requirementsMet.reason})`;
+            }
+
             button.onclick = () => {
+                if (button.disabled) return;
                 disableButtons();
-                // 1. Aplica cambios antes de la transición
-                applyResourceChanges(choice.resourceChange);
-                
-                // 2. Verifica si la acción causó la muerte
-                const deathCheck = checkResources();
-                if (deathCheck) {
-                    renderEnding(deathCheck);
-                    return;
-                }
-                
-                // 3. Avanza al siguiente nodo
+                applyChanges(choice.changes);
                 renderScene(choice.next);
             };
             buttonsContainer.appendChild(button);
         });
-
         updateStatus();
     }
     
-    function disableButtons() {
-        document.querySelectorAll('.choice-button').forEach(btn => btn.disabled = true);
+    // --- FINALES ---
+    const ENDINGS = {
+        'E_NO_PE': "GAME OVER. ¡MARIO HA PERDIDO TODA SU ENERGÍA! Tu aventura se detiene aquí. **FIN POR AGOTAMIENTO.**",
+        'E_WIN': "¡FELICITACIONES! Has derrotado al gran jefe y reunido el equipo legendario. El Reino Champiñón está a salvo. **FINAL BUENO.**",
+        's500_final': ">>> FIN DE DEMOSTRACIÓN. ¡GRACIAS POR JUGAR! <<<",
+    };
+
+    function renderEnding(endingId) {
+        document.getElementById('story-text').innerHTML = ENDINGS[endingId] || `FIN DE LA TRAMA. ID: ${endingId}`;
+        document.getElementById('story-text').classList.add('ending');
+        document.getElementById('story-text').style.display = 'block';
+        document.getElementById('battle-view').style.display = 'none';
+        document.getElementById('choice-buttons').innerHTML = `<button class="choice-button" onclick="window.location.reload()">REINICIAR AVENTURA</button>`;
+        document.getElementById('story-text').style.textAlign = 'center';
     }
 
+
     // =================================================================================
-    // === ÁRBOL DE HISTORIA (300+ NODOS) ===
-    // Nomenclatura: s_A_X (A=Sector Principal, X=Número)
+    // === ÁRBOL DE HISTORIA (ACTO 1 CON BATALLAS) ===
     // =================================================================================
 
     const STORY_TREE = {
         
-        // --- INTRO Y NÚCLEO CENTRAL (s1 - s50) ---
         's1_intro': {
-            text: "Despiertas en una cápsula de hibernación. El Búnker 7-Delta está en silencio, salvo por la alarma parpadeante. La luz de emergencia roja ilumina una escotilla. Tus recursos iniciales están justo por debajo de la mitad. Debes actuar rápido.",
+            text: "Eres MARIO, el Maestro Entrenador. Llegas a la Pradera Champiñón en busca de un equipo. Un Goomba salvaje te ha visto.",
             choices: [
-                { text: "A. Buscar comida de inmediato en la Cocina (Sector Este)", next: 's2_east', resourceChange: { energy: -5, oxygen: -5 } },
-                { text: "B. Dirigirte al Generador (Sector Oeste) para restaurar la energía principal", next: 's2_west', resourceChange: { oxygen: -5, food: -5 } },
-                { text: "C. Intentar hackear el Panel Central para ver los registros", next: 's2_central_hack', resourceChange: { energy: -10 } }
-            ]
-        },
-        
-        's2_central_hack': {
-            text: "El hackeo es parcial. Consigues un código (`987`) y un registro: 'La Nieve Roja es... no un virus... sino...'. El oxígeno empieza a gotear.",
-            choices: [
-                { text: "Continuar al Sector Este (Comida)", next: 's3_a', resourceChange: { oxygen: -10, food: -2 } },
-                { text: "Continuar al Sector Oeste (Generador)", next: 's3_b', resourceChange: { oxygen: -10, energy: -2 } }
-            ]
-        },
-        
-        // --- SECTOR ESTE: COCINA Y ZONAS DE VIDA (s2_east - s99) ---
-        's2_east': {
-            text: "Llegas a una cocina congelada. Puedes intentar descongelar un poco de comida o buscar la despensa de emergencia.",
-            choices: [
-                { text: "Descongelar Comida Lenta (Seguro)", next: 's3_a', resourceChange: { food: 20, energy: -5 } },
-                { text: "Forzar Despensa (Rápido pero consume más energía)", next: 's4_a', resourceChange: { food: 35, energy: -15, oxygen: -5 } }
-            ]
-        },
-        's3_a': {
-            text: "Consigues una ración sustancial, pero la lentitud te cuesta tiempo. Escuchas un sonido metálico en el conducto de ventilación.",
-            choices: [
-                { text: "Revisar el conducto (+2 Oxígeno/ -10 Energía)", next: 's10_a', resourceChange: { energy: -10, oxygen: 2 } },
-                { text: "Ignorar el ruido y continuar al Núcleo", next: 's11_a', resourceChange: { energy: -5, oxygen: -5 } }
-            ]
-        },
-        's4_a': {
-            text: "La despensa te da una gran cantidad de comida, pero el forzamiento consume demasiada energía. Descubres una llave de acceso ('Llave Roja').",
-            choices: [
-                { text: "Ir al Almacén Principal (Requiere Llave Roja)", next: 's12_a', resourceChange: { energy: -5, oxygen: -5 } },
-                { text: "Descansar en la Cápsula cercana (+20 Energía/ -10 Comida)", next: 's13_a', resourceChange: { energy: 20, food: -10, oxygen: -5 } }
-            ]
-        },
-        // ... (Nodos de Expansión del Sector Este: Comida, trampas, encuentros) ...
-        's10_a': {
-            text: "Revisar el conducto revela que es solo una rata congelada. Pierdes energía. La escotilla de mantenimiento está abierta. ¿Entras?",
-            choices: [
-                { text: "Entrar al conducto (Riesgo de Oxígeno)", next: 's14_a', resourceChange: { oxygen: -20, food: -5 } },
-                { text: "Volver al pasillo (Ahorrar Oxígeno)", next: 's11_a', resourceChange: { oxygen: 5, energy: -5 } }
-            ]
-        },
-        's14_a': {
-            text: "El conducto es un atajo al Sector C (Comunicaciones). El aire es denso. Logras salir justo a tiempo, pero tienes información valiosa: hay una transmisión activa.",
-            choices: [
-                { text: "Intentar enviar un mensaje (Alto consumo de Energía)", next: 's50_a', resourceChange: { energy: -30, oxygen: -5 } },
-                { text: "Solo escuchar la transmisión (Riesgo de trampas)", next: 's51_a', resourceChange: { energy: -5, oxygen: -5 } }
-            ]
-        },
-        's50_a': {
-            text: "El mensaje es débil, pero contactas a una nave. Te dan coordenadas: 'Latitud -45. Búsquenos en el exterior'. El esfuerzo te drena.",
-            choices: [
-                { text: "Ir al Hangar (Requiere Energía)", next: 's100_core', resourceChange: { energy: -10, oxygen: -10 } },
-                { text: "Volver al generador (Recuperar Energía)", next: 's2_west', resourceChange: { energy: -5, oxygen: -5 } }
-            ]
-        },
-        // ... Nodos s52_a a s99_a (Más decisiones en el Sector Este) ...
-
-        // --- SECTOR OESTE: GENERADOR Y MECÁNICA (s2_west - s199) ---
-        's2_west': {
-            text: "El Sector Oeste huele a ozono. Hay dos subpaneles de energía: Primario y Secundario. El Primario es más arriesgado, pero más rentable.",
-            choices: [
-                { text: "Hackear Primario (Alto riesgo/Alto rendimiento)", next: 's3_b', resourceChange: { energy: 40, oxygen: -15, food: -5 } },
-                { text: "Hackear Secundario (Bajo riesgo/Bajo rendimiento)", next: 's4_b', resourceChange: { energy: 15, oxygen: -5, food: -5 } }
-            ]
-        },
-        's3_b': {
-            text: "¡Éxito! La energía regresa. Pero una luz roja advierte: 'Pérdida de Presurización. Sector M'. Tienes energía para ir al exterior.",
-            choices: [
-                { text: "Preparar el traje e ir al exterior (Misión Escape)", next: 's100_core', resourceChange: { food: -10, oxygen: -10 } },
-                { text: "Ir al Sector M a sellar la fuga (Gasto de Oxígeno)", next: 's10_b', resourceChange: { energy: -5, oxygen: -15 } }
-            ]
-        },
-        's4_b': {
-            text: "Restauras un poco de energía. El panel te muestra un mapa parcial. Hay una 'Cápsula Criogénica' inactiva cerca.",
-            choices: [
-                { text: "Investigar la Cápsula (Podría haber suministros)", next: 's11_b', resourceChange: { energy: -10, oxygen: -5 } },
-                { text: "Volver al Centro (Buscar la llave de la Cocina)", next: 's12_b', resourceChange: { food: -5, energy: -5 } }
-            ]
-        },
-        // ... (Nodos de Expansión del Sector Oeste: Herramientas, peligros) ...
-        's10_b': {
-            text: "Sellas la fuga, conservando el aire, pero el esfuerzo te deja exhausto. Descubres que el Sector M tiene un arsenal de armas de emergencia.",
-            choices: [
-                { text: "Tomar el lanzallamas (+0 Energía, pero útil contra la nieve roja)", next: 's14_b', resourceChange: { energy: 0, food: -5 } },
-                { text: "Ignorar y buscar Comida", next: 's2_east', resourceChange: { energy: -5, oxygen: -5 } }
-            ]
-        },
-        's14_b': {
-            text: "El lanzallamas te da una sensación de seguridad. Necesitas combustible. Hay un tanque sospechoso en el pasillo. ¿Lo tomas?",
-            choices: [
-                { text: "Tomar el tanque (Riesgo de explosión)", next: 's50_b', resourceChange: { energy: -10, oxygen: -5 } },
-                { text: "Guardar el lanzallamas (Ahorrar Energía)", next: 's12_b', resourceChange: { energy: 5 } }
-            ]
-        },
-        's50_b': {
-            text: "El tanque era combustible. El lanzallamas tiene ahora más potencia. Pero un vistazo al exterior te muestra el módulo de escape a 500 metros, bloqueado.",
-            choices: [
-                { text: "Intentar un camino de sabotaje (Camino Secreto)", next: 's200_core', resourceChange: { energy: -15, food: -15, oxygen: -15 } },
-                { text: "Volver y buscar comida", next: 's2_east', resourceChange: { energy: -5, oxygen: -5 } }
-            ]
-        },
-        // ... Nodos s52_b a s199_b (Más decisiones en el Sector Oeste) ...
-        
-        // --- NÚCLEO CENTRAL Y CAMINO FINAL (s100_core - s300_core) ---
-        's100_core': {
-            text: "Te diriges al Hangar. La puerta está bloqueada. Necesitas el código de acceso (987, si lo tienes) o forzarla (Alto riesgo de Oxígeno).",
-            choices: [
-                { text: "Forzar la puerta (Si tienes '987', te ahorras el Oxígeno)", next: 's101_core', resourceChange: { oxygen: -30, energy: -10 } },
-                { text: "Usar el código `987` (SI LO TIENES)", next: 's102_core', resourceChange: { oxygen: -5 } }
-            ]
-        },
-        's101_core': {
-            text: "La fuerza funciona, pero el consumo de oxígeno es crítico. Estás en el Hangar. El módulo de escape es visible.",
-            choices: [
-                { text: "Intentar lanzar el módulo (+10 Oxígeno/ -30 Energía)", next: 's200_core', resourceChange: { oxygen: 10, energy: -30 } },
-                { text: "Buscar suministros en el Módulo (Riesgo de Oxígeno)", next: 's103_core', resourceChange: { food: 15, oxygen: -15 } }
-            ]
-        },
-        's102_core': {
-            text: "El código funciona. Ahorras oxígeno. Estás en el Hangar. El módulo de escape es visible.",
-            choices: [
-                { text: "Intentar lanzar el módulo (+10 Oxígeno/ -30 Energía)", next: 's200_core', resourceChange: { oxygen: 10, energy: -30 } },
-                { text: "Buscar suministros en el Módulo (Riesgo de Oxígeno)", next: 's103_core', resourceChange: { food: 15, oxygen: -15 } }
-            ]
-        },
-        's103_core': {
-            text: "Encuentras comida, pero el aire del hangar es tóxico. Vuelves al búnker. Ahora, ¿el escape o el sabotaje?",
-            choices: [
-                { text: "Buscar la secuencia de escape (Alto consumo de Energía)", next: 's200_core', resourceChange: { energy: -20, oxygen: -5 } },
-                { text: "Ir a la sala del Reactor (Sabotaje)", next: 's201_core', resourceChange: { energy: -5, oxygen: -5 } }
+                { text: "Enfrentar al Goomba (Iniciar Batalla)", next: 's2_battle_goomba', changes: { pe: -5 } },
+                { text: "Escapar a la Casa de Toad", next: 's2_toad_house', changes: { pe: -10 } }
             ]
         },
 
-        // --- CAMINO DE ESCAPE Y SABOTAJE (s200_core - s300_core) ---
-        's200_core': {
-            text: "Inicias la secuencia de escape. Necesitas estabilizar el oxígeno en el módulo. ¿Reencaminar el aire del búnker o purificar el aire del módulo?",
-            choices: [
-                { text: "Reencaminar aire del búnker (Riesgo de Oxígeno general)", next: 's202_core', resourceChange: { oxygen: -10 } },
-                { text: "Purificar aire del módulo (Riesgo de Energía)", next: 's203_core', resourceChange: { energy: -15 } }
-            ]
+        // --- NODOS DE BATALLA (NUEVO FORMATO) ---
+        's2_battle_goomba': {
+            is_battle: true,
+            foe: 'GOOMBA',
+            next_success: 's3_after_goomba', // Si ganas o reclutas
+            next_fail: 's1_intro', // Si huyes o pierdes PE pero no mueres
+            text: "El GOOMBA te bloquea. Es hora de la primera BATALLA."
         },
-        's201_core': {
-            text: "Llegas al Reactor. El sabotaje requiere un código (987) o inyectar un químico corrosivo (Riesgo de Oxígeno/Comida).",
+        
+        's3_after_goomba': {
+            text: "Tras la batalla, el camino está abierto. Ves una extraña tubería brillante. ¿Entrar o continuar por el camino?",
             choices: [
-                { text: "Inyectar Corrosivo (Alto riesgo)", next: 's204_core', resourceChange: { oxygen: -20, food: -10 } },
-                { text: "Usar código `987` (SI LO TIENES)", next: 's205_core', resourceChange: { energy: -5 } }
+                { text: "Entrar en la Tubería (Acceso Rápido)", next: 's4_pipe', changes: { pe: -10 } },
+                { text: "Continuar por el camino", next: 's4_road', changes: { pe: 5 } }
             ]
         },
         
-        // ... (Nodos de Expansión del Final: Encuentros con la "Nieve Roja") ...
-        's202_core': {
-            text: "Reencaminas el aire. Consigues el oxígeno, pero el búnker se vacía más rápido. El módulo está listo. Lánzalo.",
+        // --- NODOS NORMALES ---
+        's2_toad_house': {
+            text: "La casa de Toad está tranquila. Encuentras un kit de primeros auxilios. ¿Recogerlos o no?",
             choices: [
-                { text: "Lanzar Módulo de Escape", next: 'END_ESCAPE' } // Final 1
+                { text: "Recoger Super Hongos", next: 's3_after_toad', changes: { item: ["SUPER HONGO"], pe: 5 } },
+                { text: "Dejar los objetos y salir", next: 's4_road', changes: { pe: -5 } }
             ]
         },
-        's203_core': {
-            text: "La purificación consume mucha energía, pero el módulo se sella perfectamente. Lánzalo.",
+        
+        's3_after_toad': {
+            text: "Un Koopa Troopa te ve saliendo de la casa. Te desafía a una batalla por el territorio.",
             choices: [
-                { text: "Lanzar Módulo de Escape", next: 'END_ESCAPE' } // Final 1
-            ]
-        },
-        's204_core': {
-            text: "El corrosivo se inyecta. El búnker tiembla. Corres. ¿Te diriges al exterior o a la Hibernación?",
-            choices: [
-                { text: "Exterior (Alto riesgo)", next: 'END_SABOTAGE' }, // Final 2
-                { text: "Hibernación (Riesgo de Oxígeno)", next: 'DEATH_OXYGEN' }
-            ]
-        },
-        's205_core': {
-            text: "El código activa la secuencia de autodestrucción. Tienes 5 minutos. Corres al exterior.",
-            choices: [
-                { text: "Correr al Exterior", next: 'END_SABOTAGE' } // Final 2
+                { text: "Aceptar el Desafío", next: 's4_battle_koopa', changes: { pe: -10 } },
+                { text: "Intentar razonar con él (Requiere TOAD en el equipo)", next: 's5_reason', changes: { pe: -5 }, requirements: { requires_member: "TOAD" } }
             ]
         },
 
-        // --- CAMINO DE REVELACIÓN (s300 - s350) ---
-        // Este camino se abre al tomar decisiones de investigación.
-        's300_discovery': {
-            text: "En la biblioteca de investigación (acceso con Llave Roja y 987), encuentras los archivos de la misión. La Nieve Roja no mata, sino que *transforma*. Necesitas una prueba final para la verdad.",
-            choices: [
-                { text: "Exponerte brevemente a la Nieve Roja (Alto riesgo)", next: 's301_discovery', resourceChange: { oxygen: -20, food: -10, energy: -10 } },
-                { text: "Usar el equipo de comunicaciones para advertir a la Tierra (Alto costo de Energía)", next: 's302_discovery', resourceChange: { energy: -30 } }
-            ]
+        's4_battle_koopa': {
+            is_battle: true,
+            foe: 'KOOPA_TROOPA',
+            next_success: 's5_koopa_win',
+            next_fail: 's4_road',
+            text: "¡El Koopa Troopa te ataca con su caparazón giratorio!"
         },
-        's301_discovery': {
-            text: "Te expones. La Nieve Roja es fría, pero no corrosiva. En lugar de matarte, sientes que tu conexión con el búnker aumenta. Ahora entiendes. No tienes que escapar.",
+        
+        's5_koopa_win': {
+            text: "Has vencido al Koopa. ¡Obtienes un nuevo Huevo de Yoshi!",
             choices: [
-                { text: "Aceptar la transformación", next: 'END_REVELATION' } // Final 3
-            ]
-        },
-        's302_discovery': {
-            text: "La advertencia es ignorada. La humanidad prefiere el escape o la destrucción. Te das cuenta de que la única paz está aquí.",
-            choices: [
-                { text: "Aceptar la vida en el búnker", next: 'END_REVELATION' } // Final 3
+                { text: "ECLOSIONAR EL HUEVO (Reclutar a YOSHI)", next: 's500_final', changes: { reclutar: ["YOSHI"], pe: 30 } },
             ]
         },
         
-        // --- Nodos de relleno para superar 300 (s303 - s350) ---
-        // Se conectan lógicamente a los caminos principales s10/s11/s12, etc.
-        's11_a': {
-            text: "Continuas y encuentras un cargamento de **Baterías Extra (+20 Energía)**. Pero el pasillo colapsa, perdiendo mucho aire.",
+        's4_pipe': {
+            text: "La tubería te lleva a una zona de bonificación, pero pierdes PE por la prisa.",
             choices: [
-                { text: "Usar Baterías y correr al Oeste", next: 's2_west', resourceChange: { energy: 20, oxygen: -15 } },
-                { text: "Usar Baterías y regresar al Este", next: 's2_east', resourceChange: { energy: 20, oxygen: -15 } }
-            ]
-        },
-        's12_a': {
-            text: "El Almacén Principal es un laberinto. Ganas Comida pero pierdes Energía al buscar la salida.",
-            choices: [
-                { text: "Volver al Centro", next: 's2_central_hack', resourceChange: { food: 15, energy: -10, oxygen: -5 } }
-            ]
-        },
-        's13_a': {
-            text: "La cápsula te da un sueño reparador. Al despertar, el nivel de **Oxígeno** ha bajado considerablemente.",
-            choices: [
-                { text: "Ir al Sector de Oxígeno (Oeste)", next: 's2_west', resourceChange: { oxygen: -10, energy: -5 } }
-            ]
-        },
-        's11_b': {
-            text: "La Cápsula Criogénica tiene a un científico. Puedes despertarlo (Riesgo) o robar sus suministros (Seguro).",
-            choices: [
-                { text: "Despertar al científico", next: 's200_core', resourceChange: { energy: -5, food: -5 } },
-                { text: "Robar Suministros (+30 Comida)", next: 's12_b', resourceChange: { food: 30, energy: -5 } }
-            ]
-        },
-        's12_b': {
-            text: "Consigues Comida. Ahora, ¿dónde vas con tus recursos mejorados?",
-            choices: [
-                { text: "Investigar el Hangar (Escape)", next: 's100_core', resourceChange: { energy: -10, oxygen: -10 } },
-                { text: "Investigar la Biblioteca (Revelación)", next: 's300_discovery', resourceChange: { energy: -10, food: -10 } }
+                { text: "Continuar la aventura...", next: 's500_final', changes: { pe: -15 } },
             ]
         },
         
-        // [Cientos de nodos más, todos interconectados para crear un laberinto de 300+ decisiones]
-        // Ejemplo de conexiones extendidas para simular los 300+
-        's303': { text: "Investigas un terminal. Recuperas +5 Energía y ves un mapa al Sector 35. ¿Ir?", choices: [{ text: "Sí", next: 's304' }, { text: "No", next: 's2_west' }], resourceChange: { energy: 5 } },
-        's304': { text: "Sector 35: Encuentras un kit médico. +10 Oxígeno.", choices: [{ text: "Continuar", next: 's305' }], resourceChange: { oxygen: 10 } },
-        's305': { text: "Un robot de mantenimiento se acerca. ¿Te escondes o lo apagas?", choices: [{ text: "Esconderse (-5 Oxígeno)", next: 's306' }, { text: "Apagar (-15 Energía)", next: 's307' }] },
-        's306': { text: "Te escondes, pierdes aire, pero el robot se va. ¡A salvo!", choices: [{ text: "Ir a la Cocina", next: 's2_east' }] },
-        's307': { text: "El robot explota. Pierdes Energía, pero encuentras un **Filtro de Oxígeno (+10 Oxígeno al máximo)**.", choices: [{ text: "Ir al Hangar", next: 's100_core' }], resourceChange: { oxygen: 10, energy: -15 } },
-        's308': { text: "Decides descansar antes de continuar. (+20 Energía, -10 Comida).", choices: [{ text: "Continuar al Oeste", next: 's2_west' }], resourceChange: { energy: 20, food: -10 } },
-        's309': { text: "En el pasillo, te deslizas y caes. Pierdes -5 de todo.", choices: [{ text: "Levantarse y seguir al Este", next: 's2_east' }], resourceChange: { energy: -5, food: -5, oxygen: -5 } },
-        's310': { text: "Buscas un atajo. Funciona, pero el camino es largo. Te salta dos nodos del juego. **Ahorras una decisión.**", choices: [{ text: "Tomar atajo al Sabotaje", next: 's201_core' }] },
-        // ... (Más nodos s311 a s350 con variaciones y vueltas al núcleo) ...
+        's4_road': {
+            text: "Sigues el camino, es seguro, pero lento. Pierdes un poco de tiempo.",
+            choices: [
+                { text: "Continuar la aventura...", next: 's500_final', changes: { pe: -5 } },
+            ]
+        },
+        
+        // ... (Aquí continuarían cientos de nodos: s6_... hasta s500+) ...
+        
     };
 
     // Iniciar el juego
