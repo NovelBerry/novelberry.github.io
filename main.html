@@ -144,6 +144,21 @@
             background-color: #ff80ff; /* Magenta más claro */
         }
 
+        /* --- NUEVO ESTILO: BOTÓN ASISTENTE IA (VERDE NEÓN) --- */
+        #ia-wrapper {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+        #ia-wrapper:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8), 0 0 15px #32cd32; /* Sombra verde neón */
+        }
+        #ia-button {
+            background-color: #32cd32; /* Verde neón */
+        }
+        #ia-button:hover {
+            background-color: #00fa9a; /* Verde neón más claro */
+        }
+        /* ------------------------------------------------ */
+
 
         .action-button i {
             margin-right: 8px; /* Espacio entre el ícono y el texto */
@@ -257,7 +272,13 @@
             </a>
         </div>
         
-    </div>
+        <div class="action-button-wrapper" id="ia-wrapper">
+            <a href="asistente_dev.html" class="action-button" id="ia-button" title="Acceso al Asistente de Programación">
+                <i class="fas fa-robot"></i> 
+                Asistente DEV IA
+            </a>
+        </div>
+        </div>
 
     <script>
         // FUNCIÓN CLAVE PARA IR A CREACIONES
@@ -273,7 +294,7 @@
             window.location.href = 'creaciones.html';
         }
 
-        // FUNCIÓN CLAVE PARA IR A CONOCIMIENTOS (NUEVA)
+        // FUNCIÓN CLAVE PARA IR A CONOCIMIENTOS
         function goToKnowledge() {
             // Pausa el audio principal
             const mainAudio = document.getElementById('background-audio');
@@ -285,7 +306,7 @@
             // Navega a la nueva página
             window.location.href = 'conocimientos.html';
         }
-
+        
         // 1. CONTROL DE LA MÚSICA
         const audio = document.getElementById('background-audio');
         const playPauseButton = document.getElementById('playPauseButton');
