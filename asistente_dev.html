@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portafolio: Asistente DEV IA - Soporte Técnico Avanzado</title>
+    <style>
+        /* Estilo Base: Ambiente de Desarrollo/Ciberseguridad */
+        body {
+            background-color: #1e1e1e; /* Fondo Oscuro */
+            color: #d4d4d4; /* Texto Principal */
+            font-family: 'Consolas', 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Contenedor Principal (Consola IA) */
+        .ia-console {
+            width: 90%;
+            max-width: 900px; /* Un poco más ancho para profesionalismo */
+            background-color: #0d0d0d;
+            border: 2px solid #32cd32; /* Verde Neón para Desarrollo */
+            box-shadow: 0 0 25px rgba(50, 205, 50, 0.8);
+            border-radius: 8px;
+            padding: 25px;
+        }
+
+        h1 {
+            color: #32cd32; /* Verde Lima/Neón */
+            text-shadow: 0 0 8px #32cd32;
+            font-size: 2em;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #32cd32;
+            padding-bottom: 10px;
+        }
+
+        /* Área de Mensajes (Historial) */
+        #chat-history {
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #333;
+            background-color: #000;
+            border-radius: 4px;
+        }
+
+        /* Estilos de Mensaje */
+        .message {
+            padding: 7px 0;
+            line-height: 1.6;
+            font-size: 1.1em;
+        }
+        .user-prompt {
+            color: #ffffff;
+        }
+        .ai-response {
+            color: #7fffd4; /* Aguamarina para la respuesta IA */
+        }
+        .ai-status {
+            color: #ff007f; /* Magenta para el estado */
+        }
+        
+        /* Formulario de Entrada */
+        #input-form {
+            display: flex;
+            gap: 15px;
+        }
+
+        #user-input {
+            flex-grow: 1;
+            padding: 12px;
+            background-color: #222;
+            color: #fff;
+            border: 1px solid #32cd32;
+            border-radius: 4px;
+            font-size: 1.1em;
+            font-family: 'Consolas', monospace;
+            outline: none;
+            box-shadow: inset 0 0 5px rgba(50, 205, 50, 0.3);
+        }
+
+        #send-button {
+            padding: 10px 25px;
+            background-color: #32cd32;
+            color: #0d0d0d;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        #send-button:hover {
+            background-color: #00fa9a;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ia-console">
+        <h1>[ ASISTENTE DEV IA V.3.0 - Soporte de Programación ]</h1>
+        <p class="ai-status">Estado del Módulo: **OPERACIONAL**. Esperando consulta técnica...</p>
+
+        <div id="chat-history">
+            <div class="message ai-response">
+                &gt; **Asistente DEV:** Bienvenido. Mi modelo de lenguaje está especializado en **Python, JavaScript y Java**. Por favor, formule su consulta técnica o solicite una comparativa de sintaxis. <br> &gt; Ejemplos de comandos: **PYTHON**, **JAVASCRIPT**, **JAVA**, **COMPARAR**.
+            </div>
+        </div>
+
+        <form id="input-form">
+            <input type="text" id="user-input" placeholder="Ingrese su consulta técnica (e.g., Python)..." autofocus>
+            <button type="submit" id="send-button">ANALIZAR</button>
+        </form>
+    </div>
+    
+    <div style="margin-top: 25px;">
+        <a href="index.html" style="color: #32cd32; text-decoration: none; font-size: 1.1em;">&lt;-- Volver al Portal de Acceso</a>
+    </div>
+
+    <script>
+        const chatHistory = document.getElementById('chat-history');
+        const inputForm = document.getElementById('input-form');
+        const userInput = document.getElementById('user-input');
+
+        // Respuestas profesionales y técnicas
+        const RESPONSES = {
+            "PYTHON": `**Python:** Es un lenguaje de tipado dinámico conocido por su legibilidad y sintaxis concisa. Es ideal para **desarrollo backend**, **ciencia de datos** y **automatización de scripts**. Utiliza indentación para definir bloques de código.`,
+            "JAVASCRIPT": `**JavaScript:** Es fundamental para el **desarrollo frontend** (navegadores) y se ha expandido al **backend** con Node.js. Es multiparadigma y usa la sintaxis de corchetes. Su principal fortaleza es su asincronía y el ecosistema npm.`,
+            "JAVA": `**Java:** Es un lenguaje de alto rendimiento, orientado a objetos, usado extensamente en **aplicaciones empresariales** a gran escala, sistemas distribuidos y desarrollo Android nativo. Su portabilidad se debe a la **Máquina Virtual de Java (JVM)**.`,
+            "COMPARAR": `**Comparativa:** Python y JavaScript son de tipado dinámico; Java es fuertemente tipado. Python y Java se usan en backend; JavaScript en frontend y backend. La elección depende de la **escalabilidad** y el **contexto** de ejecución del proyecto.`,
+            "SOPORTE": `Mi función actual es proveer soporte especializado en Python, JavaScript y Java. Por favor, especifique el lenguaje o el comando que desea ejecutar.`,
+            "DEFECTO": "Consulta no reconocida. Por favor, limite su solicitud a las áreas de conocimiento activas: **PYTHON**, **JAVASCRIPT**, **JAVA** o **COMPARAR**. Requiere una entrada concisa para el análisis."
+        };
+
+        inputForm.addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            
+            const question = userInput.value.trim();
+            if (question === "") return;
+
+            // 1. Mostrar la pregunta del usuario con formato de consola
+            appendMessage(`&gt; Usuario@DevHost: ${question}`, 'user-prompt');
+
+            // 2. Procesar la pregunta (busca la primera palabra clave)
+            const processedQuestion = question.toUpperCase().split(' ')[0].replace(/[^A-Z]/g, '');
+            const responseText = RESPONSES[processedQuestion] || RESPONSES["DEFECTO"];
+
+            // 3. Simular el tiempo de procesamiento de la IA
+            setTimeout(() => {
+                appendMessage(`&gt; **Asistente DEV:** ${responseText}`, 'ai-response');
+                // Scroll hacia abajo
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }, 1000); 
+
+            // 4. Limpiar la entrada
+            userInput.value = '';
+        });
+
+        function appendMessage(text, className) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${className}`;
+            // Usamos innerHTML para permitir el texto en negrita (markdown-like)
+            messageDiv.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); 
+            chatHistory.appendChild(messageDiv);
+        }
+
+        window.onload = () => {
+             chatHistory.scrollTop = chatHistory.scrollHeight;
+        };
+
+    </script>
+</body>
+</html>
