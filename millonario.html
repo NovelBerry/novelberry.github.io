@@ -33,30 +33,54 @@
         // Habilitar logs para depuración (opcional)
         window.firebase.firestore.setLogLevel('silent'); 
 
-        // Autenticación inicial
-        async function initializeAuth() {
+        // Variable de control
+        let isAuthChecked = false;
+
+        /**
+         * Inicializa la autenticación y dispara el inicio del juego.
+         */
+        async function handleAuth() {
+            if (isAuthChecked) return;
+            isAuthChecked = true;
+            
             try {
                 if (initialAuthToken) {
                     await window.firebase.auth.signInWithCustomToken(window.auth, initialAuthToken);
                 } else {
                     await window.firebase.auth.signInAnonymously(window.auth);
                 }
-                console.log("Autenticación Firebase exitosa.");
+                console.log("Autenticación Firebase exitosa. Iniciando juego...");
+                // **CORRECCIÓN CLAVE:** Llamar a initGame aquí
                 if (typeof window.initGame === 'function') {
-                    window.initGame(); // Llamar a la inicialización del juego si está disponible
+                    window.initGame(); 
                 }
             } catch (error) {
                 console.error("Error en autenticación Firebase:", error);
+                // Si la autenticación falla, intentar iniciar el juego de forma local
+                if (typeof window.initGame === 'function') {
+                    window.initGame(); 
+                }
             }
         }
 
+        // Observador de estado de autenticación (garantiza que se dispare)
         window.auth.onAuthStateChanged((user) => {
             if (user) {
-                initializeAuth();
+                handleAuth();
+            } else if (!isAuthChecked) {
+                 // Si no hay usuario y no se ha chequeado, intentar iniciar sesión anónima
+                 handleAuth();
             }
         });
-        
-        initializeAuth(); // Iniciar el proceso de autenticación
+
+        // Llamada inicial para iniciar el proceso
+        if (window.auth.currentUser) {
+            handleAuth();
+        } else {
+            // Esto asegura el inicio incluso si el listener tarda
+            setTimeout(handleAuth, 50); 
+        }
+
     </script>
 
     <style>
@@ -529,7 +553,8 @@
                 <div id="mejoras-clic-panel" class="side-panel">
                     <h2>Mejoras de Clic (IPC)</h2>
                     <div id="mejoras-clic-tienda">
-                        <!-- Items de IPC se dibujan aquí -->
+                        <!-- Mensaje de Carga mientras se dibuja la tienda -->
+                        <p style="text-align:center; color:#555;">Cargando mejoras...</p>
                     </div>
                 </div>
 
@@ -554,7 +579,8 @@
                 <div id="generadores-panel" class="side-panel">
                     <h2>Generadores Pasivos (IPS)</h2>
                     <div id="generadores-tienda">
-                        <!-- Items de IPS se dibujan aquí -->
+                        <!-- Mensaje de Carga mientras se dibuja la tienda -->
+                         <p style="text-align:center; color:#555;">Cargando generadores...</p>
                     </div>
                 </div>
 
@@ -571,21 +597,21 @@
                 <div class="asset-section">
                     <h2>Vehículos (Lujos)</h2>
                     <div id="tienda-vehiculos" class="asset-shop">
-                        <!-- Vehículos se dibujan aquí -->
+                        <p style="text-align:center; color:#555;">Cargando...</p>
                     </div>
                 </div>
 
                 <div class="asset-section">
                     <h2>Propiedades (Lujos)</h2>
                     <div id="tienda-propiedades" class="asset-shop">
-                        <!-- Propiedades se dibujan aquí -->
+                        <p style="text-align:center; color:#555;">Cargando...</p>
                     </div>
                 </div>
 
                 <div class="asset-section">
                     <h2>Inversión Bursátil</h2>
                     <div id="tienda-acciones" class="asset-shop">
-                        <!-- Acciones se dibujan aquí -->
+                        <p style="text-align:center; color:#555;">Cargando...</p>
                     </div>
                 </div>
             </div>
@@ -601,14 +627,13 @@
                 <div class="company-section" style="grid-column: 1 / span 3;">
                     <h2>Oportunidades de Negocio</h2>
                     <div id="tienda-empresas" class="company-shop">
-                        <!-- Items de Empresas se dibujan aquí -->
+                        <p style="text-align:center; color:#555;">Cargando...</p>
                     </div>
                 </div>
                 
                 <div class="company-section" style="grid-column: 1 / span 3;">
                     <h2>Mis Empresas Activas</h2>
                     <div id="empresas-activas" class="company-shop" style="display: block;">
-                        <!-- Empresas compradas y sus stats se dibujan aquí -->
                         <p style="text-align: center; color: #999;">Compra tu primera empresa para ver sus estadísticas.</p>
                     </div>
                 </div>
@@ -626,7 +651,7 @@
                 <div class="investment-section" style="grid-column: 1 / span 3;">
                     <h2>Fondos de Inversión Fija</h2>
                     <div id="tienda-inversiones" class="investment-shop">
-                        <!-- Items de Inversiones se dibujan aquí -->
+                         <p style="text-align:center; color:#555;">Cargando...</p>
                     </div>
                 </div>
                 
@@ -985,7 +1010,6 @@
             ITEMS_IPS.forEach(item => {
                 const cantidad = estadoJuego.generadores[item.id] || 0;
                 const costo = item.costo * Math.pow(item.factor, cantidad);
-                const ips_generado = item.ips_base * (cantidad > 0 ? cantidad + 1 : 1); // El siguiente generará el base.
                 const siguiente_ips_unitario = item.ips_base;
 
                 const itemDiv = document.createElement('div');
@@ -1323,6 +1347,8 @@
             } else if (vista === 'assets') {
                 // Forzar la actualización de la vista de Activos para reflejar las acciones/lujos
                 dibujarTiendaActivos(); 
+            } else if (vista === 'investments') {
+                dibujarTiendaInversiones();
             }
             // Asegurar que los botones se actualizan en cualquier cambio de vista
             actualizarBotones();
