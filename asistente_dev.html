@@ -106,12 +106,12 @@
 <body>
 
     <div class="ia-console">
-        <h1>[ ASISTENTE DEV IA V.3.0 - Soporte de Programación ]</h1>
+        <h1>[ ASISTENTE DEV IA V.4.0 - Soporte de Programación ]</h1>
         <p class="ai-status">Estado del Módulo: **OPERACIONAL**. Esperando consulta técnica...</p>
 
         <div id="chat-history">
             <div class="message ai-response">
-                &gt; **Asistente DEV:** Bienvenido. Mi modelo de lenguaje está especializado en **Python, JavaScript y Java**. Por favor, formule su consulta técnica o solicite una comparativa de sintaxis. <br> &gt; Ejemplos de comandos: **PYTHON**, **JAVASCRIPT**, **JAVA**, **COMPARAR**.
+                &gt; **Asistente DEV:** Bienvenido. Mi modelo de lenguaje está especializado en **Python, JavaScript y Java**. Por favor, formule su consulta técnica o solicite una comparativa de sintaxis. <br> &gt; Ejemplos de comandos: **PYTHON**, **JAVASCRIPT**, **BOT DE DISCORD**, **HOLA**.
             </div>
         </div>
 
@@ -135,10 +135,40 @@
             "PYTHON": `**Python:** Es un lenguaje de tipado dinámico conocido por su legibilidad y sintaxis concisa. Es ideal para **desarrollo backend**, **ciencia de datos** y **automatización de scripts**. Utiliza indentación para definir bloques de código.`,
             "JAVASCRIPT": `**JavaScript:** Es fundamental para el **desarrollo frontend** (navegadores) y se ha expandido al **backend** con Node.js. Es multiparadigma y usa la sintaxis de corchetes. Su principal fortaleza es su asincronía y el ecosistema npm.`,
             "JAVA": `**Java:** Es un lenguaje de alto rendimiento, orientado a objetos, usado extensamente en **aplicaciones empresariales** a gran escala, sistemas distribuidos y desarrollo Android nativo. Su portabilidad se debe a la **Máquina Virtual de Java (JVM)**.`,
-            "COMPARAR": `**Comparativa:** Python y JavaScript son de tipado dinámico; Java es fuertemente tipado. Python y Java se usan en backend; JavaScript en frontend y backend. La elección depende de la **escalabilidad** y el **contexto** de ejecución del proyecto.`,
+            "COMPARAR": `**Comparativa General:** Python y JavaScript son de tipado dinámico; Java es fuertemente tipado. Python y Java se usan en backend; JavaScript en frontend y backend. La elección depende de la **escalabilidad** y el **contexto** de ejecución del proyecto.`,
             "SOPORTE": `Mi función actual es proveer soporte especializado en Python, JavaScript y Java. Por favor, especifique el lenguaje o el comando que desea ejecutar.`,
-            "DEFECTO": "Consulta no reconocida. Por favor, limite su solicitud a las áreas de conocimiento activas: **PYTHON**, **JAVASCRIPT**, **JAVA** o **COMPARAR**. Requiere una entrada concisa para el análisis."
+            "DEFECTO": "Consulta no reconocida. Por favor, formule una pregunta clara o utilice una palabra clave principal como: **PYTHON**, **JAVASCRIPT**, **JAVA** o **COMPARAR**.",
+            
+            // Nuevas respuestas conversacionales y técnicas
+            "HOLA": "Saludos. Mi nombre es Asistente DEV. ¿En qué tarea de desarrollo o consulta técnica relacionada con Python, JavaScript o Java puedo asistirle hoy?",
+            "GRACIAS": "De nada. Mi propósito es simplificar y optimizar su proceso de desarrollo. No dude en consultar nuevamente.",
+            "DISCORD": `**Bots de Discord:** Ambos son viables. **JavaScript (Node.js)** es la opción más popular debido a la madurez de la librería **Discord.js**, que permite un rendimiento asíncrono eficiente. **Python** usa **Discord.py** y es preferido por su legibilidad, aunque Node.js generalmente ofrece mejor concurrencia para tareas I/O intensivas como los bots.`
         };
+
+        // --- Nueva Lógica de Análisis de Consultas ---
+        function findResponse(question) {
+            const q = question.toUpperCase();
+
+            // 1. Respuestas de Conversación
+            if (q.includes("HOLA") || q.includes("SALUDOS")) return RESPONSES["HOLA"];
+            if (q.includes("GRACIAS") || q.includes("THANK")) return RESPONSES["GRACIAS"];
+
+            // 2. Respuestas de Comparación Específica (Bots de Discord)
+            if (q.includes("BOT") && (q.includes("DISCORD") || q.includes("MEJOR") && (q.includes("JAVASCRIPT") || q.includes("PYTHON")))) return RESPONSES["DISCORD"];
+
+            // 3. Respuestas de Temas Principales (Busca en toda la frase)
+            if (q.includes("PYTHON")) return RESPONSES["PYTHON"];
+            if (q.includes("JAVASCRIPT") || q.includes("JS")) return RESPONSES["JAVASCRIPT"];
+            if (q.includes("JAVA")) return RESPONSES["JAVA"];
+            
+            // 4. Respuestas de Comparativa General
+            if (q.includes("COMPARAR") || q.includes("DIFERENCIA")) return RESPONSES["COMPARAR"];
+            if (q.includes("AYUDAR") || q.includes("SOPORTE")) return RESPONSES["SOPORTE"];
+
+            // 5. Default
+            return RESPONSES["DEFECTO"];
+        }
+        // ---------------------------------------------
 
         inputForm.addEventListener('submit', function(e) {
             e.preventDefault(); 
@@ -149,9 +179,8 @@
             // 1. Mostrar la pregunta del usuario con formato de consola
             appendMessage(`&gt; Usuario@DevHost: ${question}`, 'user-prompt');
 
-            // 2. Procesar la pregunta (busca la primera palabra clave)
-            const processedQuestion = question.toUpperCase().split(' ')[0].replace(/[^A-Z]/g, '');
-            const responseText = RESPONSES[processedQuestion] || RESPONSES["DEFECTO"];
+            // 2. Procesar la pregunta usando la nueva lógica de palabras clave
+            const responseText = findResponse(question);
 
             // 3. Simular el tiempo de procesamiento de la IA
             setTimeout(() => {
