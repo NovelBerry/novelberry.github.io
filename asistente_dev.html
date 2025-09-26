@@ -66,6 +66,16 @@
             color: #ff007f; /* Magenta para el estado */
         }
         
+        /* Estilo para bloques de código */
+        pre {
+            background-color: #282c34; /* Fondo oscuro de código */
+            color: #abb2bf; /* Color del texto del código */
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.95em;
+        }
+
         /* Formulario de Entrada */
         #input-form {
             display: flex;
@@ -73,7 +83,7 @@
         }
 
         #user-input {
-            flex-grow = 1;
+            flex-grow: 1;
             padding: 12px;
             background-color: #222;
             color: #fff;
@@ -106,17 +116,17 @@
 <body>
 
     <div class="ia-console">
-        <h1>[ ASISTENTE DEV IA V.9.0 - Soporte de Programación ]</h1>
-        <p class="ai-status">Estado del Módulo: **OPERACIONAL**. Esperando consulta técnica...</p>
+        <h1>[ ASISTENTE DEV IA V.10.0 - Soporte de Programación ]</h1>
+        <p class="ai-status">Estado del Módulo: **OPERACIONAL**. Ahora soporta **GENERACIÓN DE CÓDIGO** y consultas técnicas avanzadas.</p>
 
         <div id="chat-history">
             <div class="message ai-response">
-                &gt; **Asistente DEV:** Bienvenido. Mi modelo de lenguaje está especializado en **Python, JavaScript y Java**. Consulte sobre **GIT**, **DOCKER**, **CLOUD**, **PATRONES**, **AGILE**, **TESTING**, **APIs**, **BASES DE DATOS** u **OOP**.
+                &gt; **Asistente DEV:** Bienvenido. Mi modelo de lenguaje está especializado en **Python, JavaScript y Java**. Pruebe con: **GENERAME CODIGO PYTHON PARA WEB** o consulte sobre **DOCKER, CLOUD, PATRONES** y **AGILE**.
             </div>
         </div>
 
         <form id="input-form">
-            <input type="text" id="user-input" placeholder="Ingrese su consulta técnica (e.g., ¿Qué es Docker?)..." autofocus>
+            <input type="text" id="user-input" placeholder="Ingrese su consulta técnica o solicitud de código..." autofocus>
             <button type="submit" id="send-button">ANALIZAR</button>
         </form>
     </div>
@@ -132,19 +142,24 @@
 
         // Respuestas profesionales y técnicas
         const RESPONSES = {
+            // Generación de Código (V10.0 - ALTA PRIORIDAD)
+            "PYTHON_WEB": `**Ejemplo Python (Web - Flask):** Para una web simple que diga 'Hola', se recomienda usar Flask. \n\n\`\`\`python\nfrom flask import Flask\napp = Flask(__name__)\n\n@app.route('/')\ndef hola_mundo():\n    return 'Hola'\n\nif __name__ == '__main__':\n    # Instalación: pip install Flask\n    # Para ejecutar: python tu_archivo.py\n    app.run(debug=True)\n\`\`\``,
+            "JS_EXAMPLE": `**Ejemplo JavaScript (Node.js Server):** Para un servidor HTTP que responda 'Hola' en Node.js. \n\n\`\`\`javascript\nconst http = require('http');\n\nconst server = http.createServer((req, res) => {\n  res.statusCode = 200;\n  res.setHeader('Content-Type', 'text/plain');\n  res.end('Hola\\n');\n});\n\nserver.listen(3000, () => {\n  console.log('Servidor corriendo en http://localhost:3000/');\n});\n\`\`\``,
+            "JAVA_EXAMPLE": `**Ejemplo Java (Clase Básica):** Un programa Java estándar con un método main que imprime 'Hola' en la consola. \n\n\`\`\`java\npublic class Saludo {\n    public static void main(String[] args) {\n        System.out.println("Hola");\n    }\n}\n\`\`\``,
+            "CODIGO_GENERICO": "He detectado una solicitud de código/ejemplo. Por favor, especifique el lenguaje deseado: **PYTHON**, **JAVASCRIPT** o **JAVA**.",
+
+            // Temas Principales y Conversacionales
             "PYTHON": `**Python:** Es un lenguaje de tipado dinámico conocido por su legibilidad y sintaxis concisa. Es ideal para **desarrollo backend**, **ciencia de datos** y **automatización de scripts**. Utiliza indentación para definir bloques de código.`,
             "JAVASCRIPT": `**JavaScript:** Es fundamental para el **desarrollo frontend** y se ha expandido al **backend** con Node.js. Es multiparadigma y usa la sintaxis de corchetes. Su principal fortaleza es su asincronía y el ecosistema npm.`,
             "JAVA": `**Java:** Es un lenguaje de alto rendimiento, orientado a objetos, usado extensamente en **aplicaciones empresariales** a gran escala, sistemas distribuidos y desarrollo Android nativo. Su portabilidad se debe a la **Máquina Virtual de Java (JVM)**.`,
             "COMPARAR": `**Comparativa General:** Python y JavaScript son de tipado dinámico; Java es fuertemente tipado. Python y Java se usan en backend; JavaScript en frontend y backend. La elección depende de la **escalabilidad** y el **contexto** de ejecución del proyecto.`,
             "SOPORTE": `Mi función actual es proveer soporte especializado en Python, JavaScript y Java. Por favor, especifique el lenguaje o el comando que desea ejecutar.`,
             "DEFECTO": "Consulta no reconocida. Por favor, formule una pregunta clara o utilice un término técnico como **DOCKER, CLOUD, PYTHON, TESTING o AGILE**.",
-            
-            // Respuestas Conversacionales (V9.0 - Nuevas)
             "HOLA": "Saludos. Mi nombre es Asistente DEV. ¿En qué tarea de desarrollo o consulta técnica relacionada con Python, JavaScript o Java puedo asistirle hoy?",
             "GRACIAS": "De nada. Mi propósito es simplificar y optimizar su proceso de desarrollo. No dude en consultar nuevamente.",
-            "IDENTIDAD": "Soy el **Asistente DEV IA V.9.0**, un modelo de lenguaje especializado en brindar soporte técnico y comparativas en las áreas de desarrollo de software, específicamente **Python, JavaScript y Java**.",
-            "CAPACIDADES": "Mi base de conocimiento es profunda e incluye: **Patrones de Diseño**, **Metodologías Ágiles (Scrum, Kanban)**, **DevOps (Git, Docker)**, **Cloud Computing (AWS, Azure)**, **Seguridad**, **APIs (REST)**, **Testing** y **Arquitectura de Software**.",
-            "ASISTENCIA": "Mi propósito es asistirle con consultas técnicas. Por favor, formule una pregunta específica sobre **Python, JavaScript o Java**, o sobre cualquier tema de **DevOps, Arquitectura o Cloud**.",
+            "IDENTIDAD": "Soy el **Asistente DEV IA V.10.0**, un modelo de lenguaje especializado en brindar soporte técnico y comparativas en las áreas de desarrollo de software, específicamente **Python, JavaScript y Java**.",
+            "CAPACIDADES": "Mi base de conocimiento es profunda e incluye: **Generación de Código**, **Patrones de Diseño**, **Metodologías Ágiles (Scrum, Kanban)**, **DevOps (Git, Docker)**, **Cloud Computing (AWS, Azure)**, **Seguridad**, **APIs (REST)**, **Testing** y **Arquitectura de Software**.",
+            "ASISTENCIA": "Mi propósito es asistirle con consultas técnicas y generación de código. Por favor, formule una pregunta específica sobre **Python, JavaScript o Java**, o sobre cualquier tema de **DevOps, Arquitectura o Cloud**.",
             
             // Respuestas Técnicas Específicas (V5.0 - V8.0)
             "DISCORD": `**Bots de Discord:** **JavaScript (Node.js)** es la opción más popular debido a la madurez de la librería **Discord.js**, que permite un rendimiento asíncrono eficiente. **Python** usa **Discord.py** y es preferido por su legibilidad, aunque Node.js ofrece mejor concurrencia en I/O.`,
@@ -170,29 +185,40 @@
         function findResponse(question) {
             const q = question.toUpperCase();
 
-            // 1. Respuestas de Conversación
+            // Palabras clave de intención de código
+            const isCodeRequest = q.includes("CODIGO") || q.includes("GENERAME") || q.includes("EJEMPLO") || q.includes("MUESTRA");
+            
+            // 1. Manejo de Solicitudes de Código (NUEVO - ALTA PRIORIDAD)
+            if (isCodeRequest) {
+                if (q.includes("PYTHON") || q.includes("FLASK") || q.includes("DJANGO")) {
+                    return RESPONSES["PYTHON_WEB"];
+                }
+                if (q.includes("JAVASCRIPT") || q.includes("JS") || q.includes("NODE")) {
+                    return RESPONSES["JS_EXAMPLE"];
+                }
+                if (q.includes("JAVA")) {
+                    return RESPONSES["JAVA_EXAMPLE"];
+                }
+                return RESPONSES["CODIGO_GENERICO"]; // Si pide código, pero no especifica lenguaje.
+            }
+
+            // 2. Respuestas de Conversación
             if (q.includes("HOLA") || q.includes("SALUDOS") || q.includes("BUENOS DIAS")) return RESPONSES["HOLA"];
             if (q.includes("GRACIAS") || q.includes("THANK")) return RESPONSES["GRACIAS"];
-
-            // 1.5. Respuestas de Auto-Referencia (NUEVO V9.0 - ALTA PRIORIDAD)
             if (q.includes("QUIEN") || q.includes("ERES")) return RESPONSES["IDENTIDAD"];
             if (q.includes("SABES") || q.includes("CONOCIMIENTO")) return RESPONSES["CAPACIDADES"];
             if (q.includes("AYUDAS") || q.includes("ASISTIR") || q.includes("PUEDES")) return RESPONSES["ASISTENCIA"];
 
 
-            // 2. Respuestas de Arquitectura y DevOps (V8.0)
+            // 3. Respuestas Técnicas Avanzadas (V5.0 - V8.0)
             if (q.includes("CLOUD") || q.includes("AWS") || q.includes("AZURE") || q.includes("GCP")) return RESPONSES["CLOUD"];
             if (q.includes("PATRONES") || q.includes("SINGLETON") || q.includes("FACTORY") || q.includes("DISENO") || q.includes("DISEÑO")) return RESPONSES["PATRONES_DISENO"];
             if (q.includes("AGILE") || q.includes("SCRUM") || q.includes("KANBAN") || q.includes("METODOLOGIA")) return RESPONSES["AGILE"];
             if (q.includes("NETWORKING") || q.includes("HTTP") || q.includes("PROTOCOLOS") || q.includes("VERBOS")) return RESPONSES["NETWORKING"];
-
-            // 3. DevOps y Control (V7.0)
             if (q.includes("DOCKER") || q.includes("CONTENEDORES") || q.includes("CONTAINERS")) return RESPONSES["DOCKER"];
             if (q.includes("GIT") || q.includes("VERSIONES") || q.includes("GITHUB") || q.includes("BITBUCKET") || q.includes("COMMIT")) return RESPONSES["GIT"];
             if (q.includes("TYPESCRIPT") || q.includes("TIPADO") || q.includes("ESTATICO")) return RESPONSES["TYPESCRIPT"];
             if (q.includes("SERVERLESS") || q.includes("ESCALABILIDAD") || q.includes("AWS LAMBDA")) return RESPONSES["SERVERLESS"];
-
-            // 4. Respuestas de Comparación y Conceptos Avanzados (V5.0 - V6.0)
             if (q.includes("BOT") && (q.includes("DISCORD") || (q.includes("MEJOR") && (q.includes("JAVASCRIPT") || q.includes("PYTHON"))))) return RESPONSES["DISCORD"];
             if (q.includes("TESTING") || q.includes("PRUEBAS") || q.includes("JUNIT") || q.includes("PYTEST") || q.includes("MOCKITO")) return RESPONSES["TESTING"];
             if (q.includes("BASE DE DATOS") || q.includes("DB") || q.includes("SQL") || q.includes("ORMS") || q.includes("JDBC")) return RESPONSES["DB_CONN"];
@@ -205,12 +231,12 @@
             if (q.includes("COMPARAR") || q.includes("DIFERENCIA")) return RESPONSES["COMPARAR"];
 
 
-            // 5. Respuestas de Temas Principales
+            // 4. Respuestas de Temas Principales (Definiciones)
             if (q.includes("PYTHON")) return RESPONSES["PYTHON"];
             if (q.includes("JAVASCRIPT") || q.includes("JS")) return RESPONSES["JAVASCRIPT"];
             if (q.includes("JAVA")) return RESPONSES["JAVA"];
             
-            // 6. Default
+            // 5. Default
             return RESPONSES["DEFECTO"];
         }
         // ---------------------------------------------
@@ -241,8 +267,18 @@
         function appendMessage(text, className) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${className}`;
-            // Usamos innerHTML para permitir el texto en negrita (markdown-like)
-            messageDiv.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/`/g, '`'); 
+            // Reemplaza markdown **negritas** y bloques de código ````
+            let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // Manejar bloques de código usando PRE y escapar HTML dentro
+            formattedText = formattedText.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                // Escapar HTML dentro del código para evitar inyección
+                const escapedCode = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const langDisplay = lang ? `(${lang.toUpperCase()})` : '';
+                return `<pre>${escapedCode.trim()}</pre>`;
+            });
+
+            messageDiv.innerHTML = formattedText; 
             chatHistory.appendChild(messageDiv);
         }
 
