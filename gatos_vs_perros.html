@@ -3,399 +3,380 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DOGS vs CATS: La Guerra del Confort</title>
+    <title>GATOS VS PERROS: Guerra por el Dominio</title>
     <style>
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #1a1a1a;
-            margin: 0;
-            flex-direction: column;
-            font-family: 'Courier New', monospace;
-            color: #ecf0f1;
-        }
-        canvas {
-            border: 8px solid #3498db; /* Azul de estrategia */
-            background-color: #f0f0f0; /* Color de piso claro */
-            box-shadow: 0 0 20px rgba(52, 152, 219, 0.8);
-        }
-        .controls {
-            margin-top: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #333;
+            color: #fff;
             text-align: center;
+            padding: 20px;
         }
-        button {
-            background-color: #2ecc71;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            margin: 5px;
-            cursor: pointer;
-            font-size: 1em;
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #222;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
-        button:hover:not(:disabled) {
-            background-color: #27ae60;
+        h1 {
+            color: #ffcc00; /* Dorado/Amarillo */
+            border-bottom: 2px solid #ffcc00;
+            padding-bottom: 10px;
         }
-        button:disabled {
-            background-color: #7f8c8d;
-            cursor: not-allowed;
+        .stats-panel, .actions-panel, .battlefield {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
         }
         .stats-panel {
-            margin-bottom: 10px;
-            padding: 10px;
-            border: 1px solid #7f8c8d;
-            width: 800px;
             display: flex;
             justify-content: space-around;
+            background-color: #444;
         }
+        .team-stats {
+            width: 45%;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #cat-stats { background-color: #1a2a47; border: 2px solid #5a9fff; } /* Azul de Gatos */
+        #dog-stats { background-color: #471a1a; border: 2px solid #ff5a5a; } /* Rojo de Perros */
+        
+        .health-bar {
+            background-color: #000;
+            border: 1px solid #fff;
+            margin-top: 5px;
+            height: 15px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .health-fill {
+            height: 100%;
+            transition: width 0.5s;
+        }
+
+        .actions-panel {
+            background-color: #555;
+        }
+        .unit-button {
+            padding: 10px 15px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .unit-button:hover:not(:disabled) {
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        .cat-unit { background-color: #5a9fff; color: #1a2a47; }
+        .dog-unit { background-color: #ff5a5a; color: #471a1a; }
+        .turn-button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background-color: #00cc66;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        
+        .battlefield {
+            background-color: #333;
+            min-height: 100px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .log-panel {
+            background-color: #111;
+            padding: 10px;
+            text-align: left;
+            height: 150px;
+            overflow-y: scroll;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        .log-entry {
+            margin-bottom: 3px;
+        }
+        .cat-log { color: #5a9fff; }
+        .dog-log { color: #ff5a5a; }
+        .neutral-log { color: #ccc; }
+        
+        /* Estilos de Estado */
+        .disabled { opacity: 0.5; cursor: not-allowed; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-<div id="stats-panel" class="stats-panel"></div>
+    <div class="game-container">
+        <h1>GATOS 🐱 VS PERROS 🐶: Guerra por el Dominio</h1>
+        <p>¡El objetivo es destruir la base enemiga!</p>
 
-<canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div class="stats-panel">
+            <div id="cat-stats" class="team-stats">
+                <h2>Equipo Gato</h2>
+                <p>Base: <span id="cat-health-text">100</span> HP</p>
+                <div class="health-bar"><div id="cat-health-fill" class="health-fill" style="width: 100%; background-color: #5a9fff;"></div></div>
+                <p>Energía: <span id="cat-energy">5</span> ⚡</p>
+                <p>Unidades en campo: <span id="cat-units-count">0</span></p>
+            </div>
 
-<div class="controls">
-    <div id="current-action">FASE DE POSICIONAMIENTO. Haz clic en el tablero.</div>
-    <button id="btn-next-turn" disabled>Simular Siguiente Día (Turno)</button>
-</div>
+            <div id="dog-stats" class="team-stats">
+                <h2>Equipo Perro</h2>
+                <p>Base: <span id="dog-health-text">100</span> HP</p>
+                <div class="health-bar"><div id="dog-health-fill" class="health-fill" style="width: 100%; background-color: #ff5a5a;"></div></div>
+                <p>Energía: <span id="dog-energy">5</span> ⚡</p>
+                <p>Unidades en campo: <span id="dog-units-count">0</span></p>
+            </div>
+        </div>
 
-<script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const statsPanel = document.getElementById('stats-panel');
-    const btnNextTurn = document.getElementById('btn-next-turn');
-    const currentActionDisplay = document.getElementById('current-action');
-
-    // =================================================================
-    // CONFIGURACIÓN DEL JUEGO
-    // =================================================================
-    const TILE_SIZE = 50;
-    const COLS = canvas.width / TILE_SIZE; // 16
-    const ROWS = canvas.height / TILE_SIZE; // 12
-    
-    let gameStatus = {
-        comfortPoints: 0,
-        energyPoints: 0,
-        turn: 1,
-        maxTurns: 5,
-        budget: 50,
-        action: 'PLACE_CAT',
-        map: [], // Almacena unidades y recursos
-    };
-
-    // Costos de unidades
-    const COSTS = {
-        CAT: 10,
-        SUNBEAM: 5,
-        DOG: 10, // Costo simulado para la IA
-        BONE: 5, // Costo simulado para la IA
-    };
-
-    // =================================================================
-    // INICIALIZACIÓN
-    // =================================================================
-    function initMap() {
-        for (let r = 0; r < ROWS; r++) {
-            gameStatus.map[r] = [];
-            for (let c = 0; c < COLS; c++) {
-                gameStatus.map[r][c] = null; // null = vacío
-            }
-        }
-    }
-    initMap();
-
-    // Colocar unidades iniciales de la IA (Perros) y sus recursos
-    function placeInitialAI() {
-        // Un perro fijo en la esquina y un recurso de ruido
-        gameStatus.map[ROWS - 2][COLS - 2] = { type: 'DOG', hp: 30, color: '#f1c40f', effect: 'NOISE' };
-        gameStatus.map[ROWS - 2][COLS - 3] = { type: 'BONE', cost: COSTS.BONE, color: '#e67e22', effect: -10 };
-    }
-    placeInitialAI();
-    updateStats();
-
-    // =================================================================
-    // FUNCIONES DE DIBUJO
-    // =================================================================
-
-    function drawGrid() {
-        ctx.strokeStyle = '#bdc3c7'; // Líneas grises
-        for (let r = 0; r < ROWS; r++) {
-            for (let c = 0; c < COLS; c++) {
-                ctx.strokeRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-            }
-        }
-    }
-
-    function drawUnits() {
-        for (let r = 0; r < ROWS; r++) {
-            for (let c = 0; c < COLS; c++) {
-                const unit = gameStatus.map[r][c];
-                if (unit) {
-                    const x = c * TILE_SIZE + TILE_SIZE / 2;
-                    const y = r * TILE_SIZE + TILE_SIZE / 2;
-                    
-                    if (unit.type === 'CAT') {
-                        // Gato: Círculo (Confort)
-                        ctx.fillStyle = unit.color; // Azul Oscuro
-                        ctx.beginPath();
-                        ctx.arc(x, y, TILE_SIZE / 3, 0, Math.PI * 2);
-                        ctx.fill();
-                        ctx.closePath();
-                    } else if (unit.type === 'DOG') {
-                        // Perro: Cuadrado (Energía)
-                        ctx.fillStyle = unit.color; // Amarillo
-                        ctx.fillRect(x - TILE_SIZE / 3, y - TILE_SIZE / 3, TILE_SIZE * 2 / 3, TILE_SIZE * 2 / 3);
-                    } else if (unit.type === 'SUNBEAM') {
-                        // Rayo de Sol: Cuadrado de Confort
-                        ctx.fillStyle = unit.color; // Amarillo Suave
-                        ctx.fillRect(c * TILE_SIZE + 5, r * TILE_SIZE + 5, TILE_SIZE - 10, TILE_SIZE - 10);
-                        ctx.fillStyle = '#000';
-                        ctx.fillText('☀️', x - 10, y + 5);
-                    } else if (unit.type === 'BONE') {
-                        // Hueso Ruidoso: Cuadrado de Ruido
-                        ctx.fillStyle = unit.color; // Naranja
-                        ctx.fillRect(c * TILE_SIZE + 5, r * TILE_SIZE + 5, TILE_SIZE - 10, TILE_SIZE - 10);
-                        ctx.fillStyle = '#000';
-                        ctx.fillText('🦴', x - 10, y + 5);
-                    }
-                }
-            }
-        }
-    }
-
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawGrid();
-        drawUnits();
-        
-        // Dibujar el estado de los puntos de confort/energía en el mapa
-        ctx.fillStyle = '#333';
-        ctx.font = '16px Arial';
-        ctx.fillText(`DÍA ${gameStatus.turn}`, 10, 20);
-        
-        if (gameStatus.turn > gameStatus.maxTurns) {
-             ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-             ctx.fillRect(0, 0, canvas.width, canvas.height);
-             ctx.fillStyle = 'white';
-             ctx.font = '50px Arial';
-             ctx.textAlign = 'center';
-             ctx.fillText('¡JUEGO TERMINADO!', canvas.width / 2, canvas.height / 2);
-             ctx.font = '30px Arial';
-             const result = gameStatus.comfortPoints > gameStatus.energyPoints * 1.5 ? '¡VICTORIA FELINA!' : '¡LOS PERROS TE VENCEN!';
-             ctx.fillText(result, canvas.width / 2, canvas.height / 2 + 50);
-        }
-    }
-
-    function updateStats() {
-        statsPanel.innerHTML = `
-            <div>DÍA: ${gameStatus.turn} / ${gameStatus.maxTurns}</div>
-            <div style="color: #3498db;">💎 COMODIDAD (CP): ${gameStatus.comfortPoints}</div>
-            <div style="color: #f1c40f;">⚡ ENERGÍA/RUIDO (EP): ${gameStatus.energyPoints}</div>
-            <div style="color: #e74c3c;">💰 PRESUPUESTO: ${gameStatus.budget}</div>
-        `;
-        
-        if (gameStatus.budget <= 0 && gameStatus.turn <= gameStatus.maxTurns) {
-             btnNextTurn.disabled = false;
-        } else {
-             btnNextTurn.disabled = true;
-        }
-    }
-
-    // =================================================================
-    // LÓGICA DEL JUEGO Y TURNO
-    // =================================================================
-
-    function handleMapClick(event) {
-        if (gameStatus.budget <= 0 || gameStatus.turn > gameStatus.maxTurns) return;
-
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = event.clientX - rect.left;
-        const mouseY = event.clientY - rect.top;
-
-        const col = Math.floor(mouseX / TILE_SIZE);
-        const row = Math.floor(mouseY / TILE_SIZE);
-
-        if (gameStatus.map[row][col] === null) {
+        <div class="actions-panel">
+            <h2>Acciones (Tu Turno: Gato)</h2>
+            <div id="unit-buttons-cat">
+                <button class="unit-button cat-unit" data-unit="kitty" onclick="buyUnit('cat', 'kitty')">Gatito (1 ⚡)</button>
+                <button class="unit-button cat-unit" data-unit="panther" onclick="buyUnit('cat', 'panther')">Pantera (3 ⚡)</button>
+            </div>
             
-            let unitType = null;
-            let cost = 0;
+            <button id="end-turn-button" class="turn-button" onclick="endTurn()">FINALIZAR TURNO ➡️</button>
+        </div>
 
-            if (gameStatus.action === 'PLACE_CAT' && gameStatus.budget >= COSTS.CAT) {
-                 unitType = 'CAT';
-                 cost = COSTS.CAT;
-            } else if (gameStatus.action === 'PLACE_SUNBEAM' && gameStatus.budget >= COSTS.SUNBEAM) {
-                 unitType = 'SUNBEAM';
-                 cost = COSTS.SUNBEAM;
+        <div class="battlefield">
+            </div>
+
+        <div id="game-message" class="log-panel">
+            <div class="neutral-log log-entry">>> JUEGO INICIADO. GANA ENERGÍA y COMPRA UNIDADES para destruir la base enemiga.</div>
+            <div class="neutral-log log-entry">>> Empiezas tú (GATO).</div>
+        </div>
+
+        <div id="end-game-screen" class="game-container hidden">
+            <h1 id="end-game-message"></h1>
+            <button class="turn-button" onclick="location.reload()">JUGAR DE NUEVO</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. DEFINICIÓN DE UNIDADES Y ESTADO DEL JUEGO ---
+        const UNITS = {
+            kitty: { name: 'Gatito', cost: 1, attack: 1, hp: 1 },
+            panther: { name: 'Pantera', cost: 3, attack: 4, hp: 3 },
+            puppy: { name: 'Cachorro', cost: 1, attack: 1, hp: 1 },
+            wolf: { name: 'Lobo', cost: 3, attack: 4, hp: 3 }
+        };
+
+        let gameState = {
+            cat: { health: 100, energy: 5, units: [] },
+            dog: { health: 100, energy: 5, units: [] },
+            turn: 'cat',
+            energyPerTurn: 1 
+        };
+
+        // --- 2. FUNCIONES DE UTILIDAD ---
+        
+        function log(message, type = 'neutral') {
+            const logPanel = document.getElementById('game-message');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}-log`;
+            entry.textContent = `>> ${message}`;
+            logPanel.prepend(entry);
+            // Limitar el log a 30 entradas
+            while (logPanel.children.length > 30) {
+                logPanel.removeChild(logPanel.lastChild);
+            }
+        }
+
+        function updateUI() {
+            // Actualizar Salud de Bases
+            document.getElementById('cat-health-text').textContent = gameState.cat.health;
+            document.getElementById('dog-health-text').textContent = gameState.dog.health;
+            
+            // Actualizar Barras de Salud
+            document.getElementById('cat-health-fill').style.width = `${gameState.cat.health}%`;
+            document.getElementById('dog-health-fill').style.width = `${gameState.dog.health}%`;
+            document.getElementById('cat-health-fill').style.backgroundColor = gameState.cat.health > 50 ? '#5a9fff' : gameState.cat.health > 20 ? '#ffcc00' : '#ff0000';
+            document.getElementById('dog-health-fill').style.backgroundColor = gameState.dog.health > 50 ? '#ff5a5a' : gameState.dog.health > 20 ? '#ffcc00' : '#ff0000';
+
+            // Actualizar Energía y Conteo de Unidades
+            document.getElementById('cat-energy').textContent = gameState.cat.energy;
+            document.getElementById('dog-energy').textContent = gameState.dog.energy;
+            document.getElementById('cat-units-count').textContent = gameState.cat.units.length;
+            document.getElementById('dog-units-count').textContent = gameState.dog.units.length;
+
+            // Actualizar Acciones y Botones
+            const isCatTurn = gameState.turn === 'cat';
+            document.querySelector('.actions-panel h2').textContent = `Acciones (Tu Turno: ${isCatTurn ? 'Gato' : 'Perro'})`;
+            
+            // Deshabilitar botones si no hay energía suficiente
+            document.querySelectorAll('.unit-button').forEach(button => {
+                const unitType = button.getAttribute('data-unit');
+                const unit = UNITS[unitType];
+                const team = button.classList.contains('cat-unit') ? 'cat' : 'dog';
+                
+                button.disabled = gameState[team].energy < unit.cost || !isCatTurn;
+                button.classList.toggle('disabled', button.disabled);
+                
+                // Ocultar botones de la IA (Perros)
+                if (!isCatTurn && button.classList.contains('dog-unit')) {
+                    button.classList.add('hidden');
+                } else if (isCatTurn && button.classList.contains('cat-unit')) {
+                    button.classList.remove('hidden');
+                } else if (!isCatTurn && button.classList.contains('cat-unit')) {
+                    button.classList.add('hidden');
+                } else if (isCatTurn && button.classList.contains('dog-unit')) {
+                    button.classList.add('hidden');
+                }
+            });
+            
+            document.getElementById('end-turn-button').disabled = !isCatTurn;
+            document.getElementById('end-turn-button').classList.toggle('disabled', !isCatTurn);
+
+            checkGameOver();
+        }
+
+        function checkGameOver() {
+            let message = '';
+            if (gameState.dog.health <= 0) {
+                message = '¡VICTORIA! 🏆 La base de los Perros ha sido destruida. Los Gatos dominan.';
+            } else if (gameState.cat.health <= 0) {
+                message = '¡DERROTA! 😞 La base de los Gatos ha caído. Los Perros ganan.';
             }
 
-            if (unitType) {
-                gameStatus.map[row][col] = { type: unitType, color: unitType === 'CAT' ? '#3498db' : '#f39c12' };
-                gameStatus.budget -= cost;
+            if (message) {
+                document.getElementById('end-game-message').textContent = message;
+                document.querySelector('.game-container').classList.add('hidden');
+                document.getElementById('end-game-screen').classList.remove('hidden');
+                log(message, message.includes('VICTORIA') ? 'cat' : 'dog');
+                return true;
+            }
+            return false;
+        }
+
+        // --- 3. FUNCIONES DE JUEGO ---
+
+        function buyUnit(team, unitType) {
+            const unitData = UNITS[unitType];
+            const currentTeam = gameState[team];
+            
+            if (currentTeam.energy >= unitData.cost) {
+                currentTeam.energy -= unitData.cost;
                 
-                // Rotar a la siguiente acción para la compra
-                if (gameStatus.action === 'PLACE_CAT') {
-                    gameStatus.action = 'PLACE_SUNBEAM';
-                    currentActionDisplay.textContent = `Colocando RAYO DE SOL (5¢). Clic en el tablero.`;
-                } else if (gameStatus.action === 'PLACE_SUNBEAM') {
-                    gameStatus.action = 'PLACE_CAT';
-                    currentActionDisplay.textContent = `Colocando GATO (10¢). Clic en el tablero.`;
-                }
+                // Clonar datos de la unidad para que sus HP sean únicos
+                const newUnit = { 
+                    ...unitData, 
+                    currentHp: unitData.hp, 
+                    team: team, 
+                    name: unitData.name 
+                };
+                currentTeam.units.push(newUnit);
+                
+                log(`${team === 'cat' ? '🐱 Gato' : '🐶 Perro'} compró: ${unitData.name} por ${unitData.cost} ⚡.`, team);
+                updateUI();
             } else {
-                 if (cost > gameStatus.budget) {
-                     alert("¡Presupuesto insuficiente!");
-                 }
+                log('Energía insuficiente.', team);
             }
-            updateStats();
-            draw();
         }
-    }
 
-    function simulateDay() {
-        if (gameStatus.turn > gameStatus.maxTurns) return;
-        
-        let dailyComfort = 0;
-        let dailyEnergy = 0;
+        function performBattle() {
+            // El combate ocurre entre la unidad más antigua de cada lado (la que está "más adelante")
+            const catUnits = gameState.cat.units;
+            const dogUnits = gameState.dog.units;
+            
+            let catsDead = [];
+            let dogsDead = [];
 
-        for (let r = 0; r < ROWS; r++) {
-            for (let c = 0; c < COLS; c++) {
-                const unit = gameStatus.map[r][c];
-                if (unit) {
-                    // 1. Ganancia de Comfort por Gatos
-                    if (unit.type === 'CAT') {
-                        dailyComfort += 10;
-                        
-                        // 2. Bonificación de Confort (Rayo de Sol)
-                        if (getNeighborUnit(r, c, 'SUNBEAM')) {
-                             dailyComfort += 15; // Bonificación de Rayo de Sol
-                        }
-                    } 
-                    
-                    // 3. Ganancia de Energía/Ruido por Perros
-                    if (unit.type === 'DOG') {
-                        dailyEnergy += 10;
-                         // 4. Bonificación de Ruido (Hueso)
-                         if (getNeighborUnit(r, c, 'BONE')) {
-                             dailyEnergy += 15; // Bonificación de Hueso
-                         }
-                    }
+            if (catUnits.length > 0 && dogUnits.length > 0) {
+                // Combate Unidad vs Unidad
+                const cat = catUnits[0];
+                const dog = dogUnits[0];
+
+                dog.currentHp -= cat.attack;
+                cat.currentHp -= dog.attack;
+                
+                log(`¡Combate! ${cat.name} ataca a ${dog.name}. ${cat.name} HP: ${cat.currentHp}, ${dog.name} HP: ${dog.currentHp}`, 'neutral');
+                
+                // Verificar muertes y marcar para eliminar
+                if (cat.currentHp <= 0) catsDead.push(cat);
+                if (dog.currentHp <= 0) dogsDead.push(dog);
+
+            } else if (catUnits.length > 0) {
+                // Ataque a Base Perro
+                const cat = catUnits[0];
+                gameState.dog.health -= cat.attack;
+                log(`¡ATAQUE A BASE! 🐱 ${cat.name} ataca la base Perro. Daño: ${cat.attack}.`, 'cat');
+                
+            } else if (dogUnits.length > 0) {
+                // Ataque a Base Gato
+                const dog = dogUnits[0];
+                gameState.cat.health -= dog.attack;
+                log(`¡ATAQUE A BASE! 🐶 ${dog.name} ataca la base Gato. Daño: ${dog.attack}.`, 'dog');
+            }
+
+            // Eliminar unidades muertas (usamos filter para evitar problemas de índice)
+            gameState.cat.units = gameState.cat.units.filter(unit => !catsDead.includes(unit) && unit.currentHp > 0);
+            gameState.dog.units = gameState.dog.units.filter(unit => !dogsDead.includes(unit) && unit.currentHp > 0);
+            
+            // Log de bajas
+            catsDead.forEach(unit => log(`🐱 ${unit.name} fue derrotado.`, 'dog'));
+            dogsDead.forEach(unit => log(`🐶 ${unit.name} fue derrotado.`, 'cat'));
+        }
+
+        function dogAITurn() {
+            if (checkGameOver()) return;
+            
+            log('Turno de la IA (PERRO) 🐶...', 'dog');
+            
+            // 1. Ganar Energía
+            gameState.dog.energy += gameState.energyPerTurn;
+            log(`🐶 Perro gana ${gameState.energyPerTurn} ⚡. Total: ${gameState.dog.energy}`, 'dog');
+            
+            // 2. Comprar unidades (Estrategia simple de la IA)
+            // Prioriza la unidad más cara si puede pagarla.
+            const dogUnits = [UNITS.wolf, UNITS.puppy];
+            
+            for (let i = 0; i < 2; i++) { // Intenta comprar 2 veces
+                if (gameState.dog.energy >= UNITS.wolf.cost) {
+                    buyUnit('dog', 'wolf');
+                } else if (gameState.dog.energy >= UNITS.puppy.cost) {
+                    buyUnit('dog', 'puppy');
                 }
             }
-        }
-        
-        // El confort se anula por el ruido
-        const netComfort = Math.max(0, dailyComfort - dailyEnergy * 0.5);
-        
-        gameStatus.comfortPoints += netComfort;
-        gameStatus.energyPoints += dailyEnergy;
-
-        // Avanzar Turno
-        gameStatus.turn++;
-        gameStatus.budget = 50; // Resetear presupuesto
-        currentActionDisplay.textContent = `DÍA ${gameStatus.turn} INICIADO. Gasto Total: CP +${netComfort.toFixed(1)}, EP +${dailyEnergy}.`;
-        
-        // Lógica de movimiento simple de la IA (Mover un perro un paso)
-        moveAIDog();
-        
-        if (gameStatus.turn <= gameStatus.maxTurns) {
-            btnNextTurn.disabled = true;
-            gameStatus.action = 'PLACE_CAT';
-        } else {
-             btnNextTurn.disabled = true;
+            
+            // 3. Batalla y Siguiente Turno
+            performBattle();
+            gameState.turn = 'cat';
+            log('Tu turno (GATO).', 'neutral');
+            updateUI();
         }
 
-        updateStats();
-        draw();
-    }
-    
-    function moveAIDog() {
-        for (let r = 0; r < ROWS; r++) {
-            for (let c = 0; c < COLS; c++) {
-                 const unit = gameStatus.map[r][c];
-                 if (unit && unit.type === 'DOG') {
-                     
-                     // IA: Mueve el perro hacia el gato más cercano
-                     let targetR = -1, targetC = -1;
-                     let minDist = 1000;
-                     
-                     // Encontrar el gato más cercano
-                     for (let gr = 0; gr < ROWS; gr++) {
-                         for (let gc = 0; gc < COLS; gc++) {
-                              const catUnit = gameStatus.map[gr][gc];
-                              if (catUnit && catUnit.type === 'CAT') {
-                                   const dist = Math.abs(r - gr) + Math.abs(c - gc); // Distancia Manhattan
-                                   if (dist < minDist) {
-                                       minDist = dist;
-                                       targetR = gr;
-                                       targetC = gc;
-                                   }
-                              }
-                         }
-                     }
-                     
-                     // Si encuentra un gato, intenta moverse
-                     if (targetR !== -1) {
-                         let nextR = r, nextC = c;
-                         
-                         // Priorizar el eje más lejano
-                         if (Math.abs(r - targetR) > Math.abs(c - targetC)) {
-                             nextR += (targetR > r) ? 1 : -1;
-                         } else if (Math.abs(c - targetC) > 0) {
-                             nextC += (targetC > c) ? 1 : -1;
-                         }
-                         
-                         // Si la casilla es vacía, mover el perro
-                         if (gameStatus.map[nextR] && gameStatus.map[nextR][nextC] === null) {
-                             gameStatus.map[nextR][nextC] = unit;
-                             gameStatus.map[r][c] = null;
-                             return; // Solo movemos un perro por turno para simplificar
-                         }
-                     }
-                     
-                     
-                 }
-            }
+
+        function endTurn() {
+            if (gameState.turn !== 'cat') return;
+
+            // 1. Ganar Energía (Gato)
+            gameState.cat.energy += gameState.energyPerTurn;
+            log(`🐱 Gato gana ${gameState.energyPerTurn} ⚡. Total: ${gameState.cat.energy}`, 'cat');
+
+            // 2. Batalla (antes del turno de la IA)
+            performBattle();
+
+            // 3. Cambiar el turno a Perro (IA)
+            gameState.turn = 'dog';
+            updateUI();
+
+            // 4. Iniciar el turno de la IA después de un breve retardo
+            setTimeout(dogAITurn, 1500); // 1.5s para que el jugador vea lo que pasó
         }
-    }
 
+        // --- 4. INICIO DEL JUEGO ---
+        updateUI();
 
-    function getNeighborUnit(r, c, targetType) {
-        // Simple verificación en 3x3 alrededor
-        for (let i = -1; i <= 1; i++) {
-            for (let j = -1; j <= 1; j++) {
-                if (i === 0 && j === 0) continue;
-                
-                const nr = r + i;
-                const nc = c + j;
-                
-                if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
-                    const neighbor = gameStatus.map[nr][nc];
-                    if (neighbor && neighbor.type === targetType) {
-                        return neighbor;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-
-    // =================================================================
-    // EVENT LISTENERS E INICIO
-    // =================================================================
-    
-    canvas.addEventListener('click', handleMapClick);
-    btnNextTurn.addEventListener('click', simulateDay);
-
-    // Bucle principal del juego
-    function gameLoop() {
-        draw();
-        requestAnimationFrame(gameLoop);
-    }
-    gameLoop();
-</script>
-
+    </script>
 </body>
 </html>
