@@ -6,7 +6,6 @@
     <title>Millonario Clicker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
-    <!-- FIREBASE MODULE: Inicializa la base de datos y llama a window.initGame -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -118,7 +117,8 @@
             'dedo-rapido': { nombre: 'Dedo Rápido 🤏', costoBase: 10, costoEscalado: 1.15, ipcAumento: 1, tipo: 'ipc', icono: '👋' },
             'mouse-gamer': { nombre: 'Mouse Gamer 🖱️', costoBase: 100, costoEscalado: 1.15, ipcAumento: 10, tipo: 'ipc', icono: '🎮' },
             'ai-clicker': { nombre: 'Asistente IA 🤖', costoBase: 1000, costoEscalado: 1.15, ipcAumento: 100, tipo: 'ipc', icono: '💡' },
-            'bot-autoclick': { nombre: 'Bot Autoclick 🦾', costoBase: 10000, costoEscalado: 1.15, ipcAumento: 1000, tipo: 'ipc', icono: '🤖' }
+            'bot-autoclick': { nombre: 'Bot Autoclick 🦾', costoBase: 10000, costoEscalado: 1.15, ipcAumento: 1000, tipo: 'ipc', icono: '🤖' },
+            'chip-neural': { nombre: 'Chip Neural 🧠', costoBase: 100000, costoEscalado: 1.15, ipcAumento: 10000, tipo: 'ipc', icono: '✨' } // Nuevo ítem
         };
 
         const generadoresIPS = {
@@ -126,28 +126,32 @@
             'vendedor-ambulante': { nombre: 'Vendedor Ambulante 💼', costoBase: 500, costoEscalado: 1.15, ipsGenerado: 5, tipo: 'ips', icono: '🚶' },
             'tienda-online': { nombre: 'Tienda Online 💻', costoBase: 5000, costoEscalado: 1.15, ipsGenerado: 50, tipo: 'ips', icono: '🛒' },
             'granja-solar': { nombre: 'Granja Solar ☀️', costoBase: 50000, costoEscalado: 1.15, ipsGenerado: 500, tipo: 'ips', icono: '⚡' },
-            'bienes-raices': { nombre: 'Bienes Raíces 🏘️', costoBase: 500000, costoEscalado: 1.15, ipsGenerado: 5000, tipo: 'ips', icono: '🏠' }
+            'bienes-raices': { nombre: 'Bienes Raíces 🏘️', costoBase: 500000, costoEscalado: 1.15, ipsGenerado: 5000, tipo: 'ips', icono: '🏠' },
+            'planta-nuclear': { nombre: 'Planta Nuclear ☢️', costoBase: 5000000, costoEscalado: 1.15, ipsGenerado: 50000, tipo: 'ips', icono: '🚨' } // Nuevo ítem
         };
         
         const activosLujos = {
              'coche-lujo': { nombre: 'Coche Deportivo 🏎️', costo: 50000, efecto: 'Aumenta IPC en 500', ipcAumento: 500, comprado: false, icono: '🏎️' },
              'apartamento': { nombre: 'Apartamento de Lujo 🏙️', costo: 500000, efecto: 'Aumenta IPS en 50', ipsAumento: 50, comprado: false, icono: '🏙️' },
              'yate': { nombre: 'Yate Privado 🛥️', costo: 5000000, efecto: 'Duplica todo el IPC', multiplicadorIPC: 2, comprado: false, icono: '🛥️' },
-             'isla-privada': { nombre: 'Isla Privada 🏝️', costo: 50000000, efecto: 'Multiplica IPS por 1.5', multiplicadorIPS: 1.5, comprado: false, icono: '🏝️' }
+             'isla-privada': { nombre: 'Isla Privada 🏝️', costo: 50000000, efecto: 'Multiplica IPS por 1.5', multiplicadorIPS: 1.5, comprado: false, icono: '🏝️' },
+             'cohete-personal': { nombre: 'Cohete Personal 🚀', costo: 500000000, efecto: 'Multiplica IPC y IPS por 2', multiplicadorIPC: 2, multiplicadorIPS: 2, comprado: false, icono: '🌕' } // Nuevo ítem
         };
         
         const empresasVistas = {
              'restaurante': { nombre: 'Restaurante Exclusivo 🍽️', costo: 1000000, ipsGenerado: 1000, vecesComprado: 0, icono: '🍽️' },
              'tech-startup': { nombre: 'Tech Startup 🚀', costo: 10000000, ipsGenerado: 10000, vecesComprado: 0, icono: '🚀' },
              'cadena-hoteles': { nombre: 'Cadena de Hoteles 🏨', costo: 100000000, ipsGenerado: 100000, vecesComprado: 0, icono: '🏨' },
-             'aerolinea-lowcost': { nombre: 'Aerolínea Low Cost ✈️', costo: 1000000000, ipsGenerado: 1000000, vecesComprado: 0, icono: '✈️' }
+             'aerolinea-lowcost': { nombre: 'Aerolínea Low Cost ✈️', costo: 1000000000, ipsGenerado: 1000000, vecesComprado: 0, icono: '✈️' },
+             'red-satelital': { nombre: 'Red Satelital 🛰️', costo: 10000000000, ipsGenerado: 10000000, vecesComprado: 0, icono: '📡' } // Nuevo ítem
         };
         
         const inversionesVista = {
              'bonos-gobierno': { nombre: 'Bonos Gobierno 🏛️', costo: 100000, retorno: 0.05, vecesComprado: 0, tipo: 'retorno', icono: '🏛️' }, // 5% de retorno
              'crypto-mining': { nombre: 'Crypto Mining ⛏️', costo: 2000000, retorno: 0.1, vecesComprado: 0, tipo: 'retorno', icono: '⛏️' }, // 10% de retorno
              'fondo-indexado': { nombre: 'Fondo Indexado S&P 📈', costo: 5000000, retorno: 0.12, vecesComprado: 0, tipo: 'retorno', icono: '📊' }, // 12% de retorno
-             'venture-capital': { nombre: 'Venture Capital 💸', costo: 50000000, retorno: 0.2, vecesComprado: 0, tipo: 'retorno', icono: '💰' } // 20% de retorno
+             'venture-capital': { nombre: 'Venture Capital 💸', costo: 50000000, retorno: 0.2, vecesComprado: 0, tipo: 'retorno', icono: '💰' }, // 20% de retorno
+             'hedge-fund': { nombre: 'Fondo de Cobertura 🛡️', costo: 500000000, retorno: 0.3, vecesComprado: 0, tipo: 'retorno', icono: '💵' } // Nuevo ítem
         };
 
 
@@ -482,7 +486,8 @@
                  elemento.className = `tienda-item investment-item ${!puedeComprar ? 'item-bloqueado' : ''}`;
                  elemento.dataset.id = id;
 
-                 const retornoIPS = estado.valorTotal * item.retorno / 10; // Ejemplo: 5% anual / 10 = 0.5% por segundo (para hacerlo rápido)
+                 // El cálculo de retorno ahora es más rápido (se eliminó el divisor / 10 en recalcularIPS)
+                 const retornoIPS = estado.valorTotal * item.retorno; 
                  
                  elemento.innerHTML = `
                      <h3>${item.icono || '📈'} ${item.nombre}</h3>
@@ -788,8 +793,9 @@
                  const inversion = inversionesVista[id];
                  const estado = estadoJuego.inversiones[id] || { valorTotal: 0 };
                  
-                 // Retorno IPS = Valor total * Tasa de retorno anual / 10 (para hacerlo rápido y visible)
-                 totalIPS += estado.valorTotal * inversion.retorno / 10; 
+                 // CORRECCIÓN APLICADA: Se eliminó la división por 10 (antes era / 10).
+                 // Esto multiplica el IPS por 10, haciendo que la ganancia pasiva sea visible inmediatamente.
+                 totalIPS += estado.valorTotal * inversion.retorno; 
             }
             
             // Aplicar multiplicadores IPS de Activos (ej. Isla Privada)
@@ -1645,7 +1651,6 @@
 <body>
     <div id="fondo-decoracion"></div>
 
-    <!-- MODAL CUSTOM -->
     <div id="custom-modal">
         <div class="modal-content">
             <h3 id="modal-title">Confirmación</h3>
@@ -1656,9 +1661,6 @@
             </div>
         </div>
     </div>
-    <!-- FIN MODAL CUSTOM -->
-
-
     <div id="nav-bar">
         <button id="nav-clicker" onclick="cambiarVista('clicker')" class="active"><i class="fas fa-hand-pointer"></i> Clic & Negocios</button>
         <button id="nav-assets" onclick="cambiarVista('assets')"><i class="fas fa-car"></i> Activos & Lujos</button>
@@ -1670,21 +1672,15 @@
 
     <div id="game-view-container">
 
-        <!-- ================================================== -->
-        <!-- VISTA 1: CLICKER & NEGOCIOS -->
-        <!-- ================================================== -->
         <div id="view-clicker" class="game-view active">
             <div id="main-game-layout">
 
-                <!-- Panel Izquierdo: Mejoras de Clic -->
                 <div id="mejoras-clic-panel" class="side-panel">
                     <h2>Mejoras de Clic (IPC)</h2>
                     <div id="mejoras-clic-tienda">
-                        <!-- Puntos de mejora de IPC se dibujan aquí -->
-                    </div>
+                        </div>
                 </div>
 
-                <!-- Área Central: Botón Clicker & Info -->
                 <div id="clicker-area">
                     <h1 style="margin-top: 0;">¡Conviértete en Millonario!</h1>
                     
@@ -1701,81 +1697,60 @@
                     
                 </div>
 
-                <!-- Panel Derecho: Generadores IPS -->
                 <div id="generadores-panel" class="side-panel">
                     <h2>Generadores Pasivos (IPS)</h2>
                     <div id="generadores-tienda">
-                        <!-- Generadores de IPS se dibujan aquí -->
-                    </div>
+                        </div>
                 </div>
 
             </div>
         </div>
 
-        <!-- ================================================== -->
-        <!-- VISTA 2: ACTIVOS & LUJOS -->
-        <!-- ================================================== -->
         <div id="view-assets" class="game-view">
             <h1 class="view-title">Activos y Lujos (Efectos Únicos)</h1>
             <div class="grid-3-cols">
                 <div class="asset-section" style="grid-column: 1 / -1;">
                     <h2>Mis Lujos Personales (Compra Única)</h2>
                     <div id="activos-tienda" class="asset-shop">
-                        <!-- Lujos se dibujan aquí -->
-                    </div>
+                        </div>
                 </div>
             </div>
         </div>
 
-        <!-- ================================================== -->
-        <!-- VISTA 3: EMPRESAS -->
-        <!-- ================================================== -->
         <div id="view-companies" class="game-view">
              <h1 class="view-title">Empresas (Ingresos Pasivos Sostenidos)</h1>
              <div class="grid-3-cols">
                  <div class="company-section" style="grid-column: 1 / -1;">
                      <h2>Fundar y Escalar Negocios</h2>
                      <div id="empresas-tienda" class="company-shop">
-                         <!-- Empresas se dibujan aquí -->
-                     </div>
+                         </div>
                  </div>
              </div>
         </div>
 
-        <!-- ================================================== -->
-        <!-- VISTA 4: INVERSIONES -->
-        <!-- ================================================== -->
         <div id="view-investments" class="game-view">
              <h1 class="view-title">Inversiones (Retorno Porcentual)</h1>
              <div class="grid-3-cols">
                  <div class="investment-section" style="grid-column: 1 / -1;">
                      <h2>Instrumentos de Inversión (Apalancamiento)</h2>
                      <div id="inversiones-tienda" class="investment-shop">
-                         <!-- Inversiones se dibujan aquí -->
-                     </div>
+                         </div>
                  </div>
              </div>
         </div>
 
-        <!-- ================================================== -->
-        <!-- VISTA 5: CRYPTO TRADING -->
-        <!-- ================================================== -->
         <div id="view-crypto" class="game-view">
              <h1 class="view-title">Crypto Trading (Volatilidad y Riesgo)</h1>
              <div class="grid-3-cols">
                  <div class="crypto-section" style="grid-column: 1 / -1;">
                      <h2>Mercado de Criptomonedas (Actualiza cada minuto)</h2>
                      <div id="crypto-grid" class="crypto-shop">
-                         <!-- Criptomonedas se dibujan aquí -->
-                     </div>
+                         </div>
                  </div>
              </div>
         </div>
 
 
-        <!-- ================================================== -->
-        <!-- VISTA 6: ESTADÍSTICAS -->
-        <!-- ================================================== -->
         <div id="view-stats" class="game-view">
             <h1 class="view-title">Estadísticas y Gestión</h1>
             <div class="grid-3-cols">
@@ -1825,8 +1800,7 @@
     </div>
     
     <div id="user-info-footer">
-        <!-- El ID del usuario se muestra aquí -->
-    </div>
+        </div>
 
 </body>
 </html>
