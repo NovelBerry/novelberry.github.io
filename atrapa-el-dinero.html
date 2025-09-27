@@ -3,16 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atrapa el dinero!</title>
+    <title>Atrapa el dinero! - 15 Escenarios</title>
     <style>
         /* --- ESTILOS CSS --- */
 
         :root {
-            /* Colores Base - Estos se sobrescriben en JS */
-            --sky-color: #87CEEB; 
-            --ground-color: #6B8E23; 
-            --player-color: #FFD700; 
-            --bad-item-color: #B22222;
+            --player-color: #FFD700; /* Dorado */
+            --bad-item-color: #B22222; /* Rojo Ladrillo */
             --text-color: #000000;
         }
 
@@ -23,8 +20,7 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            /* Fondo inicial (Cielo/Tierra) */
-            background: linear-gradient(to bottom, var(--sky-color) 0%, var(--sky-color) 70%, var(--ground-color) 70%, var(--ground-color) 100%);
+            /* El fondo inicial se establece en initGame() */
             overflow: hidden;
             transition: background 1s ease-in-out;
         }
@@ -34,9 +30,8 @@
             max-width: 800px;
             height: 80vh;
             max-height: 600px;
-            border: 10px solid #5D4037; 
+            border: 10px solid #5D4037; /* Borde inicial */
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-            /* Importante: Hereda el fondo de body para el efecto de cambio de color */
             background: inherit; 
             position: relative;
             overflow: hidden;
@@ -52,7 +47,7 @@
 
         h1 {
             margin: 0;
-            color: #1A237E; /* Azul oscuro */
+            color: #1A237E; 
             font-size: 2.5em;
             text-shadow: 2px 2px 4px #ccc;
         }
@@ -70,11 +65,14 @@
             background-color: rgba(0, 0, 0, 0.7);
             color: white;
             font-weight: bold;
+             /* Asegura que la info de score se vea */
+             z-index: 100;
         }
 
         #player {
             position: absolute;
-            bottom: 20px; /* Sobre el área de tierra/suelo */
+            /* CORRECCIÓN: Posiciona al jugador sobre el área de "tierra" */
+            bottom: 10%; 
             width: 100px;
             height: 30px;
             background-color: var(--player-color);
@@ -82,15 +80,14 @@
             border-radius: 5px;
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
             left: calc(50% - 50px);
-            z-index: 10;
+            /* CORRECCIÓN: Z-index alto para que el jugador se vea siempre */
+            z-index: 99; 
         }
 
         .falling-item {
             position: absolute;
             top: 0;
             font-size: 20px;
-            width: 40px;
-            height: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -100,15 +97,19 @@
             color: var(--text-color);
             text-shadow: 1px 1px 1px #fff;
             transition: opacity 0.1s;
+             /* CORRECCIÓN: Z-index alto para los billetes y bombas */
+             z-index: 90;
         }
 
-        /* ... Estilos de ítems money-item, bad-item, bill-1 a bill-100 sin cambios ... */
-        .money-item {
-            background-color: #388E3C; 
-            color: white;
-            border: 1px solid #1B5E20;
-        }
+        /* Estilos de billetes */
+        .bill-1 { background-color: #c8e6c9; width: 40px; height: 20px; } 
+        .bill-5 { background-color: #a5d6a7; width: 40px; height: 20px; } 
+        .bill-10 { background-color: #81c784; width: 45px; height: 22px; } 
+        .bill-20 { background-color: #66bb6a; width: 45px; height: 22px; } 
+        .bill-50 { background-color: #4caf50; width: 50px; height: 24px; } 
+        .bill-100 { background-color: #2e7d32; color: white; width: 50px; height: 24px; } 
 
+        /* Estilos de bomba */
         .bad-item {
             background-color: var(--bad-item-color);
             color: white;
@@ -118,21 +119,14 @@
             height: 30px;
             border-radius: 50%;
         }
-        .bill-1 { background-color: #c8e6c9; } 
-        .bill-5 { background-color: #a5d6a7; } 
-        .bill-10 { background-color: #81c784; } 
-        .bill-20 { background-color: #66bb6a; } 
-        .bill-50 { background-color: #4caf50; } 
-        .bill-100 { background-color: #2e7d32; color: white; } 
 
-        /* Nubes de fondo (decoración) - Visibles solo en algunos escenarios */
+        /* Nubes de fondo (decoración) */
         .cloud {
             position: absolute;
             background: white;
             border-radius: 50%;
-            opacity: 0.7;
             z-index: 1;
-            transition: opacity 1s; /* Transición para esconder/mostrar */
+            transition: opacity 1s; 
         }
         .cloud.c1 { top: 5%; left: 10%; width: 80px; height: 30px; transform: scale(1.5); }
         .cloud.c2 { top: 15%; right: 5%; width: 120px; height: 50px; }
@@ -148,7 +142,7 @@
             background-color: rgba(255, 255, 255, 0.95);
             border: 5px solid #1A237E;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
-            z-index: 100;
+            z-index: 1000;
             text-align: center;
             display: none;
             color: #1A237E;
@@ -170,13 +164,13 @@
 <body>
 
     <div id="game-container">
-                <div class="cloud c1"></div>
+        <div class="cloud c1"></div>
         <div class="cloud c2"></div>
         <div class="cloud c3"></div>
 
         <div id="title-area">
             <h1>💰 Atrapa el dinero! 💵</h1>
-            <p id="subtitle">Escenario: <span id="scenario-name">Tierra</span></p>
+            <p id="subtitle">Escenario: <span id="scenario-name"></span></p>
         </div>
 
         <div id="game-info">
@@ -206,41 +200,41 @@
         const nextLevelButton = document.getElementById('next-level-button');
         const body = document.body;
         const scenarioNameDisplay = document.getElementById('scenario-name');
-        const clouds = document.querySelectorAll('.cloud'); // Elementos de nubes
+        const clouds = document.querySelectorAll('.cloud'); 
 
         // --- Variables del Juego ---
         let score = 0;
         let currentLevel = 1;
         let gameInterval;
         let itemDropInterval;
-        let itemFallSpeed = 3; 
+        let itemFallSpeed = 3; 
         let isPaused = true; 
 
         // Definición de Niveles (Objetivo: Cantidad de dinero acumulado requerida)
         const levels = [
             100, 250, 450, 700, 1000, 
             1400, 1900, 2500, 3200, 4000,
-            5000, 6500, 8500, 11000, 15000 // Nivel 15
+            5000, 6500, 8500, 11000, 15000 
         ];
         
-        // --- Escenarios Temáticos para los 15 niveles ---
-        // Estructura: [Nombre, Color Cielo/Espacio, Color Tierra/Suelo, Borde Contenedor, Muestra Nubes]
+        // --- Escenarios Temáticos (15 Niveles) ---
+        // Estructura: [Nombre, Color Cielo/Espacio, Color Tierra/Suelo, Borde Contenedor, Muestra Nubes, Fondo Cielo (%) ]
         const scenarios = [
-            ["Tierra (Clásico)", "#87CEEB", "#6B8E23", "#5D4037", true], // Nivel 1
-            ["Marte", "#993300", "#FF6347", "#8B4513", false], // Nivel 2
-            ["Luna", "#000033", "#B0C4DE", "#A9A9A9", false], // Nivel 3
-            ["Júpiter", "#FFC300", "#C70039", "#800000", false], // Nivel 4
-            ["Anillo de Saturno", "#ADD8E6", "#191970", "#D2B48C", false], // Nivel 5
-            ["Ciudad de Santiago (Chile)", "#00BFFF", "#3CB371", "#1E90FF", true], // Nivel 6
-            ["Madrid (España)", "#FFDAB9", "#8B0000", "#DC143C", true], // Nivel 7
-            ["Tokio (Japón)", "#C0C0C0", "#2F4F4F", "#708090", false], // Nivel 8
-            ["Nueva York (EE. UU.)", "#4682B4", "#778899", "#A9A9A9", false], // Nivel 9
-            ["Machu Picchu (Perú)", "#87CEFA", "#483C32", "#CD853F", true], // Nivel 10
-            ["Siberia (Rusia)", "#F0FFFF", "#4682B4", "#708090", true], // Nivel 11
-            ["Monte Fuji (Japón)", "#FFEBCD", "#008000", "#3CB371", true], // Nivel 12
-            ["Gran Cañón (EE. UU.)", "#FF7F50", "#8B4513", "#A0522D", false], // Nivel 13
-            ["Aurora Boreal", "#008080", "#4B0082", "#00CED1", false], // Nivel 14
-            ["Universo Profundo", "#000000", "#000000", "#FFFFFF", false] // Nivel 15
+            ["Tierra (Clásico)", "#87CEEB", "#6B8E23", "#5D4037", true, 70], // Nivel 1
+            ["Marte", "#993300", "#FF6347", "#8B4513", false, 80], // Nivel 2: Mucho cielo, poco suelo
+            ["Luna", "#000033", "#B0C4DE", "#A9A9A9", false, 90], // Nivel 3: Casi todo espacio
+            ["Júpiter", "#FFC300", "#C70039", "#800000", false, 100], // Nivel 4: 100% Atmosfera
+            ["Anillo de Saturno", "#ADD8E6", "#191970", "#D2B48C", false, 95], // Nivel 5
+            ["Ciudad de Santiago (Chile)", "#00BFFF", "#3CB371", "#1E90FF", true, 65], // Nivel 6: Ciudad
+            ["Madrid (España)", "#FFDAB9", "#8B0000", "#DC143C", true, 60], // Nivel 7: Atardecer/Ciudad
+            ["Tokio (Japón)", "#C0C0C0", "#2F4F4F", "#708090", false, 85], // Nivel 8: Noche de ciudad
+            ["Nueva York (EE. UU.)", "#4682B4", "#778899", "#A9A9A9", false, 75], // Nivel 9: Ciudad nublada
+            ["Machu Picchu (Perú)", "#87CEFA", "#483C32", "#CD853F", true, 55], // Nivel 10: Mucha montaña/suelo
+            ["Siberia (Rusia)", "#F0FFFF", "#4682B4", "#708090", true, 68], // Nivel 11: Nieve/Frío
+            ["Monte Fuji (Japón)", "#FFEBCD", "#008000", "#3CB371", true, 72], // Nivel 12: Paisaje natural
+            ["Gran Cañón (EE. UU.)", "#FF7F50", "#8B4513", "#A0522D", false, 77], // Nivel 13: Desierto
+            ["Aurora Boreal", "#008080", "#4B0082", "#00CED1", false, 100], // Nivel 14: Solo cielo/luz
+            ["Universo Profundo", "#000000", "#000000", "#FFFFFF", false, 100] // Nivel 15: Espacio negro
         ];
 
 
@@ -254,10 +248,10 @@
 
         // Función para cambiar el fondo y el borde del contenedor según el escenario
         function setScenarioStyle(scenario) {
-            const [name, skyColor, groundColor, borderColor, showClouds] = scenario;
+            const [name, skyColor, groundColor, borderColor, showClouds, skyPercentage] = scenario;
             
-            // Aplica la nueva propiedad CSS personalizada (CSS Variable) al body
-            body.style.background = `linear-gradient(to bottom, ${skyColor} 0%, ${skyColor} 70%, ${groundColor} 70%, ${groundColor} 100%)`;
+            // Aplica el gradiente de fondo al body
+            body.style.background = `linear-gradient(to bottom, ${skyColor} 0%, ${skyColor} ${skyPercentage}%, ${groundColor} ${skyPercentage}%, ${groundColor} 100%)`;
             
             // Aplica el borde al contenedor
             gameContainer.style.borderColor = borderColor;
@@ -271,25 +265,24 @@
             });
         }
 
-        // --- Función CLAVE: Crea y suelta los ítems ---
+        // --- Crea y suelta los ítems ---
         function createItem() {
             const item = document.createElement('div');
             item.classList.add('falling-item');
 
-            // Determinar qué ítem soltar
             let itemData;
             const randomNum = Math.random();
-
-            // Probabilidad de generar la bomba: más difícil en niveles bajos
-            // Probabilidad = (Nivel * 4) / 100. Máximo 60% en nivel 15. Mínimo 4% en nivel 1.
             const bombProbability = (currentLevel * 4) / 100; 
 
             if (randomNum < bombProbability) {
-                // Genera una bomba (índice 6 en itemTypes)
-                itemData = itemTypes[6]; 
+                itemData = itemTypes[6]; // Bomba
             } else {
-                // Genera un billete (índices 0 a 5)
-                const moneyIndex = Math.floor(Math.random() * 6);
+                // Los billetes más grandes son menos comunes
+                let moneyIndex = Math.floor(Math.random() * 6); // $1 a $100
+                // Aumenta la probabilidad de billetes grandes en niveles altos
+                if (currentLevel > 5 && Math.random() < (currentLevel / 15)) {
+                    moneyIndex = Math.floor(Math.random() * 3) + 3; // $20, $50, $100 (índices 3, 4, 5)
+                }
                 itemData = itemTypes[moneyIndex];
             }
 
@@ -301,12 +294,10 @@
             item.setAttribute('data-bad', isBad.toString());
 
             // Posición inicial aleatoria en X
-            const itemSize = isBad ? 30 : 40; // Tamaño de la bomba o del billete
+            const itemWidth = item.offsetWidth || 40; // Usa el width del CSS si ya está renderizado
             const containerWidth = gameContainer.offsetWidth;
-            const randomX = Math.floor(Math.random() * (containerWidth - itemSize));
+            const randomX = Math.floor(Math.random() * (containerWidth - itemWidth));
             item.style.left = `${randomX}px`;
-            item.style.width = `${itemSize}px`;
-            item.style.height = `${isBad ? 30 : 20}px`; // Ajuste de altura para la bomba
             item.style.top = '0px';
 
             gameContainer.appendChild(item);
@@ -324,53 +315,48 @@
             player.style.left = `${playerX}px`;
         });
 
-        // --- Lógica del Bucle Principal del Juego (Caída y Colisión) ---
+        // --- Bucle Principal del Juego (Caída y Colisión) ---
         function updateGame() {
             if (isPaused) return;
 
             const items = document.querySelectorAll('.falling-item');
             const containerHeight = gameContainer.offsetHeight;
-            const playerRect = player.getBoundingClientRect();
-            const containerRect = gameContainer.getBoundingClientRect();
+            const playerLeft = parseFloat(player.style.left);
+            const playerWidth = player.offsetWidth;
 
             items.forEach(item => {
                 let currentTop = parseFloat(item.style.top) || 0;
-                let fallAmount = itemFallSpeed + (currentLevel * 0.5); // Velocidad aumenta con el nivel
+                // Velocidad aumenta con el nivel
+                let fallAmount = itemFallSpeed + (currentLevel * 0.25); 
                 item.style.top = `${currentTop + fallAmount}px`;
 
-                const itemRect = item.getBoundingClientRect();
+                const itemBottomRel = currentTop + item.offsetHeight;
+                const playerTopRel = containerHeight * 0.90; // La parte superior del jugador (bottom: 10%)
+                const playerBottomRel = containerHeight; // El fondo del contenedor
 
                 // 1. Detección de Colisión (Ha sido atrapado)
-                // Se usa la posición relativa al contenedor para la colisión vertical
-                const itemBottomRel = currentTop + item.offsetHeight;
-                const playerTopRel = containerHeight - 50; // 50px de altura del suelo
-                const playerBottomRel = containerHeight - 20; // 20px es el bottom del jugador
-
-                if (itemBottomRel >= playerTopRel && itemBottomRel <= playerBottomRel) {
-                    // Colisión Horizontal (Más precisa)
-                    const playerLeft = parseFloat(player.style.left);
-                    const playerRight = playerLeft + player.offsetWidth;
+                if (itemBottomRel >= playerTopRel && currentTop < playerTopRel) {
+                    // Colisión Horizontal
                     const itemLeft = parseFloat(item.style.left);
                     const itemRight = itemLeft + item.offsetWidth;
                     
-                    if (itemRight >= playerLeft && itemLeft <= playerRight) {
+                    if (itemRight >= playerLeft && itemLeft <= playerLeft + playerWidth) {
                         const value = parseInt(item.getAttribute('data-value'));
                         score += value;
-                        score = Math.max(0, score); // Previene puntaje negativo
+                        score = Math.max(0, score);
                         scoreDisplay.textContent = score;
 
-                        item.style.opacity = '0'; 
                         item.remove();
-                        checkLevelCompletion(); // Verifica al atrapar un ítem
+                        checkLevelCompletion(); 
                         return;
                     }
                 }
 
-                // 2. Elemento ha caído al suelo (pasó la canasta)
-                if (currentTop > containerHeight - 20) { // Cae en el margen inferior
+                // 2. Elemento ha caído al suelo
+                if (currentTop > containerHeight) { 
                     const isBad = item.getAttribute('data-bad') === 'true';
 
-                    // Si un BILLETE cae al suelo, descuenta la mitad de su valor (penalización)
+                    // Penalización si un billete toca el suelo
                     if (!isBad) {
                          const value = parseInt(item.getAttribute('data-value'));
                          score -= Math.floor(value / 2); 
@@ -383,7 +369,7 @@
             });
         }
 
-        // --- Funciones de Control de Pausa/Inicio ---
+        // --- Control de Pausa/Reinicio ---
         function pauseGame() {
             isPaused = true;
             clearInterval(gameInterval);
@@ -393,16 +379,14 @@
 
         function resumeGame() {
             isPaused = false;
-            // Bucle principal de movimiento (60 FPS)
             gameInterval = setInterval(updateGame, 1000 / 60); 
 
-            // Intervalo de creación de nuevos ítems (disminuye el tiempo entre ítems con el nivel)
-            // Se crea un ítem cada 1500ms en el Nivel 1, y cada 500ms en el Nivel 15.
+            // Disminuye el tiempo entre ítems para aumentar la dificultad
             let dropDelay = Math.max(500, 1500 - (currentLevel * 66)); 
             itemDropInterval = setInterval(createItem, dropDelay); 
         }
 
-        // --- Sistema de Niveles ---
+        // --- Lógica de Niveles ---
         function checkLevelCompletion() {
             const goal = levels[currentLevel - 1]; 
             
@@ -412,8 +396,8 @@
                 if (currentLevel < levels.length) {
                     // Siguiente Nivel
                     messageText.textContent = "¡Nivel Superado! 🎉";
-                    // Muestra el objetivo del *siguiente* nivel
-                    messageDetail.innerHTML = `Has acumulado $${score}. Siguiente destino: **${scenarios[currentLevel][0]}**.<br>El objetivo para el Nivel ${currentLevel + 1} es $${levels[currentLevel]}.`;
+                    const nextScenarioName = scenarios[currentLevel][0];
+                    messageDetail.innerHTML = `Has acumulado $${score}. Siguiente destino: **${nextScenarioName}**.<br>El objetivo para el Nivel ${currentLevel + 1} es $${levels[currentLevel]}.`;
                     nextLevelButton.textContent = "Continuar al Nivel " + (currentLevel + 1);
                     nextLevelButton.style.display = 'block';
                 } else {
@@ -421,24 +405,27 @@
                     messageText.textContent = "¡Felicidades, HAS GANADO! 🏆";
                     messageDetail.innerHTML = `¡Has completado los **${levels.length} niveles** y has viajado por todo el cosmos y la Tierra con un total de **$${score}**!`;
                     nextLevelButton.textContent = "Volver a Jugar (Nivel 1)";
+                    // Reestablecer la función para reiniciar en initGame
+                    nextLevelButton.onclick = () => { initGame(); }; 
                 }
                 gameMessage.style.display = 'block';
             }
         }
 
         function nextLevel() {
+            // Si el botón ya fue reasignado para reiniciar el juego, simplemente retornar
+            if (nextLevelButton.textContent.includes("Volver a Jugar")) return;
+
             if (currentLevel < levels.length) {
                 currentLevel++;
             } else {
-                // Reiniciar juego completo
-                currentLevel = 1;
-                score = 0; 
+                // Esta parte ya no se alcanza si se reinicia en checkLevelCompletion
+                return;
             }
 
-            // Aumenta la dificultad y actualiza la UI
             itemFallSpeed = 3 + (currentLevel * 0.25); 
 
-            // Actualiza la interfaz y el escenario
+            // Actualiza el escenario
             setScenarioStyle(scenarios[currentLevel - 1]);
             levelDisplay.textContent = currentLevel;
             goalDisplay.textContent = levels[currentLevel - 1];
@@ -450,7 +437,6 @@
 
         // --- Inicialización del Juego ---
         function initGame() {
-             // Configura el estado inicial
             currentLevel = 1;
             score = 0;
             itemFallSpeed = 3;
@@ -460,19 +446,19 @@
             goalDisplay.textContent = levels[0];
             scoreDisplay.textContent = 0;
 
-            // Muestra la pantalla de inicio (pausado)
             pauseGame(); 
+
+            // Pantalla de bienvenida
             messageText.textContent = "¡Bienvenido a Atrapa el dinero! 💰";
-            messageDetail.innerHTML = `Atrapa el dinero ($1, $5, $10, $20, $50, $100) y esquiva las bombas (💣).<br>El objetivo del Nivel 1 en **${scenarios[0][0]}** es $${levels[0]}.`;
+            messageDetail.innerHTML = `Atrapa el dinero y esquiva las bombas (💣). ¡Prepárate para viajar por 15 escenarios únicos!<br>El objetivo del Nivel 1 en **${scenarios[0][0]}** es $${levels[0]}.`;
             nextLevelButton.textContent = "¡Empezar a Jugar!";
             nextLevelButton.onclick = () => {
                  gameMessage.style.display = 'none';
-                 resumeGame(); // Inicia el juego
+                 resumeGame();
             };
             gameMessage.style.display = 'block';
         }
 
-        // Inicia el juego al cargar la página
         initGame();
 
     </script>
