@@ -1,1324 +1,476 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulación de Examen de Validación de Estudios - 8° Básico</title>
-    <style>
-        :root {
-            --color-primary: #007bff;
-            --color-secondary: #6c757d;
-            --color-success: #28a745;
-            --color-danger: #dc3545;
-            --color-info: #17a2b8;
-            --color-light: #f8f9fa;
-            --color-dark: #343a40;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: var(--color-light);
-            color: var(--color-dark);
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        h1, h2 {
-            text-align: center;
-            color: var(--color-primary);
-        }
-
-        /* --- Menú Principal --- */
-        #menu-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .exam-button {
-            width: 100%;
-            max-width: 400px;
-            padding: 15px;
-            margin: 10px 0;
-            font-size: 1.2em;
-            color: #fff;
-            background-color: var(--color-info);
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s;
-        }
-
-        .exam-button:hover {
-            background-color: #138496;
-            transform: translateY(-2px);
-        }
-
-        /* --- Quiz Container --- */
-        #quiz-container {
-            display: none;
-        }
-
-        .question-card {
-            border: 1px solid #dee2e6;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 6px;
-            background-color: var(--color-light);
-        }
-
-        .question-text {
-            font-size: 1.1em;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: var(--color-dark);
-        }
-
-        .answer-option {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            background-color: #fff;
-            border: 1px solid #ced4da;
-            transition: background-color 0.2s, border-color 0.2s;
-        }
-
-        .answer-option:hover {
-            background-color: #e9ecef;
-        }
-
-        .answer-option input[type="radio"] {
-            margin-right: 15px;
-            transform: scale(1.2);
-        }
-
-        .submit-button {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            font-size: 1.2em;
-            color: #fff;
-            background-color: var(--color-success);
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: background-color 0.3s;
-        }
-
-        .submit-button:hover {
-            background-color: #1e7e34;
-        }
-
-        /* --- Resultados --- */
-        #results-screen {
-            display: none;
-            text-align: center;
-            padding: 30px;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-
-        .result-pass {
-            background-color: #d4edda;
-            color: var(--color-success);
-            border: 1px solid var(--color-success);
-        }
-
-        .result-fail {
-            background-color: #f8d7da;
-            color: var(--color-danger);
-            border: 1px solid var(--color-danger);
-        }
-
-        .result-title {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-
-        .score-info {
-            font-size: 1.5em;
-            font-weight: bold;
-        }
-
-        .home-button {
-            background-color: var(--color-primary);
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 20px;
-            font-size: 1em;
-            transition: background-color 0.3s;
-        }
-
-        .home-button:hover {
-            background-color: #0056b3;
-        }
-
-        /* LaTeX/Math styling */
-        .math-container {
-            overflow-x: auto;
-            margin: 10px 0;
-            padding: 5px;
-            background-color: #f8f8f8;
-            border-radius: 4px;
-            display: inline-block;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simulación Exámenes Validación 8° Básico</title>
+  <style>
+    :root{
+      --bg:#0f1724; --card:#0b1220; --accent:#10b981; --muted:#94a3b8; --paper:#f8fafc;
+    }
+    body{font-family:Inter,system-ui,Arial,sans-serif;background:linear-gradient(180deg,#071024 0%, #0b1220 100%);color:var(--paper);margin:0;padding:24px;min-height:100vh;}
+    .container{max-width:980px;margin:0 auto;background:linear-gradient(180deg,rgba(255,255,255,0.02), rgba(0,0,0,0.1));border-radius:12px;padding:20px;box-shadow:0 8px 30px rgba(2,6,23,0.7);}
+    h1{margin:0 0 8px;font-size:1.6rem}
+    p.lead{color:var(--muted);margin-top:6px;}
+    .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;}
+    .card{background:rgba(255,255,255,0.02);padding:14px;border-radius:10px;flex:1;min-width:220px;}
+    button, select{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--paper);padding:10px 12px;border-radius:8px;cursor:pointer}
+    button.primary{background:var(--accent);color:#032; border:none}
+    .center{text-align:center}
+    .question{margin-top:12px;padding:12px;border-radius:8px;background:rgba(255,255,255,0.02)}
+    .alternatives{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+    .alt{padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);cursor:pointer}
+    .alt.selected{outline:2px solid rgba(16,185,129,0.25);background:rgba(16,185,129,0.03)}
+    .footer{margin-top:18px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+    .small{font-size:0.86rem;color:var(--muted)}
+    .result{padding:12px;border-radius:8px;background:rgba(255,255,255,0.02);margin-top:12px}
+    .fail{color:#ff6b6b} .pass{color:#34d399}
+    .review-list{margin-top:8px}
+    .hide{display:none}
+    .timer{font-weight:700}
+    code.note{display:block;color:var(--muted);font-size:0.84rem;margin-top:8px}
+    @media(max-width:700px){ .row{flex-direction:column} }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Simulación Examen de Validación de Estudios</h1>
-        <h2>Octavo Básico (Chile)</h2>
+  <div class="container">
+    <h1>Simulación - Exámenes de Validación (8° básico)</h1>
+    <p class="lead">Elige una asignatura y comienza la prueba. Cada prueba tiene 30 preguntas. Basado en el temario entregado por el usuario (temario de Octavo Básico). :contentReference[oaicite:1]{index=1}</p>
 
-        <div id="menu-screen">
-            <p>Selecciona el examen que deseas practicar. Cada prueba consta de **30 preguntas**.</p>
-            <button class="exam-button" onclick="loadQuiz('lenguaje')">Lengua y Literatura (30 Preguntas)</button>
-            <button class="exam-button" onclick="loadQuiz('matematica')">Matemática (30 Preguntas)</button>
-            <button class="exam-button" onclick="loadQuiz('historia')">Historia, Geografía y C. Sociales (30 Preguntas)</button>
-            <p style="margin-top: 20px; font-style: italic;">Se aprueba con 18 respuestas correctas (60% de logro).</p>
+    <div id="start-screen" class="card">
+      <div class="row">
+        <div>
+          <label for="subject">Selecciona asignatura</label><br/>
+          <select id="subject">
+            <option value="matematicas">Matemáticas</option>
+            <option value="historia">Historia, Geografía y Cs. Sociales</option>
+            <option value="lenguaje">Lengua y Literatura</option>
+            <option value="ciencias">Ciencias Naturales</option>
+            <option value="ingles">Inglés</option>
+          </select>
         </div>
-
-        <div id="quiz-container">
-            <h2 id="quiz-title"></h2>
-            <form id="quiz-form"></form>
-            <button class="submit-button" onclick="checkResults()">Finalizar Examen y Corregir</button>
+        <div>
+          <label for="timer-toggle">Temporizador 90 min</label><br/>
+          <select id="timer-toggle">
+            <option value="on">Activado (90:00)</option>
+            <option value="off" selected>Desactivado</option>
+          </select>
         </div>
-
-        <div id="results-screen">
-            <h2 class="result-title">Resultados del Examen</h2>
-            <div id="result-message" class="result-pass" style="padding: 20px; border-radius: 6px;"></div>
-            <p class="score-info">Respuestas Correctas: <span id="correct-count"></span> / 30</p>
-            <p class="score-info">Porcentaje de Logro: <span id="percentage"></span></p>
-            <button class="home-button" onclick="resetQuiz()">Volver al Menú Principal</button>
+        <div style="align-self:end">
+          <button id="startBtn" class="primary">Comenzar prueba</button>
         </div>
+      </div>
+      <p class="small">Esta simulación usa preguntas generadas a partir del temario oficial para 8° básico.</p>
     </div>
 
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
-    <script>
-        const quizzes = {
-            // QUIZ DE LENGUAJE Y LITERATURA
-            "lenguaje": {
-                title: "Lengua y Literatura",
-                questions: [
-                    {
-                        questionNumber: 1,
-                        question: "Un lector analiza un relato e identifica al personaje principal como un ser ambicioso, egoísta y que finalmente es castigado por su propia codicia. ¿Qué tipo de personaje literario o tópico está analizando?",
-                        answerOptions: [
-                            { text: "El antihéroe", rationale: "Aunque el antihéroe presenta rasgos no tradicionales, el enfoque en la codicia y el castigo de ese vicio se asocia a otros arquetipos.", isCorrect: false },
-                            { text: "El pícaro", rationale: "El pícaro es un tipo de personaje que usa el ingenio para sobrevivir, no necesariamente por ambición desmedida o castigo moral.", isCorrect: false },
-                            { text: "El personaje arquetípico del avaro", rationale: "Este tipo de personaje (avaro, seductor, madrastra) es un personaje tipo que encarna un vicio o característica moral, cuyo destino suele ser una lección.", isCorrect: true },
-                            { text: "El tópico del 'Locus Amoenus'", rationale: "El 'Locus Amoenus' es un tópico de lugar ameno o ideal, no de personaje.", isCorrect: false }
-                        ],
-                        hint: "Los 'personajes tipo' encarnan características morales o sociales específicas y reconocibles."
-                    },
-                    {
-                        questionNumber: 2,
-                        question: "En un poema, el autor escribe: 'El viento lamía la piel de la montaña, un rumor de siglos se posaba en mi oído'. ¿Qué figura literaria se identifica principalmente en la primera frase y a qué sentido apela el lenguaje poético en el ejemplo completo?",
-                        answerOptions: [
-                            { text: "Metáfora; Apela al sentido visual.", rationale: "La metáfora es una identificación entre dos términos, pero 'el viento lamía' es una atribución de cualidad humana. Tampoco apela solo a lo visual.", isCorrect: false },
-                            { text: "Personificación; Apela al sentido auditivo y táctil.", rationale: "La personificación (el viento 'lamía') y la apelación a sensaciones ('lamía' - táctil, 'rumor' - auditivo) son correctas.", isCorrect: true },
-                            { text: "Hipérbole; Apela al sentido olfativo.", rationale: "La hipérbole es una exageración y no apela al sentido olfativo.", isCorrect: false },
-                            { text: "Comparación; Apela al sentido del gusto.", rationale: "La comparación utiliza un nexo ('como', 'cual') y el texto no apela al sentido del gusto.", isCorrect: false }
-                        ],
-                        hint: "Analiza el verbo 'lamía' y las sensaciones que se describen en las frases."
-                    },
-                    {
-                        questionNumber: 3,
-                        question: "Al leer una columna de opinión sobre el uso de redes sociales, el lector debe distinguir entre un **hecho** y una **opinión**. ¿Cuál de las siguientes afirmaciones corresponde a un hecho?",
-                        answerOptions: [
-                            { text: "Las redes sociales han destruido la capacidad de conversación profunda.", rationale: "Esta es una valoración subjetiva sobre el efecto de las redes, por lo tanto, es una opinión.", isCorrect: false },
-                            { text: "El 85% de los adolescentes chilenos usa Instagram, según la última encuesta del INE.", rationale: "Es una afirmación que puede ser verificada y respaldada con datos, independiente de la interpretación, por lo tanto, es un hecho.", isCorrect: true },
-                            { text: "Es más beneficioso para la mente leer un libro que pasar tiempo en TikTok.", rationale: "Es una postura o juicio de valor sobre los beneficios, no un dato verificable por sí mismo.", isCorrect: false },
-                            { text: "La interacción digital es la forma de comunicación más fría y superficial que existe.", rationale: "Es un juicio de valor sobre la calidad de la interacción digital.", isCorrect: false }
-                        ],
-                        hint: "Recuerda que un hecho es objetivo y verificable, mientras que una opinión es subjetiva y expresa un juicio de valor."
-                    },
-                    {
-                        questionNumber: 4,
-                        question: "En un texto argumentativo, el autor usa el modo verbal **subjuntivo** ('Ojalá **sea** suficiente', 'Quizás **estemos** equivocados'). ¿Cuál es la intención principal del autor al utilizar este modo verbal?",
-                        answerOptions: [
-                            { text: "Expresar un mandato o una orden de forma directa.", rationale: "Los modos verbales para mandatos u órdenes son principalmente el imperativo o, a veces, el indicativo.", isCorrect: false },
-                            { text: "Afirmar un hecho real y comprobado con certeza.", rationale: "El modo indicativo se utiliza para afirmar hechos reales y comprobados.", isCorrect: false },
-                            { text: "Mostrar duda, deseo o posibilidad, debilitando la fuerza de su argumento para matizarlo.", rationale: "El subjuntivo se utiliza para expresar acciones, estados o procesos que se perciben como no reales, posibles, deseados o dudosos.", isCorrect: true },
-                            { text: "Describir una acción pasada que ya ha finalizado.", rationale: "El pretérito perfecto simple (indicativo) se usa para acciones pasadas finalizadas.", isCorrect: false }
-                        ],
-                        hint: "El modo subjuntivo se asocia a la subjetividad, los deseos, las dudas y la irrealidad."
-                    },
-                    {
-                        questionNumber: 5,
-                        question: "Se te pide escribir un artículo para una revista científica juvenil. ¿Qué registro de vocabulario debes privilegiar, y qué persona gramatical sería más adecuada para la introducción del tema?",
-                        answerOptions: [
-                            { text: "Registro informal (frases hechas, redes sociales); Primera persona singular ('Yo creo que...').", rationale: "El registro informal y la primera persona singular no son adecuados para un texto científico.", isCorrect: false },
-                            { text: "Registro formal (términos técnicos, preciso); Primera persona plural o impersonal ('Analizaremos', 'Se observa que...').", rationale: "El registro formal y el uso de la primera persona plural o impersonal confieren objetividad y seriedad al texto científico.", isCorrect: true },
-                            { text: "Registro culto (vocabulario arcaico); Segunda persona ('Tú debes saber...').", rationale: "El vocabulario debe ser técnico y preciso, no arcaico, y el uso de la segunda persona no es apropiado.", isCorrect: false },
-                            { text: "Registro coloquial (lenguaje hablado); Tercera persona singular ('El/Ella dice que...').", rationale: "El registro coloquial no es adecuado para este tipo de texto.", isCorrect: false }
-                        ],
-                        hint: "Piensa en el **destinatario** (revista científica) y el **propósito** (informar con rigor)."
-                    },
-                    {
-                        questionNumber: 6,
-                        question: "En una noticia, se presenta un gráfico de barras sobre el aumento de temperaturas en Chile, pero se manipula el eje vertical para que la variación parezca más abrupta de lo que es. ¿Cuál es el propósito implícito al manipular el gráfico?",
-                        answerOptions: [
-                            { text: "Aumentar la claridad de los datos para la audiencia.", rationale: "La manipulación de datos reduce la claridad y lleva a conclusiones erróneas.", isCorrect: false },
-                            { text: "Generar una sensación de alarma o impacto desproporcionado sobre el hecho.", rationale: "La manipulación de gráficos tiene el propósito de sesgar la percepción del lector, exagerando o minimizando el efecto de los datos.", isCorrect: true },
-                            { text: "Asegurar la suficiencia de la información entregada.", rationale: "La suficiencia se refiere a si hay bastante información, no a si está distorsionada.", isCorrect: false },
-                            { text: "Simplificar la interpretación de la imagen para el lector.", rationale: "Aunque parece más simple, la intención es engañar o impactar, no facilitar la comprensión objetiva.", isCorrect: false }
-                        ],
-                        hint: "La manipulación de datos en medios de comunicación busca influir en la percepción o postura del público."
-                    },
-                    {
-                        questionNumber: 7,
-                        question: "En una novela, el narrador cuenta la historia en tercera persona, pero solo tiene acceso a la mente y sentimientos del protagonista. ¿Qué tipo de narrador es?",
-                        answerOptions: [
-                            { text: "Narrador Omnisciente", rationale: "El narrador omnisciente lo sabe absolutamente todo de todos los personajes.", isCorrect: false },
-                            { text: "Narrador Testigo", rationale: "El testigo narra en primera persona y solo cuenta lo que ve.", isCorrect: false },
-                            { text: "Narrador Protagonista", rationale: "El protagonista narra su propia historia en primera persona.", isCorrect: false },
-                            { text: "Narrador de Conocimiento Limitado (u Objetivo)", rationale: "El narrador de conocimiento limitado narra en tercera persona, pero se restringe a lo que ve o a lo que piensa un solo personaje.", isCorrect: true }
-                        ],
-                        hint: "Este narrador está en tercera persona pero su conocimiento está restringido a un único foco de conciencia."
-                    },
-                    {
-                        questionNumber: 8,
-                        question: "El poema 'La tierra es un satélite de la luna' de Vicente Huidobro rompe con la sintaxis tradicional. Un indicador de evaluación para analizar esto sería cómo el lenguaje poético:",
-                        answerOptions: [
-                            { text: "Apela a la descripción objetiva del paisaje.", rationale: "El poema no busca objetividad, sino crear nuevas imágenes.", isCorrect: false },
-                            { text: "Sugiere estados de ánimo o crea imágenes novedosas.", rationale: "La ruptura sintáctica y semántica tiene como efecto la creación de imágenes y sugerencias que evocan emociones, cumpliendo con el OA 4.", isCorrect: true },
-                            { text: "Establece la métrica y rima de forma estricta.", rationale: "El creacionismo de Huidobro rompe con la métrica y la rima tradicional.", isCorrect: false },
-                            { text: "Relaciona un fragmento con el total de la obra.", rationale: "Esto es una habilidad de análisis de narraciones (OA 3), no de lenguaje poético.", isCorrect: false }
-                        ],
-                        hint: "La función principal del lenguaje poético es la función estética y expresiva."
-                    },
-                    {
-                        questionNumber: 9,
-                        question: "En un texto, se afirma: 'La Conquista de América fue un acto necesario para civilizar a los pueblos'. Esta frase contiene principalmente un:",
-                        answerOptions: [
-                            { text: "Hecho irrefutable.", rationale: "Es una valoración sobre un proceso histórico, no un hecho objetivo.", isCorrect: false },
-                            { text: "Tópico literario.", rationale: "No es un tema recurrente en literatura, sino un juicio de valor sobre la historia.", isCorrect: false },
-                            { text: "Argumento sustentado en evidencia.", rationale: "Es un juicio que carece de la evidencia necesaria para ser considerado un argumento sólido, siendo más bien una creencia o postura.", isCorrect: false },
-                            { text: "Prejuicio o creencia presente en el relato.", rationale: "Es una creencia o un juicio de valor (prejuicio) sobre un grupo o evento que el lector debe identificar y evaluar su conexión con el mundo actual (OA 3).", isCorrect: true }
-                        ],
-                        hint: "Piensa si esta afirmación es una verdad universal o una valoración cultural y social."
-                    },
-                    {
-                        questionNumber: 10,
-                        question: "¿Cuál de los siguientes pares de conectores se utiliza correctamente para establecer **cohesión y coherencia** dentro de un párrafo en el que se listan causas y luego se expone un resultado?",
-                        answerOptions: [
-                            { text: "Causa: 'Además'; Resultado: 'Finalmente'.", rationale: "Además es para añadir ideas, no para causas. Finalmente es para el cierre.", isCorrect: false },
-                            { text: "Causa: 'Por consiguiente'; Resultado: 'En primer lugar'.", rationale: "Ambos conectores están mal utilizados para sus funciones, pues 'por consiguiente' es para consecuencia y 'en primer lugar' es para inicio.", isCorrect: false },
-                            { text: "Causa: 'Debido a que'; Resultado: 'Por lo tanto'.", rationale: "'Debido a que' introduce una causa o razón, y 'por lo tanto' introduce una consecuencia o resultado directo, asegurando cohesión.", isCorrect: true },
-                            { text: "Causa: 'Es decir'; Resultado: 'Sin embargo'.", rationale: "'Es decir' es para explicación. 'Sin embargo' es para contraste u oposición.", isCorrect: false }
-                        ],
-                        hint: "La cohesión requiere que los conectores cumplan su función lógica: causa-efecto."
-                    },
-                    {
-                        questionNumber: 11,
-                        question: "En un relato de ciencia ficción, los hechos se presentan cronológicamente, pero se utilizan varios **flashbacks** (saltos al pasado) para explicar la motivación del villano. Esta disposición temporal se describe como:",
-                        answerOptions: [
-                            { text: "Una disposición lineal, ya que los hechos se cuentan en orden.", rationale: "El uso de flashbacks rompe la linealidad cronológica, aunque el orden general sea cronológico.", isCorrect: false },
-                            { text: "Una disposición 'in media res', sin saltos temporales.", rationale: "'In media res' es empezar la historia por el medio, pero el uso de flashbacks es la clave.", isCorrect: false },
-                            { text: "Una disposición anacrónica, con un recurso de **analepsis** (flashback).", rationale: "Anacronía es la alteración del orden temporal, siendo la analepsis (flashback) un recurso para ello.", isCorrect: true },
-                            { text: "Una disposición anacrónica, con un recurso de **prolepsis** (flash-forward).", rationale: "Prolepsis es un salto al futuro (flash-forward), no al pasado.", isCorrect: false }
-                        ],
-                        hint: "La alteración del orden cronológico se llama anacronía. El salto al pasado se llama analepsis."
-                    },
-                    {
-                        questionNumber: 12,
-                        question: "El autor de un reportaje utiliza un diagrama de flujo complejo para ilustrar los pasos burocráticos para obtener un permiso. ¿Cuál es la función principal de este diagrama en relación con el texto?",
-                        answerOptions: [
-                            { text: "Distinguir entre hechos y opiniones del reportaje.", rationale: "El diagrama no cumple esta función, sino el análisis del lenguaje del texto.", isCorrect: false },
-                            { text: "Servir como una fuente de información alterna al reportaje.", rationale: "El diagrama complementa, no es una fuente alterna.", isCorrect: false },
-                            { text: "Resumir visualmente un proceso complejo, complementando y clarificando la información escrita.", rationale: "Los diagramas, gráficos y tablas se usan para ilustrar y complementar visualmente la información compleja del texto (OA 10).", isCorrect: true },
-                            { text: "Demostrar que el autor tiene una postura personal sobre el tema.", rationale: "Su función es informativa y esquemática, no argumentativa.", isCorrect: false }
-                        ],
-                        hint: "Los gráficos y diagramas se evalúan por su capacidad de **complementar** la información textual."
-                    },
-                    {
-                        questionNumber: 13,
-                        question: "¿Cuál de los siguientes elementos es esencial para una correcta **concordancia** en la frase: 'La *mayoría* de los *estudiantes* *fueron* premiados por *su* esfuerzo'?",
-                        answerOptions: [
-                            { text: "La concordancia debe ser en singular: 'La mayoría de los estudiantes *fue* premiada por *su* esfuerzo'.", rationale: "Con sustantivos colectivos como 'mayoría', el verbo puede ir en singular o plural. El error está en el pronombre posesivo.", isCorrect: false },
-                            { text: "El error está en el participio: 'La mayoría de los estudiantes *fueron* *premiada*'.", rationale: "El participio debe concordar con el sujeto, 'estudiantes' (plural).", isCorrect: false },
-                            { text: "El error está en el pronombre posesivo: '...premiados por *sus* esfuerzos'.", rationale: "Si el sujeto es plural ('estudiantes'), el posesivo debe ser plural ('sus') para concordar en número, manteniendo la cohesión y coherencia.", isCorrect: true },
-                            { text: "La frase es correcta y no tiene errores de concordancia.", rationale: "La frase es incorrecta, pues el posesivo debe ser plural.", isCorrect: false }
-                        ],
-                        hint: "Revisa la concordancia de número entre el sujeto plural ('estudiantes') y el posesivo ('su')."
-                    },
-                    {
-                        questionNumber: 14,
-                        question: "Se lee un texto literario sobre la migración y el dilema de dejar la patria. Para formular una **interpretación** coherente con el análisis (OA 8), el lector debe considerar la relación de este dilema con:",
-                        answerOptions: [
-                            { text: "Solo su experiencia personal de viaje.", rationale: "La interpretación debe ir más allá de la experiencia personal, considerando el contexto del texto y la visión de mundo.", isCorrect: false },
-                            { text: "Exclusivamente el narrador de la obra.", rationale: "La interpretación es sobre la obra en general, no solo sobre la figura del narrador.", isCorrect: false },
-                            { text: "El contexto histórico en que se ambienta la obra y su visión de mundo.", rationale: "El OA 8 exige fundamentar la interpretación en el contexto histórico, la visión de mundo y la postura personal ante el dilema.", isCorrect: true },
-                            { text: "Únicamente los recursos léxicos y gramaticales.", rationale: "Esto es parte del análisis, pero no es la interpretación final de la obra.", isCorrect: false }
-                        ],
-                        hint: "La interpretación de un texto literario siempre requiere considerar el macrocontexto de la obra."
-                    },
-                    {
-                        questionNumber: 15,
-                        question: "El periódico *La Región* y el periódico *La Capital* publican noticias sobre el mismo evento (una manifestación). *La Región* utiliza una fotografía de los disturbios, y *La Capital* usa una fotografía de la gente marchando pacíficamente. ¿Qué se evalúa al comparar ambas fuentes?",
-                        answerOptions: [
-                            { text: "La suficiencia de la información entregada por cada medio.", rationale: "La suficiencia se refiere a la cantidad de datos, no al sesgo de la imagen.", isCorrect: false },
-                            { text: "Los prejuicios y estereotipos del autor de cada reportaje.", rationale: "Aunque hay un sesgo, lo que se evalúa directamente es la presentación de los hechos.", isCorrect: false },
-                            { text: "Las similitudes y diferencias en la forma en que distintas fuentes presentan un mismo hecho.", rationale: "El OA 10 exige comparar cómo las diferentes fuentes, incluyendo el material gráfico, presentan el mismo hecho, revelando posibles sesgos.", isCorrect: true },
-                            { text: "El propósito explícito e implícito del texto.", rationale: "Aunque relacionado, la pregunta se centra en la comparación de cómo se presenta la *misma* información.", isCorrect: false }
-                        ],
-                        hint: "La comparación de fuentes muestra cómo la selección de elementos (visuales o textuales) influye en la percepción del lector."
-                    },
-                    {
-                        questionNumber: 16,
-                        question: "Si al revisar tu texto identificas una oración incoherente: 'La mesa se comió el libro porque llovía muy fuerte'. ¿Cuál es el problema fundamental a nivel global y oracional?",
-                        answerOptions: [
-                            { text: "Error de ortografía acentual.", rationale: "No hay errores de acentuación visibles que afecten el sentido.", isCorrect: false },
-                            { text: "Falta de cohesión mediante conectores adecuados.", rationale: "Los conectores ('porque') existen, pero la relación lógica es incorrecta.", isCorrect: false },
-                            { text: "Incoherencia semántica o falta de sentido lógico entre los elementos de la oración.", rationale: "El problema es que la relación entre el sujeto y la acción ('mesa se comió el libro') es absurda y carece de sentido lógico o semántico.", isCorrect: true },
-                            { text: "Uso inadecuado de pronombres reflexivos.", rationale: "No hay un uso inadecuado de pronombres que afecte el sentido general.", isCorrect: false }
-                        ],
-                        hint: "La coherencia se relaciona con el sentido lógico y la conexión temática de las ideas."
-                    },
-                    {
-                        questionNumber: 17,
-                        question: "¿Cuál es el rol principal del **narrador** de una obra, en contraste con el **autor**?",
-                        answerOptions: [
-                            { text: "El autor es la voz que relata la historia, el narrador es la persona real que escribe el libro.", rationale: "Es al revés: el narrador es la voz y el autor la persona real.", isCorrect: false },
-                            { text: "El autor es la persona real que crea el texto; el narrador es una entidad de ficción creada para contar la historia.", rationale: "Esta es la distinción correcta: el autor es extratextual (real) y el narrador es intratextual (ficticio) (OA 3).", isCorrect: true },
-                            { text: "Ambos cumplen la misma función: relatar los hechos de la obra.", rationale: "Son figuras distintas: uno es real y el otro, ficticio.", isCorrect: false },
-                            { text: "El narrador siempre es omnisciente, mientras que el autor es quien elige el tema.", rationale: "El narrador puede ser de varios tipos, no solo omnisciente.", isCorrect: false }
-                        ],
-                        hint: "Recuerda que el narrador es una 'máscara' o voz del autor."
-                    },
-                    {
-                        questionNumber: 18,
-                        question: "En un texto, se encuentran los siguientes usos de lenguaje figurado: 'tu sonrisa es un sol' y 'el árbol lloraba hojas secas'. ¿Qué figuras literarias son, respectivamente?",
-                        answerOptions: [
-                            { text: "Símil y Epíteto.", rationale: "Símil utiliza nexos comparativos. 'Tu sonrisa es un sol' es una identificación directa, y epíteto es un adjetivo innecesario.", isCorrect: false },
-                            { text: "Metáfora y Personificación.", rationale: "Metáfora: 'sonrisa es un sol' (identificación directa). Personificación: 'árbol lloraba hojas secas' (atribución de cualidad humana).", isCorrect: true },
-                            { text: "Hipérbaton y Aliteración.", rationale: "Hipérbaton es la alteración del orden sintáctico; Aliteración es la repetición de sonidos.", isCorrect: false },
-                            { text: "Anáfora y Onomatopeya.", rationale: "Anáfora es la repetición de palabras; Onomatopeya es la imitación de sonidos.", isCorrect: false }
-                        ],
-                        hint: "Una figura compara directamente (es), la otra atribuye acciones humanas a objetos."
-                    },
-                    {
-                        questionNumber: 19,
-                        question: "Se te encarga escribir una **carta al director** de un periódico para quejarte de la falta de áreas verdes en tu comuna. ¿Cuál debe ser el **propósito** y el **registro** de tu texto?",
-                        answerOptions: [
-                            { text: "Propósito: Narrar una historia personal; Registro: Coloquial.", rationale: "El propósito es argumentar y el registro debe ser formal o estándar.", isCorrect: false },
-                            { text: "Propósito: Persuadir y argumentar; Registro: Formal o estándar.", rationale: "La carta al director es un texto argumentativo cuyo propósito es persuadir sobre un tema de interés público, usando un registro formal (OA 9).", isCorrect: true },
-                            { text: "Propósito: Informar objetivamente; Registro: Técnico.", rationale: "El propósito es argumentativo, no solo informativo, y el registro no requiere ser técnico.", isCorrect: false },
-                            { text: "Propósito: Instruir y enseñar; Registro: Informal.", rationale: "Instruir no es el propósito de una carta al director y el registro es inadecuado.", isCorrect: false }
-                        ],
-                        hint: "La Carta al Director es un género de opinión y argumentación dirigido a un público amplio y formal."
-                    },
-                    {
-                        questionNumber: 20,
-                        question: "Al analizar el conflicto principal en un texto dramático, ¿qué elemento se considera fundamental según los indicadores de evaluación?",
-                        answerOptions: [
-                            { text: "El vocabulario utilizado por el dramaturgo.", rationale: "Esto es un recurso, no el conflicto en sí.", isCorrect: false },
-                            { text: "Las acotaciones escénicas que describen el ambiente.", rationale: "Las acotaciones ayudan a entender, pero no son el conflicto.", isCorrect: false },
-                            { text: "La extracción de información explícita e implícita relevante para el análisis literario.", rationale: "La extracción de información (explícita e implícita) es el primer paso para poder inferir el conflicto (OA 3).", isCorrect: true },
-                            { text: "El uso de la rima en los diálogos de los personajes.", rationale: "El texto dramático generalmente no está escrito en rima.", isCorrect: false }
-                        ],
-                        hint: "Para identificar el conflicto, primero debes entender la información básica que presenta el texto."
-                    },
-                    {
-                        questionNumber: 21,
-                        question: "El poema 'XX' de Pablo Neruda comienza con una repetición: 'Puedo escribir los versos más tristes esta noche. / Escribir, por ejemplo: “La noche está estrellada,”'. ¿Qué efecto o significado produce el uso de la **repetición** de 'escribir' en este fragmento?",
-                        answerOptions: [
-                            { text: "Acelerar el ritmo del poema para generar tensión.", rationale: "La repetición en este contexto es más melancólica y reflexiva que tensa.", isCorrect: false },
-                            { text: "Destacar la acción de la escritura como el eje de la reflexión y el sentimiento de tristeza.", rationale: "El uso de repeticiones (de palabras o ideas) sirve para enfatizar y centrar el foco del poema en la acción o el concepto repetido (OA 4).", isCorrect: true },
-                            { text: "Generar un significado o efecto de oposición o contraste.", rationale: "Para eso se usaría un conector de contraste ('pero', 'sin embargo').", isCorrect: false },
-                            { text: "Introducir un lenguaje figurado de difícil interpretación.", rationale: "El lenguaje utilizado es claro, no figurado ni difícil.", isCorrect: false }
-                        ],
-                        hint: "La repetición en poesía es un recurso para generar **énfasis** o **ritmo**."
-                    },
-                    {
-                        questionNumber: 22,
-                        question: "Al revisar el uso de conjugaciones verbales en un texto, se encuentra la frase: 'Yo *conducí* hasta la casa de mis padres'. ¿Qué tipo de error debe ser corregido?",
-                        answerOptions: [
-                            { text: "Concordancia sujeto-verbo.", rationale: "La concordancia es correcta ('Yo' - 'conducí'), pero la conjugación es incorrecta.", isCorrect: false },
-                            { text: "Uso de participio irregular.", rationale: "La palabra 'conducí' no es un participio (terminaciones -ado, -ido, -to, -so, -cho).", isCorrect: false },
-                            { text: "Uso incorrecto de la conjugación verbal en el pretérito perfecto simple.", rationale: "La forma correcta del pretérito perfecto simple es 'Yo *conduje*', por lo que la conjugación es incorrecta.", isCorrect: true },
-                            { text: "Error de ortografía literal.", rationale: "No es un error de ortografía literal (cambio de letra, como 'h' por 'a').", isCorrect: false }
-                        ],
-                        hint: "Revisa la conjugación de verbos terminados en -cir en tiempo pasado (pretérito perfecto simple)."
-                    },
-                    {
-                        questionNumber: 23,
-                        question: "Una obra literaria se ambienta en la época medieval, y la trama se basa en una rígida estructura social y la fe religiosa inquebrantable de sus personajes. ¿Cómo se relaciona la obra con su contexto histórico?",
-                        answerOptions: [
-                            { text: "La obra representa una visión de mundo que contradice la realidad histórica.", rationale: "La descripción coincide con la visión de mundo medieval, por lo que no la contradice.", isCorrect: false },
-                            { text: "La visión de mundo de la obra es coherente con el contexto histórico en que se ambienta.", rationale: "Una visión de mundo centrada en la fe y la estructura rígida es totalmente coherente con el contexto medieval (OA 8).", isCorrect: true },
-                            { text: "El contexto histórico solo sirve de ambientación, sin influir en la trama.", rationale: "El contexto y la visión de mundo son elementos clave para el análisis de la trama.", isCorrect: false },
-                            { text: "La relación solo es válida si la obra fue creada en la misma época.", rationale: "El análisis de la visión de mundo aplica tanto si fue creada en esa época como si solo está ambientada en ella.", isCorrect: false }
-                        ],
-                        hint: "El análisis literario requiere establecer la coherencia entre el contenido de la obra y el contexto que representa."
-                    },
-                    {
-                        questionNumber: 24,
-                        question: "En un texto argumentativo, ¿qué se entiende por la **postura del autor**?",
-                        answerOptions: [
-                            { text: "El conjunto de evidencias que utiliza para probar un hecho.", rationale: "Esto es parte de los argumentos, no la postura.", isCorrect: false },
-                            { text: "El modo verbal que usa para expresar duda o certeza.", rationale: "Esto es una herramienta lingüística, no la postura.", isCorrect: false },
-                            { text: "La opinión o tesis que el autor defiende o critica sobre un tema polémico.", rationale: "La postura o tesis es la idea principal que el autor intenta probar o defender a lo largo del texto (OA 9).", isCorrect: true },
-                            { text: "La disposición temporal de los hechos presentados.", rationale: "Esto se refiere a la organización cronológica, no a la postura.", isCorrect: false }
-                        ],
-                        hint: "La postura es la posición que el autor toma frente al tema."
-                    },
-                    {
-                        questionNumber: 25,
-                        question: "Se te pide escribir un texto en el que debes utilizar un **pronombre reflexivo**. ¿Cuál es la forma correcta de usarlo?",
-                        answerOptions: [
-                            { text: "Ella *se* compró un auto nuevo.", rationale: "Aunque 'se' es un pronombre reflexivo, en este contexto actúa como pronombre dativo de interés, no de reflexión directa ('se compró para sí').", isCorrect: false },
-                            { text: "Ellos hablan entre *sí* y *se* felicitan.", rationale: "'Se' (a sí mismos) y 'sí' cumplen la función de pronombre reflexivo (o recíproco), indicando que la acción recae sobre el sujeto.", isCorrect: true },
-                            { text: "*Me* dijo que *te* vayas.", rationale: "'Me' y 'te' son pronombres personales átonos, no exclusivamente reflexivos en esta función.", isCorrect: false },
-                            { text: "La casa *se* incendió.", rationale: "El 'se' aquí es un 'se' accidental o incoativo, no reflexivo.", isCorrect: false }
-                        ],
-                        hint: "El pronombre reflexivo indica que la acción del verbo recae sobre el sujeto que la ejecuta."
-                    },
-                    {
-                        questionNumber: 26,
-                        question: "¿Cuál de los siguientes criterios no es pertinente al evaluar la **suficiencia de la información** de un texto periodístico?",
-                        answerOptions: [
-                            { text: "Si las fuentes citadas son variadas y confiables.", rationale: "La variedad y confiabilidad de las fuentes son fundamentales para evaluar la suficiencia de la información.", isCorrect: false },
-                            { text: "Si el texto entrega suficientes detalles para responder las preguntas básicas (qué, quién, cómo, dónde, por qué).", rationale: "Esto es clave para evaluar la suficiencia.", isCorrect: false },
-                            { text: "Si el color de la tipografía es atractivo para el lector.", rationale: "El color de la tipografía es un elemento estético, no un criterio de evaluación de la calidad o suficiencia de la información (OA 10).", isCorrect: true },
-                            { text: "Si las cifras y datos entregados se relacionan directamente con el propósito explícito del texto.", rationale: "La pertinencia de los datos afecta la suficiencia.", isCorrect: false }
-                        ],
-                        hint: "La suficiencia de la información se relaciona con el contenido y el rigor, no con la estética."
-                    },
-                    {
-                        questionNumber: 27,
-                        question: "En la planificación de un texto (OA 16), el paso de **recopilar información e ideas** tiene como objetivo principal:",
-                        answerOptions: [
-                            { text: "Corregir los errores de ortografía literal y acentual.", rationale: "La corrección es parte de la revisión y edición, no de la planificación.", isCorrect: false },
-                            { text: "Asegurar un vocabulario variado y preciso en la redacción final.", rationale: "Aunque es un resultado, el objetivo principal es la organización del contenido.", isCorrect: false },
-                            { text: "Organizar y estructurar el contenido pertinente antes de comenzar a escribir el borrador.", rationale: "La recopilación y organización de ideas es el primer paso de la planificación para asegurar la coherencia del futuro texto.", isCorrect: true },
-                            { text: "Adecuar el registro al destinatario y al género discursivo.", rationale: "Esto es parte de la planificación del estilo, no de la recopilación de contenido.", isCorrect: false }
-                        ],
-                        hint: "La planificación es la etapa inicial de preparación del contenido del texto."
-                    },
-                    {
-                        questionNumber: 28,
-                        question: "En un texto, se lee: 'La vida es sueño'. ¿Cuál es el significado o el efecto que produce este lenguaje figurado?",
-                        answerOptions: [
-                            { text: "Compara la vida con un sueño, utilizando el nexo 'como'.", rationale: "Es una metáfora (identificación), no un símil (comparación).", isCorrect: false },
-                            { text: "Establece la equivalencia de que la existencia es tan fugaz e irreal como un sueño.", rationale: "La metáfora 'vida es sueño' identifica ambos conceptos para atribuir a la vida las cualidades de fugacidad e irrealidad del sueño (OA 4).", isCorrect: true },
-                            { text: "El significado literal es que todas las personas sueñan.", rationale: "El lenguaje figurado no se interpreta de manera literal.", isCorrect: false },
-                            { text: "Representa el tópico del 'carpe diem' (aprovecha el día).", rationale: "El tópico de que la vida es un sueño se relaciona con el 'tempus fugit' (tiempo que huye), no con el 'carpe diem'.", isCorrect: false }
-                        ],
-                        hint: "El lenguaje figurado sugiere significados que van más allá de lo literal."
-                    },
-                    {
-                        questionNumber: 29,
-                        question: "¿Qué requisito deben cumplir los argumentos en un texto para **sostener correctamente la postura del autor**?",
-                        answerOptions: [
-                            { text: "Ser puramente emocionales y apelar solo a los sentimientos del lector.", rationale: "Los argumentos deben ser lógicos y sustentados en evidencia, no solo emocionales.", isCorrect: false },
-                            { text: "Ser irrelevantes, pero muy numerosos.", rationale: "Deben ser pertinentes y suficientes, no irrelevantes.", isCorrect: false },
-                            { text: "Ser pertinentes, válidos (lógicos) y estar sustentados por evidencia o información creíble.", rationale: "Los argumentos deben ser coherentes con la postura y contar con respaldo (evidencia) para ser efectivos (OA 9).", isCorrect: true },
-                            { text: "Solo contener opiniones personales y prejuicios.", rationale: "Esto debilita la argumentación, que debe basarse en hechos y razonamientos lógicos.", isCorrect: false }
-                        ],
-                        hint: "La fuerza de una argumentación reside en la **calidad** y **pertinencia** de sus razones."
-                    },
-                    {
-                        questionNumber: 30,
-                        question: "Se te encarga describir la evolución de un personaje en un cuento. Un indicador de evaluación te pide que te fijes en su **relación con otros personajes**. ¿Por qué es importante esta relación para la descripción?",
-                        answerOptions: [
-                            { text: "La relación con otros personajes revela su apariencia física.", rationale: "La apariencia física se describe directamente, no necesariamente a través de la relación.", isCorrect: false },
-                            { text: "Los conflictos y motivaciones de un personaje se desarrollan y revelan a través de sus interacciones con el entorno y otros personajes.", rationale: "El conflicto y la evolución del personaje (protagonista o antagonista) se manifiestan y definen en su interacción con otros (OA 3).", isCorrect: true },
-                            { text: "Sirve para determinar el tipo de narrador de la obra.", rationale: "El narrador es independiente de la interacción entre personajes.", isCorrect: false },
-                            { text: "Permite establecer únicamente el clímax de la historia.", rationale: "La relación influye en toda la trama, no solo en el clímax.", isCorrect: false }
-                        ],
-                        hint: "Los personajes no existen en el vacío; su esencia se define por la forma en que interactúan."
-                    }
-                ]
-            },
-            
-            // QUIZ DE MATEMÁTICA
-            "matematica": {
-                title: "Matemática",
-                questions: [
-                    {
-                        questionNumber: 1,
-                        question: "El resultado de la multiplicación $(-5) \\cdot 4 \\cdot (-2)$ es:",
-                        answerOptions: [
-                            { text: "$-40$", rationale: "El resultado de $(-5) \\cdot 4$ es $-20$. Al multiplicar $-20 \\cdot (-2)$, se aplica la regla de signos: menos por menos es más.", isCorrect: false },
-                            { text: "$40$", rationale: "La multiplicación de $(-5) \\cdot 4 = -20$. Luego, $(-20) \\cdot (-2) = 40$.", isCorrect: true },
-                            { text: "$10$", rationale: "Error al aplicar la regla de signos o al multiplicar.", isCorrect: false },
-                            { text: "$-1$", rationale: "Error en la operación.", isCorrect: false }
-                        ],
-                        hint: "Recuerda la regla de los signos: menos por menos es más."
-                    },
-                    {
-                        questionNumber: 2,
-                        question: "Si el lado de un cuadrado tiene una longitud de $\\sqrt{81}$ cm, ¿cuál es el perímetro de ese cuadrado?",
-                        answerOptions: [
-                            { text: "$9$ cm", rationale: "Este es solo el valor del lado.", isCorrect: false },
-                            { text: "$36$ cm", rationale: "El lado es $\\sqrt{81} = 9$ cm. El perímetro es $4 \\cdot 9 = 36$ cm.", isCorrect: true },
-                            { text: "$81$ cm", rationale: "Este es el valor del área, no del perímetro.", isCorrect: false },
-                            { text: "$18$ cm", rationale: "Este es el valor de la suma de dos lados, no de los cuatro.", isCorrect: false }
-                        ],
-                        hint: "Calcula primero la raíz cuadrada para obtener la longitud del lado."
-                    },
-                    {
-                        questionNumber: 3,
-                        question: "Una ecuación lineal está dada por la forma $3x - 5 = x + 7$. ¿Cuál es el valor de $x$ que satisface la ecuación?",
-                        answerOptions: [
-                            { text: "$x = 3$", rationale: "Si $x=3$, $3(3) - 5 = 9 - 5 = 4$. Mientras que $3 + 7 = 10$. Como $4 \\ne 10$, no es la solución.", isCorrect: false },
-                            { text: "$x = 6$", rationale: "Si $x=6$, $3(6) - 5 = 18 - 5 = 13$. Mientras que $6 + 7 = 13$. Como $13 = 13$, es la solución. $3x-x = 7+5$, $2x = 12$, $x=6$.", isCorrect: true },
-                            { text: "$x = -3$", rationale: "Si $x=-3$, $3(-3) - 5 = -14$. Mientras que $-3 + 7 = 4$. Como $-14 \\ne 4$, no es la solución.", isCorrect: false },
-                            { text: "$x = 12$", rationale: "Si $x=12$, $3(12) - 5 = 31$. Mientras que $12 + 7 = 19$. Como $31 \\ne 19$, no es la solución.", isCorrect: false }
-                        ],
-                        hint: "Agrupa los términos con $x$ en un lado y los términos constantes en el otro, simplificando la ecuación para despejar la incógnita."
-                    },
-                    {
-                        questionNumber: 4,
-                        question: "En un plano cartesiano, un punto $P(2, 5)$ se **traslada** según el vector $\\vec{v} = (-3, 1)$. ¿Cuáles son las coordenadas del nuevo punto $P'$?",
-                        answerOptions: [
-                            { text: "$P'(5, 6)$", rationale: "Se sumó en lugar de restar el primer componente: $2+3=5$.", isCorrect: false },
-                            { text: "$P'(-1, 6)$", rationale: "La traslación se realiza sumando los componentes: $(2 + (-3), 5 + 1) = (-1, 6)$.", isCorrect: true },
-                            { text: "$P'(6, 5)$", rationale: "Error en la operación de suma y resta de los componentes.", isCorrect: false },
-                            { text: "$P'(1, -6)$", rationale: "Error en la operación de suma y resta de los componentes.", isCorrect: false }
-                        ],
-                        hint: "Aplica la suma de vectores a las coordenadas del punto: $P' = P + \\vec{v}$."
-                    },
-                    {
-                        questionNumber: 5,
-                        question: "La expresión $\\frac{2}{3} \\cdot \\left(-\\frac{9}{4}\\right)$ es igual a:",
-                        answerOptions: [
-                            { text: "$\\frac{18}{12}$", rationale: "Se multiplicaron los numeradores y denominadores, pero no se aplicó la regla de signos. Además, se puede simplificar antes o después.", isCorrect: false },
-                            { text: "$-1\\frac{1}{2}$", rationale: "$\\frac{2 \\cdot (-9)}{3 \\cdot 4} = \\frac{-18}{12}$. Al simplificar por 6, se obtiene $\\frac{-3}{2}$, que es $-1\\frac{1}{2}$.", isCorrect: true },
-                            { text: "$\\frac{1}{2}$", rationale: "Error al simplificar.", isCorrect: false },
-                            { text: "$-\\frac{1}{2}$", rationale: "Error al simplificar.", isCorrect: false }
-                        ],
-                        hint: "Multiplica numerador con numerador y denominador con denominador. Recuerda simplificar antes y aplicar la regla de los signos (más por menos es menos)."
-                    },
-                    {
-                        questionNumber: 6,
-                        question: "¿Cuál es la expresión equivalente a $2^3 \\cdot 2^5$?",
-                        answerOptions: [
-                            { text: "$2^{15}$", rationale: "Se multiplicaron los exponentes en lugar de sumarlos.", isCorrect: false },
-                            { text: "$4^8$", rationale: "Se sumaron los exponentes, pero también se multiplicaron las bases.", isCorrect: false },
-                            { text: "$2^8$", rationale: "En la multiplicación de potencias de igual base, se conserva la base y se suman los exponentes: $3 + 5 = 8$.", isCorrect: true },
-                            { text: "$4^{15}$", rationale: "Se multiplicaron bases y exponentes.", isCorrect: false }
-                        ],
-                        hint: "Recuerda la propiedad de la multiplicación de potencias con la misma base."
-                    },
-                    {
-                        questionNumber: 7,
-                        question: "Un cateto de un triángulo rectángulo mide $3$ cm y la hipotenusa mide $5$ cm. Usando el Teorema de Pitágoras, ¿cuánto mide el otro cateto ($b$)?",
-                        answerOptions: [
-                            { text: "$4$ cm", rationale: "Según Pitágoras, $a^2 + b^2 = c^2$. Sustituyendo, $3^2 + b^2 = 5^2$, lo que significa $9 + b^2 = 25$. Despejando, $b^2 = 16$, por lo tanto, $b=4$.", isCorrect: true },
-                            { text: "$\\sqrt{34}$ cm", rationale: "Esto sería si fueran ambos catetos de 3 y 5.", isCorrect: false },
-                            { text: "$16$ cm", rationale: "Este es el valor de $b^2$, no de $b$.", isCorrect: false },
-                            { text: "$2$ cm", rationale: "Error en el cálculo: $2^2=4$, y $9+4=13 \\ne 25$.", isCorrect: false }
-                        ],
-                        hint: "La fórmula es $a^2 + b^2 = c^2$. Debes despejar $b^2$ ($b^2 = c^2 - a^2$)."
-                    },
-                    {
-                        questionNumber: 8,
-                        question: "La tabla de valores para la función afín $f(x) = 2x - 1$ es:",
-                        answerOptions: [
-                            { text: "Si $x=0$, $f(x)=0$.", rationale: "Si $x=0$, $f(0) = 2(0) - 1 = -1$.", isCorrect: false },
-                            { text: "Si $x=2$, $f(x)=3$.", rationale: "Si $x=2$, $f(2) = 2(2) - 1 = 4 - 1 = 3$.", isCorrect: true },
-                            { text: "La pendiente es $a=-1$.", rationale: "La pendiente es $a=2$.", isCorrect: false },
-                            { text: "El intercepto con el eje $y$ es en $(0, 2)$.", rationale: "El intercepto con el eje $y$ es en $(0, -1)$.", isCorrect: false }
-                        ],
-                        hint: "Reemplaza el valor de $x$ en la expresión de la función ($f(x) = 2x - 1$) para obtener el valor de $f(x)$."
-                    },
-                    {
-                        questionNumber: 9,
-                        question: "Al analizar el gráfico de una función afín $f(x) = ax + b$, ¿qué representa la expresión $\\frac{\\Delta y}{\\Delta x}$?",
-                        answerOptions: [
-                            { text: "El coeficiente de posición ($b$).", rationale: "El coeficiente de posición ($b$) es el intercepto en el eje $y$.", isCorrect: false },
-                            { text: "La pendiente ($a$) de la recta.", rationale: "La pendiente ($a$) es el cambio constante de un intervalo a otro, que se calcula como el cuociente entre la variación vertical ($\\Delta y$) y la variación horizontal ($\\Delta x$).", isCorrect: true },
-                            { text: "El dominio de la función.", rationale: "El dominio son los valores posibles de $x$.", isCorrect: false },
-                            { text: "El intercepto con el eje $x$.", rationale: "El intercepto con el eje $x$ es cuando $f(x)=0$.", isCorrect: false }
-                        ],
-                        hint: "La expresión representa la razón de cambio o la inclinación de la recta."
-                    },
-                    {
-                        questionNumber: 10,
-                        question: "El cuartil $Q_2$ (Segundo Cuartil) de un conjunto de datos coincide con qué otra medida de posición y tendencia central:",
-                        answerOptions: [
-                            { text: "La media aritmética.", rationale: "La media no tiene por qué coincidir con el segundo cuartil.", isCorrect: false },
-                            { text: "La moda.", rationale: "La moda es el valor que más se repite.", isCorrect: false },
-                            { text: "La mediana (Percentil 50).", rationale: "El segundo cuartil ($Q_2$), la mediana y el percentil 50 ($P_{50}$) son el mismo valor posicional que divide el conjunto de datos ordenados en dos mitades iguales.", isCorrect: true },
-                            { text: "El rango.", rationale: "El rango es la diferencia entre el valor máximo y el mínimo.", isCorrect: false }
-                        ],
-                        hint: "El cuartil $Q_2$ divide la muestra ordenada exactamente a la mitad."
-                    },
-                    {
-                        questionNumber: 11,
-                        question: "La división de potencias $\\frac{5^7}{5^4}$ es igual a:",
-                        answerOptions: [
-                            { text: "$5^{11}$", rationale: "Se sumaron los exponentes en lugar de restarlos.", isCorrect: false },
-                            { text: "$5^3$", rationale: "En la división de potencias de igual base, se conserva la base y se restan los exponentes: $7 - 4 = 3$.", isCorrect: true },
-                            { text: "$1^3$", rationale: "Solo se restaron los exponentes, pero se dividieron las bases ($5/5=1$).", isCorrect: false },
-                            { text: "$25^3$", rationale: "Se dividieron las bases y se restaron los exponentes.", isCorrect: false }
-                        ],
-                        hint: "Recuerda la propiedad de la división de potencias con la misma base."
-                    },
-                    {
-                        questionNumber: 12,
-                        question: "Para estimar de manera intuitiva el valor de $\\sqrt{50}$, ¿entre qué números enteros consecutivos se encuentra?",
-                        answerOptions: [
-                            { text: "Entre $6$ y $7$", rationale: "Esto es porque $6^2 = 36$ y $7^2 = 49$. El valor se encuentra entre $7$ y $8$.", isCorrect: false },
-                            { text: "Entre $7$ y $8$", rationale: "Como $7^2 = 49$ y $8^2 = 64$, y $49 < 50 < 64$, la $\\sqrt{50}$ está entre $7$ y $8$.", isCorrect: true },
-                            { text: "Entre $8$ y $9$", rationale: "Esto es porque $8^2 = 64$. El valor es menor que 8.", isCorrect: false },
-                            { text: "Entre $5$ y $6$", rationale: "Esto es porque $5^2 = 25$ y $6^2 = 36$. El valor es mayor que 7.", isCorrect: false }
-                        ],
-                        hint: "Busca los cuadrados perfectos inmediatamente menor y mayor que $50$."
-                    },
-                    {
-                        questionNumber: 13,
-                        question: "La ecuación $\\frac{x}{5} - 2 = 3$ se puede resolver de la siguiente manera:",
-                        answerOptions: [
-                            { text: "$x = (3-2) \\cdot 5$, resultando $x=5$.", rationale: "El $-2$ pasa sumando: $\\frac{x}{5} = 3 + 2 = 5$. Luego $x = 5 \\cdot 5 = 25$.", isCorrect: false },
-                            { text: "$x = (3+2) \\cdot 5$, resultando $x=25$.", rationale: "Se suma 2 a ambos lados, $\\frac{x}{5} = 5$. Luego se multiplica por 5, $x=25$.", isCorrect: true },
-                            { text: "$x = (3 \\cdot 5) + 2$, resultando $x=17$.", rationale: "El orden de las operaciones es incorrecto. El 2 pasa sumando primero.", isCorrect: false },
-                            { text: "$x = 5 \\cdot 3 \\cdot 2$, resultando $x=30$.", rationale: "El orden de las operaciones es incorrecto.", isCorrect: false }
-                        ],
-                        hint: "Aplica las operaciones inversas en orden para despejar $x$."
-                    },
-                    {
-                        questionNumber: 14,
-                        question: "Si el punto $A(1, 3)$ se somete a una **reflexión** con respecto al eje $Y$, ¿cuáles son las coordenadas del punto reflejado $A'$?",
-                        answerOptions: [
-                            { text: "$A'(1, -3)$", rationale: "Esto sería una reflexión con respecto al eje $X$.", isCorrect: false },
-                            { text: "$A'(-1, 3)$", rationale: "La reflexión con respecto al eje $Y$ mantiene el valor $y$ y cambia el signo del valor $x$: $(x, y) \\to (-x, y)$.", isCorrect: true },
-                            { text: "$A'(-1, -3)$", rationale: "Esto sería una rotación de $180^{\\circ}$ o una reflexión con respecto al origen.", isCorrect: false },
-                            { text: "$A'(3, 1)$", rationale: "Esto es una rotación de $90^{\\circ}$ o una permutación de coordenadas.", isCorrect: false }
-                        ],
-                        hint: "La reflexión sobre un eje cambia el signo de la coordenada que no pertenece a ese eje."
-                    },
-                    {
-                        questionNumber: 15,
-                        question: "La raíz cuadrada de un número natural se aplica a la resolución de problemas geométricos como:",
-                        answerOptions: [
-                            { text: "Calcular el volumen de un cubo.", rationale: "El volumen requiere raíz cúbica.", isCorrect: false },
-                            { text: "Calcular el área de un círculo.", rationale: "El área es $\\pi r^2$, no requiere raíz cuadrada.", isCorrect: false },
-                            { text: "Determinar el lado de un cuadrado a partir de su área conocida.", rationale: "Si el área es $A=l^2$, el lado se calcula como $l=\\sqrt{A}$.", isCorrect: true },
-                            { text: "Determinar la diagonal de un rectángulo.", rationale: "La diagonal requiere el Teorema de Pitágoras, pero no necesariamente el cálculo directo de una sola raíz cuadrada.", isCorrect: false }
-                        ],
-                        hint: "Piensa en figuras geométricas cuya fórmula de área involucre un término al cuadrado."
-                    },
-                    {
-                        questionNumber: 16,
-                        question: "En un gráfico de barras, se exageran las diferencias entre dos categorías al comenzar el eje $Y$ en un valor diferente de cero. ¿Qué tipo de manipulación de gráficos se está utilizando?",
-                        answerOptions: [
-                            { text: "Omisión de datos relevantes.", rationale: "No se omite, se distorsiona la escala.", isCorrect: false },
-                            { text: "Sesgo en la elección del tipo de gráfico.", rationale: "El tipo de gráfico puede ser adecuado, el problema es la escala.", isCorrect: false },
-                            { text: "Manipulación de la escala del eje vertical (truncamiento del eje $Y$).", rationale: "Al no comenzar el eje $Y$ en cero, las diferencias se ven visualmente más grandes o abruptas, lo que se considera una manipulación o truncamiento (OA 16).", isCorrect: true },
-                            { text: "Inclusión de información irrelevante.", rationale: "La información es relevante, pero mal presentada.", isCorrect: false }
-                        ],
-                        hint: "La manipulación en este caso se centra en la visualización de la **escala**."
-                    },
-                    {
-                        questionNumber: 17,
-                        question: "La expresión $\\frac{x}{3} + 1 = 5$ puede modelar la siguiente situación:",
-                        answerOptions: [
-                            { text: "El triple de un número aumentado en 1 es 5.", rationale: "Esto se modela como $3x + 1 = 5$.", isCorrect: false },
-                            { text: "Un tercio de un número, aumentado en 1, es igual a 5.", rationale: "El modelo es $\\frac{x}{3} + 1 = 5$.", isCorrect: true },
-                            { text: "Un número dividido por 4 es igual a 5.", rationale: "Esto se modela como $\\frac{x}{4} = 5$.", isCorrect: false },
-                            { text: "El cuádruple de un número disminuido en 1 es 5.", rationale: "Esto se modela como $4x - 1 = 5$.", isCorrect: false }
-                        ],
-                        hint: "Analiza el lenguaje verbal de la ecuación (división por 3 y suma de 1)."
-                    },
-                    {
-                        questionNumber: 18,
-                        question: "Al resolver el problema: 'Una deuda de $\\$5.000$ se multiplica por $-3$' (la deuda aumenta tres veces, pero se registra negativamente). El resultado es:",
-                        answerOptions: [
-                            { text: "$-\\$15.000$", rationale: "El registro de la deuda es $-5.000$. Al multiplicarlo por $-3$, se obtiene $(-5.000) \\cdot (-3) = 15.000$.", isCorrect: false },
-                            { text: "$\\$15.000$", rationale: "La operación es $(-5.000) \\cdot (-3) = 15.000$. Menos por menos es más.", isCorrect: true },
-                            { text: "$-\\$8.000$", rationale: "Se sumó en lugar de multiplicar.", isCorrect: false },
-                            { text: "$\\$2.000$", rationale: "Error en la operación.", isCorrect: false }
-                        ],
-                        hint: "La 'deuda' se representa con un número negativo. Aplica la multiplicación de números enteros."
-                    },
-                    {
-                        questionNumber: 19,
-                        question: "¿Cuál de las siguientes afirmaciones sobre la función afín $f(x) = -x + 3$ es correcta?",
-                        answerOptions: [
-                            { text: "Su pendiente es $1$ y la función es creciente.", rationale: "La pendiente es $-1$, por lo que es decreciente.", isCorrect: false },
-                            { text: "Su pendiente es $-1$ y la función es decreciente.", rationale: "La función tiene la forma $f(x)=ax+b$, donde $a=-1$. Como $a < 0$, la función es decreciente.", isCorrect: true },
-                            { text: "El intercepto con el eje $y$ es en $(3, 0)$.", rationale: "El intercepto con el eje $y$ es en $(0, 3)$.", isCorrect: false },
-                            { text: "Es una función de proporcionalidad directa.", rationale: "Para ser directa, debe pasar por el origen ($b=0$), y en este caso $b=3$.", isCorrect: false }
-                        ],
-                        hint: "Una función es creciente si su pendiente ($a$) es positiva y decreciente si es negativa."
-                    },
-                    {
-                        questionNumber: 20,
-                        question: "La expresión $\\left(\\frac{2}{5}\\right)^3$ es igual a:",
-                        answerOptions: [
-                            { text: "$\\frac{6}{15}$", rationale: "Se multiplicó la base por el exponente.", isCorrect: false },
-                            { text: "$\\frac{8}{125}$", rationale: "Se aplica el exponente a ambos términos: $\\frac{2^3}{5^3} = \\frac{8}{125}$.", isCorrect: true },
-                            { text: "$\\frac{2}{125}$", rationale: "Solo se elevó el denominador al exponente.", isCorrect: false },
-                            { text: "$625$", rationale: "Error en la operación.", isCorrect: false }
-                        ],
-                        hint: "El exponente se aplica tanto al numerador como al denominador."
-                    },
-                    {
-                        questionNumber: 21,
-                        question: "En un diagrama de cajón (o caja y bigotes) de un conjunto de datos, ¿qué información NO se puede obtener directamente?",
-                        answerOptions: [
-                            { text: "El valor de la mediana.", rationale: "Se puede obtener de la línea dentro de la caja.", isCorrect: false },
-                            { text: "El valor mínimo y máximo de los datos.", rationale: "Se obtiene de los extremos de los 'bigotes'.", isCorrect: false },
-                            { text: "La media aritmética (promedio).", rationale: "La media no es una medida de posición que se represente en el diagrama de cajón (OA 15).", isCorrect: true },
-                            { text: "Los cuartiles ($Q_1$ y $Q_3$).", rationale: "Se obtienen de los bordes de la caja.", isCorrect: false }
-                        ],
-                        hint: "El diagrama de cajón es una herramienta que se centra en las **medidas de posición**."
-                    },
-                    {
-                        questionNumber: 22,
-                        question: "¿Cuál es el resultado de la operación $(-1,5) \\div \\left(-\\frac{1}{2}\\right)$?",
-                        answerOptions: [
-                            { text: "$3$", rationale: "Convierte $-1,5$ a fracción ($-\\frac{3}{2}$). La división es $(-\\frac{3}{2}) \\cdot (-2) = 3$. Menos por menos es más.", isCorrect: true },
-                            { text: "$-3$", rationale: "Error en la regla de signos (debió ser positivo).", isCorrect: false },
-                            { text: "$0,75$", rationale: "Se dividió el $1,5$ por el $2$.", isCorrect: false },
-                            { text: "$-1$", rationale: "Error en la operación.", isCorrect: false }
-                        ],
-                        hint: "Convierte el decimal a fracción y recuerda que dividir es multiplicar por el recíproco. Aplica la regla de los signos."
-                    },
-                    {
-                        questionNumber: 23,
-                        question: "Al aplicar una **rotación** de $90^{\\circ}$ en sentido antihorario con centro en el origen al punto $B(4, -2)$, el nuevo punto $B'$ es:",
-                        answerOptions: [
-                            { text: "$B'(-4, -2)$", rationale: "Esto es una reflexión sobre el eje $Y$.", isCorrect: false },
-                            { text: "$B'(-2, -4)$", rationale: "La rotación $90^{\\circ}$ antihorario es $(x, y) \\to (-y, x)$. $(-(-2), 4) = (2, 4)$.", isCorrect: false },
-                            { text: "$B'(2, 4)$", rationale: "La rotación de $90^{\\circ}$ antihorario (o positivo) tiene la regla $(x, y) \\to (-y, x)$, por lo tanto, $(-(-2), 4) = (2, 4)$.", isCorrect: true },
-                            { text: "$B'(-4, 2)$", rationale: "Esto es una rotación de $270^{\\circ}$ antihorario o $90^{\\circ}$ horario.", isCorrect: false }
-                        ],
-                        hint: "La rotación de $90^{\\circ}$ antihorario cambia el signo de la coordenada $y$ y luego permuta las coordenadas: $(x, y) \\to (-y, x)$."
-                    },
-                    {
-                        questionNumber: 24,
-                        question: "Un lado de un terreno cuadrado mide $10 \\sqrt{2}$ metros. ¿Cuál es el área del terreno?",
-                        answerOptions: [
-                            { text: "$200$ metros cuadrados", rationale: "El área es $(10 \\sqrt{2})^2 = 10^2 \\cdot (\\sqrt{2})^2 = 100 \\cdot 2 = 200$ $m^2$.", isCorrect: true },
-                            { text: "$400$ metros cuadrados", rationale: "Se elevó la raíz de 2 incorrectamente: $(10 \\sqrt{2})^2 = 100 \\cdot 4 = 400$.", isCorrect: false },
-                            { text: "$20 \\sqrt{2}$ metros cuadrados", rationale: "Este es el valor del perímetro, no del área.", isCorrect: false },
-                            { text: "$100 \\sqrt{2}$ metros cuadrados", rationale: "Solo se elevó el 10 al cuadrado, no la raíz de 2.", isCorrect: false }
-                        ],
-                        hint: "El área de un cuadrado es lado al cuadrado ($A=l^2$). Recuerda que $(\\sqrt{a})^2 = a$."
-                    },
-                    {
-                        questionNumber: 25,
-                        question: "Si el Percentil 80 ($P_{80}$) de las notas de un curso es $6,2$, ¿qué significa este valor?",
-                        answerOptions: [
-                            { text: "Que el $80\\%$ de los estudiantes obtuvo exactamente la nota $6,2$.", rationale: "El percentil es un valor posicional, no de frecuencia.", isCorrect: false },
-                            { text: "Que el $80\\%$ de las notas es igual o inferior a $6,2$.", rationale: "El percentil $k$ es el valor que deja el $k\\%$ de la muestra bajo él (OA 15).", isCorrect: true },
-                            { text: "Que solo el $20\\%$ de los estudiantes reprobó.", rationale: "No se tiene información del requisito de aprobación para esa nota.", isCorrect: false },
-                            { text: "Que la nota más frecuente (moda) es $6,2$.", rationale: "El percentil no indica la moda.", isCorrect: false }
-                        ],
-                        hint: "El percentil $k$ deja el $k\\%$ de los datos por debajo de su valor."
-                    },
-                    {
-                        questionNumber: 26,
-                        question: "Para la ecuación $5x + 3 = 2x + 9$, el primer paso para su resolución es:",
-                        answerOptions: [
-                            { text: "Dividir toda la ecuación por $x$.", rationale: "No se puede dividir por la incógnita si no se sabe si es diferente de cero.", isCorrect: false },
-                            { text: "Sumar $2x$ a ambos lados de la ecuación.", rationale: "Se debe restar $2x$ para agrupar términos con $x$ en un lado.", isCorrect: false },
-                            { text: "Restar $2x$ a ambos lados o restar $3$ a ambos lados de la ecuación.", rationale: "El objetivo es agrupar términos, y restar $2x$ y/o $3$ son los primeros pasos para despejar la incógnita.", isCorrect: true },
-                            { text: "Multiplicar los términos por 5.", rationale: "Esto solo complicaría la ecuación.", isCorrect: false }
-                        ],
-                        hint: "Para resolver una ecuación con incógnitas en ambos lados, el primer paso es agrupar los términos semejantes."
-                    },
-                    {
-                        questionNumber: 27,
-                        question: "La expresión $\\left(-\\frac{1}{3}\\right)^3$ es igual a:",
-                        answerOptions: [
-                            { text: "$\\frac{1}{9}$", rationale: "Error en el exponente y el signo.", isCorrect: false },
-                            { text: "$-\\frac{1}{27}$", rationale: "Una base negativa elevada a un exponente impar tiene un resultado negativo: $\\frac{(-1)^3}{3^3} = \\frac{-1}{27}$.", isCorrect: true },
-                            { text: "$-\\frac{3}{9}$", rationale: "Se multiplicó por 3 en lugar de elevar a la potencia.", isCorrect: false },
-                            { text: "$\\frac{1}{27}$", rationale: "El signo es incorrecto (debe ser negativo).", isCorrect: false }
-                        ],
-                        hint: "Recuerda la regla del signo al elevar una base negativa a un exponente impar."
-                    },
-                    {
-                        questionNumber: 28,
-                        question: "¿Cuál de las siguientes ecuaciones es un ejemplo de la forma $ax + b = c$ con $a, b, c \\in \\mathbb{Q}$?",
-                        answerOptions: [
-                            { text: "$5x^2 + 1 = 10$", rationale: "Es una ecuación cuadrática por el exponente 2.", isCorrect: false },
-                            { text: "$4x = 12$", rationale: "Es de la forma $ax = b$, no tiene el término $b$ sumando.", isCorrect: false },
-                            { text: "$-0,5x + 3,5 = -1$", rationale: "Cumple con la forma lineal con coeficientes racionales ($a=-0,5$, $b=3,5$, $c=-1$).", isCorrect: true },
-                            { text: "$x^2 + y = 0$", rationale: "Es una ecuación con dos variables.", isCorrect: false }
-                        ],
-                        hint: "La forma $ax + b = c$ es una ecuación lineal con una sola incógnita y tres términos constantes o variables."
-                    },
-                    {
-                        questionNumber: 29,
-                        question: "Si la hipotenusa de un triángulo rectángulo es $\\sqrt{74}$ cm y uno de los catetos mide $7$ cm, ¿cuál es la medida del otro cateto $a$?",
-                        answerOptions: [
-                            { text: "$5$ cm", rationale: "Se aplica Pitágoras: $a^2 = c^2 - b^2 = (\\sqrt{74})^2 - 7^2 = 74 - 49 = 25$. Por lo tanto, $a = \\sqrt{25} = 5$ cm.", isCorrect: true },
-                            { text: "$25$ cm", rationale: "Este es el valor de $a^2$, no de $a$.", isCorrect: false },
-                            { text: "$8,6$ cm", rationale: "Este es el valor aproximado de $\\sqrt{74}$.", isCorrect: false },
-                            { text: "$\\sqrt{123}$ cm", rationale: "Se sumaron en lugar de restar los cuadrados: $74 + 49 = 123$.", isCorrect: false }
-                        ],
-                        hint: "Recuerda que $a^2 = c^2 - b^2$, donde $c$ es la hipotenusa."
-                    },
-                    {
-                        questionNumber: 30,
-                        question: "Si el punto $C(x, y)$ se somete a una **reflexión** con respecto al origen, su imagen $C'$ debe tener las coordenadas:",
-                        answerOptions: [
-                            { text: "$C'(x, -y)$", rationale: "Esto es una reflexión con respecto al eje $X$.", isCorrect: false },
-                            { text: "$C'(-x, y)$", rationale: "Esto es una reflexión con respecto al eje $Y$.", isCorrect: false },
-                            { text: "$C'(-x, -y)$", rationale: "La reflexión con respecto al origen (o rotación de $180^{\\circ}$) cambia el signo de ambas coordenadas.", isCorrect: true },
-                            { text: "$C'(y, x)$", rationale: "Esto es una rotación de $90^{\\circ}$ horario, no reflexión con respecto al origen.", isCorrect: false }
-                        ],
-                        hint: "La reflexión con respecto al origen es equivalente a una rotación de $180^{\\circ}$."
-                    }
-                ]
-            },
-            
-            // QUIZ DE HISTORIA, GEOGRAFÍA Y CIENCIAS SOCIALES
-            "historia": {
-                title: "Historia, Geografía y Ciencias Sociales",
-                questions: [
-                    {
-                        questionNumber: 1,
-                        question: "Uno de los principales cambios que marcó el paso de la Edad Media a la Edad Moderna fue la ruptura de la unidad religiosa en Europa. ¿Qué proceso histórico se relaciona directamente con esta ruptura?",
-                        answerOptions: [
-                            { text: "El Cisma de Oriente y Occidente.", rationale: "Ocurrió en 1054, mucho antes de la Edad Moderna.", isCorrect: false },
-                            { text: "La Contrarreforma Católica.", rationale: "Fue la respuesta al proceso, no la ruptura en sí misma.", isCorrect: false },
-                            { text: "La Reforma Protestante, iniciada por Martín Lutero.", rationale: "La Reforma de Lutero fue el movimiento que quebró la hegemonía de la Iglesia Católica y dio origen a diversas iglesias cristianas, marcando la Edad Moderna (OA 2).", isCorrect: true },
-                            { text: "Las Cruzadas.", rationale: "Fueron guerras religiosas entre el cristianismo y el islam.", isCorrect: false }
-                        ],
-                        hint: "Este proceso se inició en el siglo XVI y tuvo a la figura de Martín Lutero como su precursor."
-                    },
-                    {
-                        questionNumber: 2,
-                        question: "¿Qué postulado de la Ilustración fue fundamental para criticar el **absolutismo** y promover el ideario republicano?",
-                        answerOptions: [
-                            { text: "La consolidación del mercantilismo.", rationale: "El mercantilismo es un modelo económico, no un postulado político de la Ilustración.", isCorrect: false },
-                            { text: "El derecho divino de los reyes.", rationale: "La Ilustración criticaba este concepto, no lo promovía.", isCorrect: false },
-                            { text: "El principio de soberanía popular y la separación de los poderes del Estado.", rationale: "Estos principios (división del poder y soberanía del pueblo) son la base ideológica del republicanismo y la crítica al poder concentrado en el rey (OA 14).", isCorrect: true },
-                            { text: "La justificación del sistema de castas.", rationale: "La Ilustración promovía la igualdad ante la ley.", isCorrect: false }
-                        ],
-                        hint: "La crítica al poder absoluto se centró en cómo debía distribuirse la autoridad dentro del Estado."
-                    },
-                    {
-                        questionNumber: 3,
-                        question: "La principal característica del **Estado Moderno** fue la concentración del poder en la figura del Rey. ¿Qué rasgo, en contraste con la Edad Media, permitió esta concentración?",
-                        answerOptions: [
-                            { text: "La fragmentación del poder en manos de los señores feudales.", rationale: "Esto era característico de la Edad Media.", isCorrect: false },
-                            { text: "La creación de un sistema fiscal centralizado y ejércitos profesionales.", rationale: "Estos elementos, junto con la burocracia, permitieron al monarca disponer de recursos y fuerza para consolidar su poder sobre los territorios (OA 3).", isCorrect: true },
-                            { text: "El desarrollo de la economía de subsistencia.", rationale: "La economía moderna se basó en el mercantilismo y el comercio.", isCorrect: false },
-                            { text: "La disminución de la burocracia administrativa.", rationale: "El Estado Moderno se basó en el aumento de la burocracia para gestionar el reino.", isCorrect: false }
-                        ],
-                        hint: "Para unificar el poder, el monarca necesitaba control sobre las finanzas y la fuerza militar."
-                    },
-                    {
-                        questionNumber: 4,
-                        question: "En la sociedad colonial americana (Chile incluido), el **mestizaje** y la **transculturación** son conceptos fundamentales. ¿Cuál es la diferencia entre ambos?",
-                        answerOptions: [
-                            { text: "El mestizaje es la mezcla de costumbres; la transculturación es la mezcla racial.", rationale: "Es al revés.", isCorrect: false },
-                            { text: "El mestizaje es la mezcla racial entre grupos étnicos; la transculturación es la mezcla y adaptación de elementos culturales de dos o más grupos.", rationale: "El mestizaje se refiere a lo biológico/racial, mientras que la transculturación se refiere a lo cultural (OA 11).", isCorrect: true },
-                            { text: "Ambos se refieren exclusivamente a la mezcla entre españoles e indígenas.", rationale: "El mestizaje se dio entre varios grupos (españoles, indígenas, africanos).", isCorrect: false },
-                            { text: "La transculturación solo ocurre en el ámbito político, y el mestizaje en el económico.", rationale: "Ambos se dan en los ámbitos social y cultural.", isCorrect: false }
-                        ],
-                        hint: "Recuerda que uno es un proceso biológico/racial y el otro es un proceso cultural."
-                    },
-                    {
-                        questionNumber: 5,
-                        question: "La economía **mercantilista** del siglo XVI se caracterizó por la:",
-                        answerOptions: [
-                            { text: "Libre competencia y mínima intervención del Estado.", rationale: "Esto es característico del liberalismo económico, no del mercantilismo.", isCorrect: false },
-                            { text: "Acumulación de metales preciosos (oro y plata) y el proteccionismo estatal.", rationale: "El mercantilismo se define por la riqueza en metales (bullonismo) y la fuerte intervención del Estado para proteger la producción nacional (OA 4).", isCorrect: true },
-                            { text: "Búsqueda del bienestar social por sobre el interés de la monarquía.", rationale: "El principal interés era el enriquecimiento del Estado.", isCorrect: false },
-                            { text: "Producción agrícola para la subsistencia y el trueque.", rationale: "Esto es una característica medieval.", isCorrect: false }
-                        ],
-                        hint: "El mercantilismo está intrínsecamente ligado a la riqueza monetaria y al control del comercio por parte de la monarquía."
-                    },
-                    {
-                        questionNumber: 6,
-                        question: "El concepto de **índice de desarrollo humano (IDH)** es un criterio para analizar el desarrollo de las regiones en Chile. Este índice considera:",
-                        answerOptions: [
-                            { text: "Solo la cantidad de recursos naturales explotados en la región.", rationale: "Esto es parte del desarrollo económico, pero no del IDH.", isCorrect: false },
-                            { text: "Aspectos físicos (vegetación, suelo y clima) de la región.", rationale: "Esto es geográfico, no de desarrollo humano.", isCorrect: false },
-                            { text: "El desarrollo sostenible y la reducción de la huella de carbono.", rationale: "Esto es parte del desarrollo sustentable, no directamente del IDH.", isCorrect: false },
-                            { text: "Tres dimensiones: vida larga y saludable (salud), acceso al conocimiento (educación) y nivel de vida digno (ingreso).", rationale: "El IDH es un indicador que mide el progreso de un país o región considerando estos tres aspectos fundamentales (OA 22).", isCorrect: true }
-                        ],
-                        hint: "El IDH es un indicador multidimensional que mide el bienestar de las personas."
-                    },
-                    {
-                        questionNumber: 7,
-                        question: "La Declaración de los **Derechos del Hombre y del Ciudadano (1789)**, surgida en el marco de la Revolución Francesa, influyó en la concepción actual de los Derechos Humanos al establecer:",
-                        answerOptions: [
-                            { text: "La superioridad de la ley natural sobre la ley escrita.", rationale: "La declaración buscaba establecer una ley escrita que garantizara los derechos.", isCorrect: false },
-                            { text: "El derecho divino del monarca como origen de la ley.", rationale: "La declaración fue una crítica al absolutismo y al derecho divino.", isCorrect: false },
-                            { text: "Que la ley debe ser la misma para todos (igualdad) y que la libertad es un derecho inalienable.", rationale: "Los principios de libertad, igualdad ante la ley y resistencia a la opresión son la base de los Derechos Humanos actuales (OA 18).", isCorrect: true },
-                            { text: "La legitimidad de la esclavitud en las colonias americanas.", rationale: "Los principios de la declaración contradecían la esclavitud.", isCorrect: false }
-                        ],
-                        hint: "Los principios ilustrados de esta declaración son la base de la modernidad política y legal."
-                    },
-                    {
-                        questionNumber: 8,
-                        question: "El impacto de la Conquista de América en la cultura europea fue la **ampliación del mundo conocido**. ¿Qué implicó este hecho para la ciencia de la época?",
-                        answerOptions: [
-                            { text: "Se confirmó la validez de los mapas y teorías geográficas medievales.", rationale: "Se demostró que eran incorrectos, obligando a crear nuevas cartografías.", isCorrect: false },
-                            { text: "Se consolidó el uso exclusivo de la razón para explicar los fenómenos.", rationale: "Este proceso fue gradual y no solo debido a la Conquista.", isCorrect: false },
-                            { text: "La necesidad de representar una nueva realidad geográfica y biológica, desafiando el conocimiento establecido.", rationale: "La aparición de nuevas tierras, flora, fauna y culturas obligó a la ciencia y la cartografía a revisar y ampliar sus modelos (OA 7).", isCorrect: true },
-                            { text: "El fin de la revolución científica.", rationale: "La revolución científica se consolidó después de la Conquista.", isCorrect: false }
-                        ],
-                        hint: "Piensa en el desafío que representó integrar los nuevos territorios y especies al conocimiento existente."
-                    },
-                    {
-                        questionNumber: 9,
-                        question: "La Guerra de Arauco, resultado del fracaso de la conquista española, llevó a la formación de una **sociedad de frontera** durante la Colonia en Chile. ¿Qué caracterizó esta zona de frontera?",
-                        answerOptions: [
-                            { text: "Una rígida separación, sin ninguna forma de intercambio cultural o comercial.", rationale: "Aunque hubo conflicto, existió intercambio cultural y comercial (parlamentos, trueque).", isCorrect: false },
-                            { text: "Un espacio geográfico y social donde se desarrollaron formas de convivencia, conflicto e influencia mutua entre españoles y mapuches.", rationale: "La frontera fue una zona dinámica de interacción, marcada tanto por los parlamentos como por los malones y las malocas (OA 12).", isCorrect: true },
-                            { text: "La completa asimilación de la cultura mapuche a la española a través de la evangelización forzosa.", rationale: "El pueblo mapuche mantuvo su autonomía política y territorial.", isCorrect: false },
-                            { text: "La desaparición total de la población mapuche debido a las enfermedades.", rationale: "Aunque la población disminuyó, se mantuvo fuerte en la frontera.", isCorrect: false }
-                        ],
-                        hint: "La sociedad de frontera es un espacio de intercambio y tensión constante."
-                    },
-                    {
-                        questionNumber: 10,
-                        question: "¿Cuál fue el rol principal de la **imprenta** en la difusión del conocimiento durante el paso a la Edad Moderna?",
-                        answerOptions: [
-                            { text: "Permitió la creación de ejércitos profesionales.", rationale: "La imprenta es un medio de comunicación, no de defensa.", isCorrect: false },
-                            { text: "Democratizó el acceso a los textos, facilitando la difusión del Humanismo y las ideas de la Reforma.", rationale: "La imprenta multiplicó la capacidad de reproducir libros, reduciendo costos y haciendo las ideas de la época accesibles a más personas (OA 2).", isCorrect: true },
-                            { text: "Fue la principal causa de la Revolución Científica.", rationale: "La Revolución Científica se basa en el método, no solo en la difusión.", isCorrect: false },
-                            { text: "Permitió la acumulación de metales preciosos por parte de los Reyes.", rationale: "La acumulación de metales se relaciona con el mercantilismo.", isCorrect: false }
-                        ],
-                        hint: "Piensa en el medio más eficiente para replicar y distribuir la información masivamente."
-                    },
-                    {
-                        questionNumber: 11,
-                        question: "La Ilustración postuló el concepto de **secularización**. ¿Qué implicó este proceso?",
-                        answerOptions: [
-                            { text: "La subordinación total de la razón a la fe religiosa.", rationale: "La Ilustración privilegió la razón sobre la fe.", isCorrect: false },
-                            { text: "El traspaso de funciones e instituciones desde el ámbito religioso al civil o estatal.", rationale: "La secularización es el proceso de quitar poder e influencia a la Iglesia en los asuntos públicos y otorgárselo al Estado laico (OA 14).", isCorrect: true },
-                            { text: "La creación de un nuevo sistema de creencias religiosas.", rationale: "La Ilustración no buscaba crear una nueva religión, sino separar Iglesia y Estado.", isCorrect: false },
-                            { text: "El monopolio del comercio internacional por parte del Estado.", rationale: "Esto es una característica del mercantilismo.", isCorrect: false }
-                        ],
-                        hint: "Se refiere a la separación de los asuntos de la Iglesia y los asuntos del Estado."
-                    },
-                    {
-                        questionNumber: 12,
-                        question: "En Geografía, ¿cuál de los siguientes factores corresponde a un **criterio físico** para definir una región?",
-                        answerOptions: [
-                            { text: "La religión común y la historia compartida de sus habitantes.", rationale: "Estos son criterios humanos o culturales.", isCorrect: false },
-                            { text: "El idioma predominante y el sistema político-administrativo.", rationale: "Estos son criterios humanos o políticos.", isCorrect: false },
-                            { text: "El índice de desarrollo humano (IDH) y la diversidad productiva.", rationale: "Estos son criterios socioeconómicos.", isCorrect: false },
-                            { text: "La vegetación predominante, el suelo y las condiciones climáticas.", rationale: "Estos son elementos naturales que definen las regiones geográficas (OA 20).", isCorrect: true }
-                        ],
-                        hint: "Los criterios físicos se relacionan con el medio natural, inanimado y biótico."
-                    },
-                    {
-                        questionNumber: 13,
-                        question: "La **Independencia de las colonias hispanoamericanas** fue un proceso continental. ¿Cuál es un factor común o de multicausalidad de este proceso, incluyendo a Chile?",
-                        answerOptions: [
-                            { text: "El apoyo militar directo y masivo de la monarquía española.", rationale: "La monarquía se opuso a la independencia.", isCorrect: false },
-                            { text: "La crisis de la monarquía española (captura del Rey Fernando VII) y la difusión del ideario ilustrado.", rationale: "La debilidad de la metrópoli y la adopción de ideas de soberanía popular fueron causas directas de los movimientos independentistas (OA 16).", isCorrect: true },
-                            { text: "El interés exclusivo de los mestizos por obtener igualdad social.", rationale: "El motor político fue principalmente la élite criolla, aunque mestizos y otros grupos participaron.", isCorrect: false },
-                            { text: "El fin de la economía mercantilista a nivel global.", rationale: "Aunque la economía estaba cambiando, la causa política era más directa.", isCorrect: false }
-                        ],
-                        hint: "La causa detonante se relaciona con la crisis política en España y la influencia de nuevas ideas."
-                    },
-                    {
-                        questionNumber: 14,
-                        question: "¿Qué forma de trabajo no remunerado se utilizó en la Colonia, que consistía en la entrega de un grupo de indígenas a un español para que este los evangelizara y protegiera a cambio de su trabajo?",
-                        answerOptions: [
-                            { text: "El Inquilinaje.", rationale: "El inquilinaje es un sistema de arriendo de tierras en Chile colonial y republicano.", isCorrect: false },
-                            { text: "La Mita.", rationale: "La mita era un sistema de trabajo por turnos en minas y obras públicas, especialmente en Perú y Bolivia.", isCorrect: false },
-                            { text: "La Encomienda.", rationale: "La encomienda fue el sistema que asignaba indígenas a un español (encomendero) para su 'protección y evangelización' a cambio de servicios de trabajo (OA 11).", isCorrect: true },
-                            { text: "El Peonaje.", rationale: "El peonaje era el trabajo de jornaleros en haciendas.", isCorrect: false }
-                        ],
-                        hint: "Este sistema fue clave en la organización del trabajo y la evangelización en los inicios de la Colonia."
-                    },
-                    {
-                        questionNumber: 15,
-                        question: "¿Cuál de las siguientes problemáticas se relaciona con los desafíos de la **conectividad y el aislamiento** en las regiones de Chile, según el temario?",
-                        answerOptions: [
-                            { text: "El Índice de Desarrollo Humano (IDH).", rationale: "El IDH es una medida de desarrollo, no de conectividad.", isCorrect: false },
-                            { text: "La densidad de la vegetación y el tipo de suelo.", rationale: "Estos son factores físicos que pueden CAUSAR el aislamiento, pero la problemática es la falta de conexión en sí.", isCorrect: false },
-                            { text: "El acceso a redes de transporte, servicios de salud e información.", rationale: "La falta de acceso a estos servicios e infraestructura es el indicador principal del aislamiento y sus efectos en la región (OA 21).", isCorrect: true },
-                            { text: "La creación de un sistema fiscal centralizado.", rationale: "Esto es una característica del Estado Moderno.", isCorrect: false }
-                        ],
-                        hint: "La conectividad se refiere a las vías y medios que permiten la comunicación y el acceso a los servicios esenciales."
-                    },
-                    {
-                        questionNumber: 16,
-                        question: "La **Revolución Científica** de los siglos XVI y XVII se caracterizó por:",
-                        answerOptions: [
-                            { text: "El establecimiento definitivo de la visión geocéntrica del universo.", rationale: "La Revolución Científica estableció la visión heliocéntrica.", isCorrect: false },
-                            { text: "El desarrollo de la imprenta y la creación de la pólvora.", rationale: "La imprenta es anterior, y la pólvora es una tecnología más antigua.", isCorrect: false },
-                            { text: "La adopción de la observación, la experimentación y la razón como fundamentos para el conocimiento (método científico).", rationale: "Este cambio metodológico (experimentación y razón) es el corazón de la Revolución Científica (OA 2).", isCorrect: true },
-                            { text: "La subordinación de la razón a la fe teológica.", rationale: "La Revolución Científica se basó en el cuestionamiento racional.", isCorrect: false }
-                        ],
-                        hint: "Este proceso se distingue por una transformación profunda en la **forma** de obtener conocimiento."
-                    },
-                    {
-                        questionNumber: 17,
-                        question: "El rol de la Iglesia Católica en el proceso de **evangelización** en América fue fundamental, principalmente porque:",
-                        answerOptions: [
-                            { text: "Se enfocó en la defensa de la autonomía política de los pueblos indígenas.", rationale: "La Iglesia tenía la misión de convertir a los indígenas a la fe católica, trabajando con la Corona española.", isCorrect: false },
-                            { text: "Promovió la abolición inmediata de la encomienda y la esclavitud.", rationale: "Aunque hubo defensores de los indígenas (como Bartolomé de las Casas), la Iglesia en su conjunto no abolió la esclavitud de forma inmediata.", isCorrect: false },
-                            { text: "Contribuyó a la instalación de la cosmovisión cristiana, creando instituciones educativas y hospitales, y justificando el dominio español.", rationale: "La Iglesia fue el pilar cultural y social del proceso, difundiendo la religión y las instituciones coloniales (OA 11).", isCorrect: true },
-                            { text: "Su función se limitó a los territorios que no fueron controlados por la Corona española.", rationale: "Su influencia fue central en los territorios dominados por España.", isCorrect: false }
-                        ],
-                        hint: "La Iglesia fue una institución clave para la estructura social y la justificación ideológica de la Colonia."
-                    },
-                    {
-                        questionNumber: 18,
-                        question: "El **desarrollo sustentable** en una región se frena principalmente por:",
-                        answerOptions: [
-                            { text: "Una alta diversidad productiva de la región.", rationale: "La diversidad productiva es positiva para el desarrollo.", isCorrect: false },
-                            { text: "La baja natalidad y el aumento de la migración.", rationale: "Aunque son desafíos demográficos, no son la principal causa del freno al desarrollo sustentable.", isCorrect: false },
-                            { text: "Problemas medioambientales graves, como la sobreexplotación de recursos o la contaminación descontrolada.", rationale: "El desarrollo sustentable busca el equilibrio entre lo económico, social y medioambiental. Los problemas ambientales rompen este equilibrio (OA 22).", isCorrect: true },
-                            { text: "Una buena inserción en los mercados internacionales.", rationale: "Esto es positivo para el desarrollo económico.", isCorrect: false }
-                        ],
-                        hint: "El desarrollo sustentable se refiere a la capacidad de satisfacer las necesidades actuales sin comprometer las de futuras generaciones, lo cual se ve afectado por el daño ambiental."
-                    },
-                    {
-                        questionNumber: 19,
-                        question: "Según el contexto de la sociedad colonial (OA 11), ¿qué eran las **castas**?",
-                        answerOptions: [
-                            { text: "Los grupos sociales con mayor poder económico, sin distinción racial.", rationale: "Las castas se basaban en la etnia y el origen.", isCorrect: false },
-                            { text: "Una rígida jerarquía social basada en la pureza de la sangre y el origen étnico de las personas.", rationale: "Las castas eran grupos étnico-sociales que definían la posición de los individuos, especialmente aquellos resultado de las mezclas (OA 11).", isCorrect: true },
-                            { text: "Los nombres dados a los pueblos indígenas antes de la Conquista.", rationale: "Las castas son un concepto colonial.", isCorrect: false },
-                            { text: "El sistema de arriendo de tierras a peones.", rationale: "Esto es el inquilinaje o el peonaje.", isCorrect: false }
-                        ],
-                        hint: "La sociedad de castas es una estructura social basada en la clasificación de las mezclas raciales."
-                    },
-                    {
-                        questionNumber: 20,
-                        question: "Al analizar el **ordenamiento constitucional** propuesto por la Ilustración, ¿qué buscaba asegurar en el ejercicio del poder político?",
-                        answerOptions: [
-                            { text: "La concentración de todos los poderes en la figura del monarca.", rationale: "Esto es el absolutismo, criticado por la Ilustración.", isCorrect: false },
-                            { text: "La limitación del poder del Estado mediante leyes y derechos, y la división de sus funciones.", rationale: "La Ilustración propuso constituciones para limitar el poder y establecer la separación (ejecutivo, legislativo, judicial) como garantía de libertad (OA 14).", isCorrect: true },
-                            { text: "La creación de un monopolio comercial con las colonias.", rationale: "Esto es un concepto económico, no constitucional.", isCorrect: false },
-                            { text: "El derecho a la esclavitud como forma de trabajo.", rationale: "La Ilustración promovió la libertad e igualdad.", isCorrect: false }
-                        ],
-                        hint: "El ordenamiento constitucional es el mecanismo legal para limitar el poder."
-                    },
-                    {
-                        questionNumber: 21,
-                        question: "El concepto de **región** en Geografía, además de factores físicos, se define por criterios humanos. ¿Cuál de los siguientes es un ejemplo de criterio humano?",
-                        answerOptions: [
-                            { text: "La variación de latitud en el territorio.", rationale: "Criterio físico.", isCorrect: false },
-                            { text: "La presencia de un cordón montañoso.", rationale: "Criterio físico.", isCorrect: false },
-                            { text: "Una lengua común, la religión y el tipo de actividad económica predominante.", rationale: "La lengua, religión e historia son ejemplos de criterios humanos que definen las regiones culturales, económicas y político-administrativas (OA 20).", isCorrect: true },
-                            { text: "La temperatura promedio anual.", rationale: "Criterio físico/climático.", isCorrect: false }
-                        ],
-                        hint: "Los criterios humanos son aquellos creados o modificados por la acción de las sociedades."
-                    },
-                    {
-                        questionNumber: 22,
-                        question: "¿Cuál fue el principal debate moral en Europa que surgió a raíz de la Conquista de América?",
-                        answerOptions: [
-                            { text: "El debate sobre la validez del mercantilismo como modelo económico.", rationale: "El mercantilismo no fue el foco del debate moral.", isCorrect: false },
-                            { text: "Los debates sobre la condición humana de los indígenas y la legitimidad de la Conquista.", rationale: "Los debates de Valladolid, liderados por figuras como Sepúlveda y Las Casas, se centraron en si los indígenas tenían alma y si era justa la guerra contra ellos (OA 7).", isCorrect: true },
-                            { text: "La necesidad de una nueva Reforma Protestante.", rationale: "La Reforma tenía su propio contexto en Europa.", isCorrect: false },
-                            { text: "El debate sobre la esclavitud de los europeos.", rationale: "El debate se centró en la esclavitud de africanos e indígenas.", isCorrect: false }
-                        ],
-                        hint: "Este debate ético y teológico se relaciona con el trato a los nuevos habitantes y la justificación de la guerra."
-                    },
-                    {
-                        questionNumber: 23,
-                        question: "¿Qué ocurrió en Chile que marcó un cambio político, económico y social decisivo en el proceso de Independencia?",
-                        answerOptions: [
-                            { text: "El fin del sistema de castas y la abolición de la esclavitud.", rationale: "Aunque la esclavitud se abolió, el cambio político más importante es la creación de un nuevo sistema de gobierno.", isCorrect: false },
-                            { text: "El paso de la Monarquía a la República como forma de gobierno y el fin del monopolio comercial español.", rationale: "El proceso independentista supuso el cambio de un régimen monárquico y centralizado a uno republicano y soberano, y el fin de las restricciones comerciales (OA 16).", isCorrect: true },
-                            { text: "La implementación de una economía mercantilista.", rationale: "La economía chilena tendió al librecambismo, no al mercantilismo.", isCorrect: false },
-                            { text: "El establecimiento de una religión única y oficial.", rationale: "La religión católica se mantuvo como oficial, pero la estructura política cambió radicalmente.", isCorrect: false }
-                        ],
-                        hint: "El cambio más significativo es la elección de un nuevo modelo de organización del Estado."
-                    },
-                    {
-                        questionNumber: 24,
-                        question: "La expansión del territorio, la burocracia y la creación de un sistema fiscal centralizado fueron elementos clave en el surgimiento de:",
-                        answerOptions: [
-                            { text: "El Imperio Romano.", rationale: "El Imperio Romano fue mucho antes de la Edad Moderna.", isCorrect: false },
-                            { text: "Los Reinos Medievales.", rationale: "Los reinos medievales se caracterizaban por la fragmentación del poder.", isCorrect: false },
-                            { text: "El Estado Moderno.", rationale: "Estos son los rasgos fundamentales que definieron a las monarquías nacionales en la época moderna (OA 3).", isCorrect: true },
-                            { text: "La Polis Griega.", rationale: "La Polis es un concepto de la antigüedad.", isCorrect: false }
-                        ],
-                        hint: "La respuesta se refiere al sistema político que sucedió a la fragmentación feudal."
-                    },
-                    {
-                        questionNumber: 25,
-                        question: "En la Colonia, los grupos sociales eran estamentales. Esto significa que la posición social de una persona se definía principalmente por:",
-                        answerOptions: [
-                            { text: "Su esfuerzo personal y su talento individual.", rationale: "Esto es más característico de la sociedad liberal o meritocrática.", isCorrect: false },
-                            { text: "Su riqueza monetaria acumulada (capital).", rationale: "La riqueza influía, pero el factor determinante era el nacimiento y la pertenencia a un estamento o casta.", isCorrect: false },
-                            { text: "El nacimiento, la pertenencia a un grupo (estamento) y la etnia.", rationale: "La sociedad colonial estaba rígidamente jerarquizada por origen y raza (castas), siendo el nacimiento y el estamento (ej: criollo, peninsular) el factor clave (OA 11).", isCorrect: true },
-                            { text: "Su nivel de educación académica en la universidad.", rationale: "La educación estaba restringida a las élites.", isCorrect: false }
-                        ],
-                        hint: "Una sociedad estamental es aquella donde la movilidad social es muy baja y el nacimiento es determinante."
-                    },
-                    {
-                        questionNumber: 26,
-                        question: "La Guerra de Arauco y la formación de la frontera mapuche permitieron que este pueblo mantuviera su **autonomía política y territorial** durante gran parte de la Colonia, lo cual es un ejemplo de:",
-                        answerOptions: [
-                            { text: "El fracaso total de la evangelización en la zona.", rationale: "Aunque la evangelización fue parcial, el aspecto clave es la autonomía política y militar.", isCorrect: false },
-                            { text: "El fracaso de la Conquista española en la zona sur y la consolidación de la autonomía territorial mapuche.", rationale: "El fracaso en dominar la Araucanía llevó a la Corona a reconocer una frontera y a negociar a través de parlamentos (OA 12).", isCorrect: true },
-                            { text: "La victoria total de la Corona sobre los pueblos del sur.", rationale: "Esto contradice la realidad histórica.", isCorrect: false },
-                            { text: "El proceso de formación del Estado de Chile.", rationale: "Esto ocurre después de la Colonia.", isCorrect: false }
-                        ],
-                        hint: "La frontera se estableció debido a que los españoles no lograron conquistar totalmente el territorio."
-                    },
-                    {
-                        questionNumber: 27,
-                        question: "¿Cuál de los siguientes hitos es un elemento de **continuidad** entre el orden social medieval y el orden social de la época moderna?",
-                        answerOptions: [
-                            { text: "El surgimiento de la burguesía como clase dominante.", rationale: "La burguesía fue un elemento de cambio, no de continuidad.", isCorrect: false },
-                            { text: "La importancia de la religión en la vida de las personas y la persistencia de una sociedad jerarquizada.", rationale: "Aunque la unidad se rompió, la fe y la estratificación social (nobleza) continuaron siendo importantes, al menos al principio (OA 2).", isCorrect: true },
-                            { text: "La concentración total del poder político en el Rey.", rationale: "Esto es un cambio: del poder fragmentado al centralizado.", isCorrect: false },
-                            { text: "El uso generalizado del método científico.", rationale: "Esto es un cambio característico de la Modernidad.", isCorrect: false }
-                        ],
-                        hint: "La continuidad se refiere a aquello que **permaneció** a pesar de los cambios."
-                    },
-                    {
-                        questionNumber: 28,
-                        question: "La **migración** en una región de Chile, según el temario, ¿qué tipo de impacto genera en el ámbito del **mercado laboral**?",
-                        answerOptions: [
-                            { text: "Un aumento de la densidad de vegetación.", rationale: "No tiene relación con el mercado laboral.", isCorrect: false },
-                            { text: "Una disminución de los índices demográficos.", rationale: "La migración puede aumentar o disminuir los índices demográficos, pero el impacto en el mercado laboral es directo.", isCorrect: false },
-                            { text: "La sobrecarga en los servicios de salud y educación, y la tensión en la oferta laboral.", rationale: "La migración (aumento de población) exige una mayor infraestructura de servicios públicos y genera tensión en la disponibilidad y los salarios del mercado laboral (OA 21).", isCorrect: true },
-                            { text: "La mejora inmediata de la conectividad regional.", rationale: "No es una consecuencia directa en la conectividad.", isCorrect: false }
-                        ],
-                        hint: "La migración tiene un impacto directo en la relación entre la oferta y la demanda de trabajo."
-                    },
-                    {
-                        questionNumber: 29,
-                        question: "¿Qué ocurrió inmediatamente después de la abdicación de Fernando VII durante la invasión napoleónica en España que sentó las bases para el movimiento independentista en América?",
-                        answerOptions: [
-                            { text: "Se estableció un gobierno monárquico absolutista en las colonias.", rationale: "Las colonias buscaron autogobernarse, no reinstalar el absolutismo.", isCorrect: false },
-                            { text: "La élite criolla decidió reconocer a Napoleón como su nuevo rey.", rationale: "La élite se negó a reconocer a un rey francés.", isCorrect: false },
-                            { text: "Se formaron Juntas de Gobierno en América, argumentando la reversión de la soberanía al pueblo.", rationale: "Ante la ausencia del rey, los criollos consideraron que la soberanía volvía al pueblo, lo que legitimó la creación de juntas, primer paso a la independencia (OA 16).", isCorrect: true },
-                            { text: "Se eliminó el sistema de castas y la esclavitud de forma inmediata.", rationale: "Estos cambios fueron posteriores.", isCorrect: false }
-                        ],
-                        hint: "La ausencia del Rey legítimo de España fue el detonante de la crisis del sistema colonial."
-                    },
-                    {
-                        questionNumber: 30,
-                        question: "En el contexto del mercantilismo, el concepto de **monopolio comercial** entre la metrópoli (España) y sus colonias (América) significa que:",
-                        answerOptions: [
-                            { text: "Las colonias podían comerciar libremente con cualquier nación de Europa.", rationale: "El monopolio impedía el comercio con otras naciones.", isCorrect: false },
-                            { text: "Solo España podía comerciar legalmente con sus colonias, excluyendo a otras naciones y obligando a las colonias a no comerciar entre ellas.", rationale: "El monopolio comercial garantizaba que todas las riquezas de América fueran a parar a España (OA 3).", isCorrect: true },
-                            { text: "Las colonias podían comerciar libremente entre ellas sin la intervención de la Corona.", rationale: "El monopolio también restringía el comercio intercolonial.", isCorrect: false },
-                            { text: "El comercio estaba dominado por los comerciantes criollos de América.", rationale: "Estaba dominado por la Corona y los peninsulares.", isCorrect: false }
-                        ],
-                        hint: "El monopolio comercial es la exclusividad del comercio para la Corona española."
-                    }
-                ]
-            }
-        };
+    <div id="quiz-screen" class="hide">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:center">
+          <div>
+            <strong id="subject-title"></strong>
+            <div class="small" id="qprogress">Pregunta <span id="curQ">1</span> / 30</div>
+          </div>
+          <div class="center">
+            <div class="small">Tiempo</div>
+            <div class="timer" id="timer">--:--</div>
+          </div>
+        </div>
 
-        let currentQuiz = null;
-        const passingScore = 18; // 60% of 30 questions
+        <div id="questionArea" class="question" aria-live="polite">
+          <!-- pregunta se inyecta aquí -->
+        </div>
 
-        // Función para cargar el quiz seleccionado
-        function loadQuiz(quizKey) {
-            currentQuiz = quizzes[quizKey];
-            document.getElementById('quiz-title').textContent = `Simulación: ${currentQuiz.title}`;
-            
-            const quizForm = document.getElementById('quiz-form');
-            quizForm.innerHTML = '';
-            
-            currentQuiz.questions.forEach((q, index) => {
-                const qCard = document.createElement('div');
-                qCard.className = 'question-card';
-                qCard.id = `q-${q.questionNumber}`;
+        <div class="footer">
+          <div>
+            <button id="prevBtn">Anterior</button>
+            <button id="nextBtn">Siguiente</button>
+          </div>
+          <div>
+            <button id="finishBtn" class="primary">Terminar y corregir</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-                let qHTML = `<div class="question-text">${q.questionNumber}. ${q.question}</div>`;
+    <div id="result-screen" class="hide card">
+      <h3>Resultado</h3>
+      <div id="resultSummary" class="result"></div>
+      <div id="reviewArea" class="hide">
+        <h4>Preguntas que fallaste</h4>
+        <div id="reviewList" class="review-list"></div>
+      </div>
+      <div style="margin-top:12px">
+        <button id="restartBtn">Volver a inicio</button>
+      </div>
+    </div>
 
-                q.answerOptions.forEach((option, i) => {
-                    qHTML += `
-                        <label class="answer-option">
-                            <input type="radio" name="q${q.questionNumber}" value="${i}" required>
-                            ${option.text}
-                        </label>
-                    `;
-                });
-                
-                qCard.innerHTML = qHTML;
-                quizForm.appendChild(qCard);
-            });
+    <p class="note">Puedes descargar o subir este archivo a GitHub Pages. Modifica el umbral de aprobación en el código (variable <code>PASS_THRESHOLD</code>) si quieres otro criterio.</p>
+  </div>
 
-            document.getElementById('menu-screen').style.display = 'none';
-            document.getElementById('results-screen').style.display = 'none';
-            document.getElementById('quiz-container').style.display = 'block';
+  <script>
+  /* ======================
+     Datos: bancos de preguntas
+     Cada bloque: {q, choices:[...], answer: 'A'|'B'|'C'|'D', explanation(optional)}
+     Basadas en el temario proporcionado: OA y ejes (Mat, Hist, Leng, Ciencias, Inglés).
+     ====================== */
 
-            // Render MathJax (for Matemática quiz)
-            if (quizKey === 'matematica') {
-                MathJax.typesetPromise();
-            }
+  const PASS_THRESHOLD = 0.60; // 60% para aprobar (puedes cambiar)
+  const TOTAL_QUESTIONS = 30;
+
+  const banks = {
+    matematica: [
+      {q:"¿Cuál es el resultado de (-4) × 6?", choices:["-24","24","-10","10"], answer:"A"},
+      {q:"Si 3/4 de una torta pesa 600 g, ¿cuánto pesa la torta completa?", choices:["800 g","750 g","900 g","1200 g"], answer:"A"},
+      {q:"¿Cuál es la raíz cuadrada de 144?", choices:["10","12","14","16"], answer:"B"},
+      {q:"Resuelve: 5x - 10 = 15. ¿x = ? ", choices:["1","3","5","7"], answer:"D"},
+      {q:"¿Cuál es la potencia: (2^3)×(2^2) ?", choices:["2^5","2^6","2^1","2^3"], answer:"A"},
+      {q:"En la función f(x)=3x+2, ¿cuál es el valor de f(4)?", choices:["14","12","10","8"], answer:"A"},
+      {q:"El teorema de Pitágoras se usa para:", choices:["Calcular áreas de triángulos","Determinar lados en triángulos rectángulos","Calcular perímetros sólo","Medir ángulos"], answer:"B"},
+      {q:"Si un rectángulo tiene área 48 y base 6, ¿cuál es su altura?", choices:["8","6","12","4"], answer:"A"},
+      {q:"¿Qué representa la pendiente de una función lineal?", choices:["El área bajo la curva","El cambio constante Δy/Δx","El eje x","La intersección con y"], answer:"B"},
+      {q:"¿Cuál es la forma correcta de multiplicar fracciones: (2/3)*(3/4)?", choices:["5/7","6/12","6/12 simplificado 1/2","6/12 = 1/2"], answer:"D"},
+      {q:"Si la regla de los signos: (-)×(-) = ?", choices:["-","0","+","No definido"], answer:"C"},
+      {q:"Convierte 0.75 a fracción", choices:["3/4","75/100","1/4","7/5"], answer:"A"},
+      {q:"Un triángulo rectángulo tiene catetos 3 y 4. La hipotenusa mide:", choices:["5","6","7","sqrt(25)"], answer:"A"},
+      {q:"Resolver: 2^3 × 2^2 =", choices:["2^5","2^6","8","4"], answer:"A"},
+      {q:"Si una caja contiene 24 manzanas y se reparten entre 6 niños, ¿cuántas recibe cada uno?", choices:["4","6","3","8"], answer:"D"},
+      {q:"¿Qué gráfico es más apropiado para comparar proporciones de categorías?", choices:["Diagrama de caja","Histograma","Gráfico de barras","Diagrama de dispersión"], answer:"C"},
+      {q:"¿Cuál es el percentil que divide en dos partes iguales?", choices:["Q1","Q3","Mediana (50º percentil)","Percentil 25"], answer:"C"},
+      {q:"Resuelve la ecuación: 4x = 20", choices:["5","4","6","3"], answer:"A"},
+      {q:"El volumen de un cubo cuyo lado mide 3 es:", choices:["9","27","6","81"], answer:"B"},
+      {q:"Si una función f tiene f(x+1)-f(x)=3 constante, se dice que el cambio es:", choices:["Variable","No es función","Constante 3","Inexistente"], answer:"C"},
+      {q:"¿Cuál es la unidad de medida de la corriente eléctrica?", choices:["Voltio","Amperio","Ohmio","Watt"], answer:"B"},
+      {q:"¿Qué representa la media aritmética de un conjunto?", choices:["El valor central exacto","La suma dividida por la cantidad","La moda","El rango"], answer:"B"},
+      {q:"¿Cuál es el resultado de 7 - (-2)?", choices:["5","9","-5","-9"], answer:"B"},
+      {q:"¿Cómo se representa 1/2 como decimal?", choices:["0.2","0.5","0.02","2"], answer:"B"},
+      {q:"Si a=2 y b=3, ¿cuál es a(b+1)?", choices:["8","7","6","5"], answer:"B"},
+      {q:"¿Cuál de las siguientes es una ecuación lineal?", choices:["x^2 + 1 = 0","2x + 3 = 7","x^3 = 8","xy + 2 = 0"], answer:"B"},
+      {q:"La suma de los ángulos internos de un triángulo es:", choices:["180°","360°","90°","270°"], answer:"A"},
+      {q:"¿Qué es una fracción mixta?", choices:["Fracción que es >1 y se escribe como entero y fracción","Fracción negativa","Fracción impropia equivalente a 1","Fracción con denominador 1"], answer:"A"},
+      {q:"¿Cuál es la representación de -0.25 en fracción?", choices:["-1/4","1/-4","-25/100","Todas correctas"], answer:"A"},
+      {q:"Si la probabilidad de que llueva es 1/4, ¿cuál es la probabilidad de que no llueva?", choices:["1/4","3/4","1/2","2/3"], answer:"B"}
+    ],
+
+    historia: [
+      {q:"La Ilustración defendía principalmente:", choices:["El absolutismo","La razón y los derechos","La vuelta al feudalismo","La teocracia"], answer:"B"},
+      {q:"La Declaración de los Derechos del Hombre y del Ciudadano se promulgó en:", choices:["1789","1776","1804","1810"], answer:"A"},
+      {q:"Un rasgo del Estado moderno fue:", choices:["Monarquías débiles","Monarquías centralizadas y burocracia","Ausencia de impuestos","Gobiernos tribales"], answer:"B"},
+      {q:"La imprenta contribuyó a:", choices:["Disminuir la difusión del conocimiento","Difusión del humanismo y conocimiento","Eliminar las bibliotecas","Crear monarquías"], answer:"B"},
+      {q:"La economía mercantilista promovía:", choices:["Libre comercio sin control","Acumulación de metales y proteccionismo","Economía comunista","Economía basada en servicios digitales"], answer:"B"},
+      {q:"La conquista de América provocó:", choices:["Solo beneficios para los indígenas","Transformaciones en Europa y debates morales","El fin de la historia","La unificación política de América inmediata"], answer:"B"},
+      {q:"En la sociedad colonial americana existía:", choices:["Igualdad social","Una estructura estamental y de castas","Democracia plena","Economía industrializada"], answer:"B"},
+      {q:"La mita y la encomienda son ejemplos de:", choices:["Sistemas tributarios modernos","Formas de trabajo forzado colonial","Instituciones educativas","Nuevas formas de agricultura sostenible"], answer:"B"},
+      {q:"El proceso de independencia de América fue:", choices:["Aislado en cada país","Continental y multicausal","Un único evento en 1810","Una idea del siglo XX"], answer:"B"},
+      {q:"La Revolución Científica ocurrió principalmente en los siglos:", choices:["XVIII-XIX","XVI-XVII","XII-XIII","XIX-XX"], answer:"B"},
+      {q:"Uno de los debates morales sobre la Conquista fue:", choices:["Si los indígenas eran sujetos de derechos","Si debían construir pirámides","Si había que abolir la imprenta","Si el humanismo existía"], answer:"A"},
+      {q:"La Ilustración influyó en:", choices:["El absolutismo exclusivamente","La crítica al absolutismo y el republicanismo","Eliminar la ciencia","Crear el feudalismo"], answer:"B"},
+      {q:"Qué es el mestizaje colonial?", choices:["Mezcla cultural y biológica entre grupos","Un sistema económico","Una técnica agrícola","Un movimiento político del siglo XX"], answer:"A"},
+      {q:"Los Derechos del Hombre y del Ciudadano están vinculados con:", choices:["La Ilustración","La Edad Media","La conquista romana","La revolución industrial del siglo XX"], answer:"A"},
+      {q:"El fracaso de la conquista de Arauco favoreció:", choices:["La autonomía mapuche y una frontera colonial","La colonización completa","La desaparición de los mapuches","La independencia inmediata de Chile"], answer:"A"},
+      {q:"La secularización promovida por la Ilustración significaba:", choices:["Imponer la religión en la política","Separar la autoridad religiosa de la política","Eliminar las leyes","Volver al mito"], answer:"B"},
+      {q:"La revolución de los precios se relaciona con:", choices:["Caída del comercio","Amplio flujo de metales preciosos y precios al alza","El uso exclusivo de trueque","La economía digital"], answer:"B"},
+      {q:"La formación del Estado moderno implicó:", choices:["Descentralización total","Concentración del poder en el rey y sistema fiscal centralizado","Fin de la burocracia","La desaparición de ejércitos"], answer:"B"},
+      {q:"El concepto de región en Geografía considera:", choices:["Solo características físicas","Factores físicos y humanos","Solo idioma","Solo latitud"], answer:"B"},
+      {q:"Un ejemplo de problema regional es:", choices:["Aislamiento y acceso a servicios","El número pi","Una ecuación lineal","Un sistema solar lejano"], answer:"A"},
+      {q:"La Ilustración defendía la idea de:", choices:["Soberanía del pueblo y separación de poderes","Monarquía absoluta sin límites","Que la Iglesia gobernara todo","Que no exista ley escrita"], answer:"A"},
+      {q:"La conversión de indígenas y evangelización fue central en:", choices:["La formación de la sociedad colonial","La independencia del siglo XX","La Ilustración","La revolución industrial"], answer:"A"},
+      {q:"La corona española usó la encomienda para:", choices:["Organizar trabajo forzado y extracción de recursos","Promover igualdad laboral","Financiar universidades","Crear democracia"], answer:"A"},
+      {q:"La idea de derechos humanos contemporáneos se relaciona con:", choices:["Solo doctrina religiosa","La Declaración de 1789 y la Universal de 1948","Un evento del siglo XII","La economía mercantilista"], answer:"B"},
+      {q:"La fronterización en la Colonia de Chile se relaciona con:", choices:["Completas victorias españolas","El fracaso parcial de la conquista y la autonomía mapuche","La creación de un Estado independiente en 1500","La llegada de la imprenta"], answer:"B"},
+      {q:"La Ilustración promovió la difusión del conocimiento por:", choices:["La censura impuesta","La imprenta y redes intelectuales","Cerrando universidades","La prohibición de viajes"], answer:"B"},
+      {q:"El sistema de castas colonial se basaba en:", choices:["Igualdad de derechos","Distinciones raciales y sociales","Una constitución moderna","Organización por regiones únicamente"], answer:"B"},
+      {q:"Una causa de las independencias americanas fue:", choices:["El apoyo absoluto de la monarquía española","La crisis de la monarquía y difusión de ideas ilustradas","La industrialización masiva local","La llegada de Internet"], answer:"B"}
+    ],
+
+    lenguaje: [
+      {q:"En una narración, el narrador que cuenta la historia en primera persona usa:", choices:["El pronombre 'él'","El pronombre 'yo'","El pronombre 'ellos'","El pronombre 'nosotros'"], answer:"B"},
+      {q:"Identificar la intención de un artículo de opinión implica distinguir:", choices:["Hecho y opinión","Fecha y autor","Género y tamaño","La tipografía"], answer:"A"},
+      {q:"El uso de repeticiones en un poema generalmente busca:", choices:["Confundir al lector","Crear ritmo y énfasis","Reducir la emoción","Eliminar imágenes"], answer:"B"},
+      {q:"Un símbolo literario es:", choices:["Una palabra con significado literal exclusivamente","Un objeto que representa una idea","Un tipo de párrafo","Una nota al pie"], answer:"B"},
+      {q:"Para verificar coherencia textual se debe revisar:", choices:["Conectores y organización de ideas","Solo la ortografía","Solo el título","La numeración de páginas"], answer:"A"},
+      {q:"Distinguir narrador y autor ayuda a:", choices:["Identificar la voz del texto y su perspectiva","Calcular la longitud del libro","Traducir el texto","Escribir solo poesía"], answer:"A"},
+      {q:"En un texto informativo, la diferencia entre hecho y opinión es:", choices:["No existe","Clave para evaluar la fiabilidad","Siempre la misma","Sólo en textos literarios"], answer:"B"},
+      {q:"Un personaje tipo en la literatura es:", choices:["Un personaje con rasgos estereotipados","Un personaje real histórico","Un lector","Un objeto inanimado"], answer:"A"},
+      {q:"Los conectores 'primero, luego, finalmente' sirven para:", choices:["Crear rimas","Organizar secuencia de ideas","Describir imágenes","Crear personajes"], answer:"B"},
+      {q:"Interpretar un poema implica analizar:", choices:["El lenguaje figurado y las imágenes","Solo la puntuación","Solo el autor","El formato de página"], answer:"A"},
+      {q:"Un análisis crítico de un medio incluye evaluar:", choices:["Propósito, hechos vs opiniones y suficiencia de información","Solo la estética","El tamaño de letra","El número de imágenes"], answer:"A"},
+      {q:"La planificación al escribir incluye:", choices:["Recopilar ideas y organizar antes de escribir","No usar conectores","Copiar un texto existente","Usar sólo oraciones largas"], answer:"A"},
+      {q:"Para mejorar la cohesión de un texto es útil:", choices:["Usar conectores adecuados y repetir ideas sin sentido","Eliminar párrafos","Usar vocabulario técnico en todo momento","Ignorar la audiencia"], answer:"A"},
+      {q:"Un lector infiere el conflicto de una historia a partir de:", choices:["Acciones y motivaciones de personajes","El tamaño del libro","La nota del autor","La fecha de publicación"], answer:"A"},
+      {q:"Cuál es un recurso del lenguaje poético?", choices:["Metáfora","Regla de tres","Ecuación","Plano cartesiano"], answer:"A"},
+      {q:"Identificar prejuicios en un texto implica:", choices:["Buscar estereotipos y afirmaciones no fundamentadas","Solo subrayar palabras difíciles","Contar páginas","Medir el texto"], answer:"A"},
+      {q:"La revisión ortográfica debe considerar:", choices:["Conjugaciones, concordancias y acentuación","Solo mayúsculas","Solo títulos","Solo la longitud"], answer:"A"},
+      {q:"El propósito implícito de un texto puede ser:", choices:["Persuadir, informar o entretener sin decirlo explícitamente","Siempre monetario","Sólo visual","Siempre neutral"], answer:"A"},
+      {q:"Un buen uso del registro es:", choices:["Adecuar vocabulario y estructura al destinatario","Usar palabras difíciles siempre","Ignorar el contexto","Copiar el tono de otro autor sin criterio"], answer:"A"},
+      {q:"Para distinguir hechos y opiniones se debe:", choices:["Buscar evidencia y argumentos que sustentan afirmaciones","Confiar en la primera frase","Basarse solo en imágenes","Contar adjetivos"], answer:"A"},
+      {q:"La interpretación de una obra debe estar:", choices:["Fundamentada en análisis y contexto histórico","Basada en intuición sin pruebas","Solo por la biografía del autor","Solo por el título"], answer:"A"},
+      {q:"Un poema crea imágenes apelando a:", choices:["Los sentidos y lenguaje figurado","La aritmética","La tabla periódica","La geografía"], answer:"A"},
+      {q:"Para escribir según el propósito hay que:", choices:["Adecuar estructura y vocabulario al género","Ignorar la audiencia","Escribir sin plan","Usar sólo frases cortas"], answer:"A"},
+      {q:"La comprensión literal extrae:", choices:["Información explícita del texto","Sólo interpretaciones","Opiniones del autor","Datos estadísticos únicamente"], answer:"A"},
+      {q:"Evaluar fuentes implica comparar:", choices:["Cómo diferentes medios presentan el mismo hecho","Solo el titular","Solo la fecha","Solo la estética"], answer:"A"},
+      {q:"Una buena tesis en un texto argumentativo presenta:", choices:["Una postura y argumentos que la sostienen","Sólo una lista de datos","Un poema","Una imagen"], answer:"A"},
+      {q:"Un efecto del uso repetido en un poema puede ser:", choices:["Refuerzo de una idea o ritmo","Eliminar sentido","Crear errores gramaticales","Aumentar el número de páginas"], answer:"A"},
+      {q:"¿Qué corrige la edición en un texto?", choices:["Ortografía, coherencia y estilo","Solo los títulos","Solo las imágenes","Solo la longitud"], answer:"A"},
+      {q:"Para analizar la disposición temporal en un texto se usan:", choices:["Marcadores temporales y recursos léxicos","Solo la portada","Solo el autor","Solo la tipografía"], answer:"A"}
+    ],
+
+    ciencias: [
+      {q:"Organelo donde ocurre la fotosíntesis en células vegetales:", choices:["Mitocondria","Cloroplasto","Núcleo","Ribosoma"], answer:"B"},
+      {q:"Las células procariotas se diferencian porque:", choices:["Tienen núcleo definido","No tienen núcleo definido","Tienen cloroplastos siempre","No tienen membrana"], answer:"B"},
+      {q:"La osmosis en plantas implica movimiento de:", choices:["Soluto a través de membrana","Agua desde menor a mayor concentración de solutos","Agua en cualquier dirección sin diferencia","Sólo iones"], answer:"B"},
+      {q:"El sistema circulatorio transporta principalmente:", choices:["Sólo oxígeno","Nutrientes, gases y desechos","Solo hormonas","Solo agua"], answer:"B"},
+      {q:"El intercambio gaseoso en pulmones ocurre en:", choices:["Bronquios","Alvéolos","Tráquea","Diafragma"], answer:"B"},
+      {q:"El calor se transfiere por conducción, convección y:", choices:["Evaporación","Radiación","Combustión","Fricción"], answer:"B"},
+      {q:"La ley de Ohm relaciona V, I y R como:", choices:["V = I × R","V = I / R","R = V - I","I = V + R"], answer:"A"},
+      {q:"La tabla periódica agrupa elementos según:", choices:["Color","Número atómico","Tamaño del país","Tipo de molécula"], answer:"B"},
+      {q:"Dalton, Thomson y Rutherford son:", choices:["Modelos de gobierno","Modelos atómicos históricos","Nombres de islas","Inventores de la imprenta"], answer:"B"},
+      {q:"Una medida de posición es:", choices:["Media aritmética","Percentil","Integral","Radio"], answer:"B"},
+      {q:"La fermentación es un cambio:", choices:["Físico","Químico","Astronómico","Geométrico"], answer:"B"},
+      {q:"El nefrón pertenece al:", choices:["Hígado","Riñón","Pulmón","Corazón"], answer:"B"},
+      {q:"Los eritrocitos son células que:", choices:["Producen hormonas","Transportan oxígeno","Nerviosas","Forman hueso"], answer:"B"},
+      {q:"La difusión a nivel alveolar es un proceso de:", choices:["Transporte activo","Intercambio gaseoso por gradiente de concentración","Transporte por bomba","Movimiento muscular"], answer:"B"},
+      {q:"El calor específico describe:", choices:["Capacidad térmica por unidad de masa","Temperatura absoluta","Volumen","Conductividad eléctrica"], answer:"A"},
+      {q:"Un ejemplo de protección contra temperaturas extremas es:", choices:["Aislamiento térmico","Aceleración","Magnetismo","Radiación sonora"], answer:"A"},
+      {q:"La fotosíntesis produce principalmente:", choices:["Dióxido de carbono","Oxígeno y glucosa","Nitrógeno","Cloro"], answer:"B"},
+      {q:"La respiración celular ocurre en:", choices:["Núcleo","Mitocondria","Pared celular","Cloroplasto"], answer:"B"},
+      {q:"Una investigación científica incluye:", choices:["Observar, plantear preguntas, analizar evidencia","Adivinar resultados","Imitar un experimento sin registro","Comentar en redes sociales"], answer:"A"},
+      {q:"El concepto de equilibrio térmico indica:", choices:["Temperaturas iguales entre cuerpos en contacto","Temperaturas opuestas","Energía infinita","Fusión inmediata"], answer:"A"},
+      {q:"La conductividad eléctrica es típica de:", choices:["Metales","Gases inertes","Líquidos no iónicos","Materia orgánica pura"], answer:"A"},
+      {q:"La dilatación térmica es un fenómeno que ocurre cuando:", choices:["La temperatura cambia y objetos se expanden o contraen","La presión es cero","No hay energía","Solo en líquidos"], answer:"A"},
+      {q:"El calor latente está relacionado con:", choices:["Cambio de estado sin cambio de temperatura","Cambio de color","Cambio de forma sólo","Disolución"], answer:"A"},
+      {q:"En una investigación hay que comunicar resultados para:", choices:["Permitir evaluación y reproducibilidad","Mantenerlos en secreto","Evitar críticas","Ocultar errores"], answer:"A"},
+      {q:"El ejercicio físico influye en:", choices:["Parámetros fisiológicos como frecuencia cardíaca","Nada del cuerpo","Sólo la voz","Solo el pelo"], answer:"A"},
+      {q:"La transpiración en plantas controla:", choices:["Intercambio de gases y pérdida de agua","Movimiento de raíces","Producción de semillas","Polinización"], answer:"A"},
+      {q:"Los enlaces iónicos se forman entre:", choices:["Metales y no metales con transferencia de electrones","Dos metales","Dos gases nobles","Dos no metales covalentes"], answer:"A"},
+      {q:"La energía eléctrica en casa se mide en:", choices:["Watts y kilovatios-hora","Metros","Gramos","Litros"], answer:"A"},
+      {q:"La diferencia entre calor y temperatura es que:", choices:["Son exactamente lo mismo","Calor es energía en transferencia; temperatura mide agitación térmica","Temperatura es energía transferida","Calor mide masa"], answer:"B"},
+      {q:"Un experimento controlado requiere:", choices:["Variables controladas y registro de evidencia","Resultados aleatorios sin registro","Solo teoría","No comparar muestras"], answer:"A"}
+    ],
+
+    ingles: [
+      {q:"(Reading) What is the main idea of a short text?","choices":["Author's name","Main topic or general idea","Number of words","Publishing date"], answer:"B"},
+      {q:"(Grammar) 'She ___ to the store yesterday.' (past of go)", choices:["goes","went","gone","going"], answer:"B"},
+      {q:"(Vocab) 'I enjoy swimming' - 'enjoy' means:", choices:["dislike","like","stop","forget"], answer:"B"},
+      {q:"(Reading) To find specific information in a text you should:", choices:["Skim for general idea","Scan for details","Ignore punctuation","Only read titles"], answer:"B"},
+      {q:"(Writing) To express future plans use:", choices:["I go tomorrow","I am going to","I went to","I goed to"], answer:"B"},
+      {q:"(Vocab) 'bookshop' is a place where you:", choices:["buy books","sleep","cook","drive"], answer:"A"},
+      {q:"(Grammar) 'There are a lot of people' indicates:", choices:["Quantity","Comparison","Possession","Negation"], answer:"A"},
+      {q:"(Reading) A text's purpose can be to:", choices:["Inform, persuade or entertain","Only confuse","Only sell products","Only rhyme"], answer:"A"},
+      {q:"(Vocab) 'holiday' in British English means:", choices:["vacation","job","school","homework"], answer:"A"},
+      {q:"(Grammar) Comparative: 'He is taller ___ Tom.'", choices:["than","that","as","from"], answer:"A"},
+      {q:"(Writing) Use 'first, next, finally' to:", choices:["show sequence","create rhyme","express quantity","compare"], answer:"A"},
+      {q:"(Vocab) 'smartphone' refers to:", choices:["A mobile device with apps","A type of book","A food","A clothes item"], answer:"A"},
+      {q:"(Grammar) 'I never visit the country.' indicates:", choices:["Frequency","Future","Quantity","Comparison"], answer:"A"},
+      {q:"(Reading) To identify opinion vs fact, look for:", choices:["Evidence and value statements","Length of text","Number of pictures","Title font"], answer:"A"},
+      {q:"(Writing) To ask 'When is the party?' appropriate answer:", choices:["On Saturday","He is tall","I eat","Blue"], answer:"A"},
+      {q:"(Vocab) 'travel agent' works at a:", choices:["travel agency","bank","school","hospital"], answer:"A"},
+      {q:"(Grammar) 'She'd like a coffee' means:", choices:["She would like","She did like","She had","She will"], answer:"A"},
+      {q:"(Reading) Match headings: best strategy is to:", choices:["Read first and last sentences","Count words","Translate whole text","Check images only"], answer:"A"},
+      {q:"(Vocab) 'renewable energy' includes:", choices:["solar and wind","coal only","oil only","gas only"], answer:"A"},
+      {q:"(Grammar) 'How many people are there?' answer example:", choices:["There are 20 people.","He is tall.","Blue.","Yes."], answer:"A"},
+      {q:"(Writing) To describe preferences: 'I ___ swimming.'", choices:["love","loves","loving","loved"], answer:"A"},
+      {q:"(Reading) Skimming means:", choices:["Reading quickly for general idea","Reading every word slowly","Only reading pictures","Ignoring the text"], answer:"A"},
+      {q:"(Vocab) 'landmark' means:", choices:["Important monument or place","A small animal","A food","A tool"], answer:"A"},
+      {q:"(Grammar) 'They are arriving tomorrow morning' expresses:", choices:["Future plan","Past event","Present habit","Command"], answer:"A"},
+      {q:"(Writing) To express condition use:", choices:["If + clause","Because + clause","When + past","So that + past"], answer:"A"},
+      {q:"(Vocab) 'souvenirs' are:", choices:["Things bought to remember a trip","Buildings","Foods","Transport"], answer:"A"},
+      {q:"(Reading) To find main idea look for:", choices:["Topic sentence and repeated idea","Last word only","Number of pictures","Author's age"], answer:"A"},
+      {q:"(Grammar) 'She is the first/third' expresses:", choices:["Order/position","Quantity only","Time only","Negation"], answer:"A"},
+      {q:"(Writing) Use connectors 'first, next, finally' to create:", choices:["Sequence","Rhyme","Antonyms","Equations"], answer:"A"}
+    ]
+  };
+
+  /* ======================
+     Lógica del quiz
+     ====================== */
+
+  let currentBank = [];
+  let userAnswers = [];
+  let currentIndex = 0;
+  let timerInterval = null;
+  let timeLeft = 0; // segundos
+
+  const subjectNames = {
+    matematica: "Matemáticas",
+    historia: "Historia, Geografía y Cs. Sociales",
+    lenguaje: "Lengua y Literatura",
+    ciencias: "Ciencias Naturales",
+    ingles: "Inglés"
+  };
+
+  // UI refs
+  const startBtn = document.getElementById('startBtn');
+  const subjectSelect = document.getElementById('subject');
+  const timerToggle = document.getElementById('timer-toggle');
+  const startScreen = document.getElementById('start-screen');
+  const quizScreen = document.getElementById('quiz-screen');
+  const questionArea = document.getElementById('questionArea');
+  const curQ = document.getElementById('curQ');
+  const qprogress = document.getElementById('qprogress');
+  const subjectTitle = document.getElementById('subject-title');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const finishBtn = document.getElementById('finishBtn');
+  const timerEl = document.getElementById('timer');
+  const resultScreen = document.getElementById('result-screen');
+  const resultSummary = document.getElementById('resultSummary');
+  const reviewArea = document.getElementById('reviewArea');
+  const reviewList = document.getElementById('reviewList');
+  const restartBtn = document.getElementById('restartBtn');
+
+  function shuffle(arr){ return arr.sort(()=>Math.random()-0.5); }
+
+  function startQuiz(){
+    const subj = subjectSelect.value;
+    subjectTitle.textContent = subjectNames[subj];
+    // clone and shuffle, then take TOTAL_QUESTIONS
+    currentBank = JSON.parse(JSON.stringify(banks[subj] || []));
+    // if bank has less than required, will repeat some randomly (fallback)
+    if(currentBank.length < TOTAL_QUESTIONS){
+      while(currentBank.length < TOTAL_QUESTIONS){
+        currentBank = currentBank.concat(JSON.parse(JSON.stringify(banks[subj])));
+      }
+    }
+    currentBank = shuffle(currentBank).slice(0, TOTAL_QUESTIONS);
+    userAnswers = new Array(TOTAL_QUESTIONS).fill(null);
+    currentIndex = 0;
+    renderQuestion();
+    startScreen.classList.add('hide');
+    quizScreen.classList.remove('hide');
+    resultScreen.classList.add('hide');
+
+    // timer
+    if(timerToggle.value === 'on'){
+      timeLeft = 90*60; // 90 minutes in seconds
+      updateTimerDisplay();
+      timerInterval = setInterval(()=>{
+        timeLeft--;
+        updateTimerDisplay();
+        if(timeLeft <= 0){ clearInterval(timerInterval); finishQuiz(); }
+      },1000);
+    } else {
+      timerEl.textContent = '--:--';
+    }
+  }
+
+  function updateTimerDisplay(){
+    const m = String(Math.floor(timeLeft/60)).padStart(2,'0');
+    const s = String(timeLeft%60).padStart(2,'0');
+    timerEl.textContent = `${m}:${s}`;
+  }
+
+  function renderQuestion(){
+    const item = currentBank[currentIndex];
+    curQ.textContent = currentIndex+1;
+    qprogress.innerHTML = `Pregunta <strong>${currentIndex+1}</strong> / ${TOTAL_QUESTIONS}`;
+    // Build HTML
+    let html = `<div><strong>Pregunta ${currentIndex+1}:</strong> ${escapeHtml(item.q)}</div>`;
+    html += `<div class="alternatives">`;
+    const letters = ['A','B','C','D'];
+    for(let i=0;i<4;i++){
+      const letter = letters[i];
+      const text = item.choices[i] || '';
+      const selected = userAnswers[currentIndex]===letter ? 'selected' : '';
+      html += `<div class="alt ${selected}" data-choice="${letter}"><strong>${letter}.</strong> ${escapeHtml(text)}</div>`;
+    }
+    html += `</div>`;
+    questionArea.innerHTML = html;
+    // attach click handlers
+    document.querySelectorAll('.alt').forEach(el=>{
+      el.addEventListener('click',()=>{
+        document.querySelectorAll('.alt').forEach(a=>a.classList.remove('selected'));
+        el.classList.add('selected');
+        userAnswers[currentIndex] = el.getAttribute('data-choice');
+      });
+    });
+    // prev/next button state
+    prevBtn.disabled = currentIndex===0;
+    nextBtn.disabled = currentIndex===TOTAL_QUESTIONS-1;
+  }
+
+  function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  prevBtn.addEventListener('click',()=>{
+    if(currentIndex>0){ currentIndex--; renderQuestion(); }
+  });
+
+  nextBtn.addEventListener('click',()=>{
+    if(currentIndex < TOTAL_QUESTIONS-1){ currentIndex++; renderQuestion(); }
+  });
+
+  finishBtn.addEventListener('click', finishQuiz);
+
+  function finishQuiz(){
+    if(timerInterval){ clearInterval(timerInterval); timerInterval=null; }
+    // grade
+    let correct = 0;
+    const missed = [];
+    for(let i=0;i<TOTAL_QUESTIONS;i++){
+      const right = currentBank[i].answer;
+      const user = userAnswers[i];
+      if(user === right){ correct++; }
+      else {
+        missed.push({index:i+1, q:currentBank[i].q, correct:right, chosen:user, choices:currentBank[i].choices});
+      }
+    }
+    const pct = Math.round( (correct / TOTAL_QUESTIONS) * 100 );
+    const passed = (correct / TOTAL_QUESTIONS) >= PASS_THRESHOLD;
+    // show result
+    quizScreen.classList.add('hide');
+    resultScreen.classList.remove('hide');
+    resultSummary.innerHTML = `<strong>Puntaje:</strong> ${correct} / ${TOTAL_QUESTIONS} &nbsp; — &nbsp; <strong>${pct}%</strong>
+      <div class="${passed ? 'pass' : 'fail'}" style="margin-top:8px"><strong>${passed ? 'APROBADO' : 'REPROBADO'}</strong></div>
+      <div class="small" style="margin-top:8px">Umbral de aprobación: ${Math.round(PASS_THRESHOLD*100)}%</div>
+    `;
+    if(missed.length>0){
+      reviewArea.classList.remove('hide');
+      reviewList.innerHTML = '';
+      missed.forEach(item=>{
+        const letters=['A','B','C','D'];
+        let choicesHtml = '<ul>';
+        for(let i=0;i<4;i++){
+          const L=letters[i];
+          const txt = item.choices[i] || '';
+          const isCorrect = (L === item.correct);
+          const mark = isCorrect ? '✓' : '';
+          choicesHtml += `<li><strong>${L}.</strong> ${escapeHtml(txt)} ${isCorrect ? '<em style="color:var(--accent)"> (correcta)</em>' : ''}</li>`;
         }
+        choicesHtml += '</ul>';
+        const chosenText = item.chosen ? item.chosen : '(sin respuesta)';
+        reviewList.innerHTML += `<div style="margin-bottom:12px">
+          <div><strong>Pregunta ${item.index}:</strong> ${escapeHtml(item.q)}</div>
+          <div class="small">Tu respuesta: <strong>${escapeHtml(chosenText)}</strong></div>
+          ${choicesHtml}
+        </div>`;
+      });
+    } else {
+      reviewArea.classList.add('hide');
+    }
+  }
 
-        // Función para revisar los resultados
-        function checkResults() {
-            let correctCount = 0;
-            const totalQuestions = currentQuiz.questions.length;
+  restartBtn.addEventListener('click',()=>{
+    if(timerInterval){ clearInterval(timerInterval); timerInterval=null; }
+    startScreen.classList.remove('hide');
+    quizScreen.classList.add('hide');
+    resultScreen.classList.add('hide');
+  });
 
-            currentQuiz.questions.forEach((q, qIndex) => {
-                const selectedOption = document.querySelector(`input[name="q${q.questionNumber}"]:checked`);
-                
-                if (selectedOption) {
-                    const selectedIndex = parseInt(selectedOption.value);
-                    const correctAnswerIndex = q.answerOptions.findIndex(opt => opt.isCorrect);
+  startBtn.addEventListener('click', startQuiz);
 
-                    if (selectedIndex === correctAnswerIndex) {
-                        correctCount++;
-                    }
-                }
-            });
+  // keyboard shortcuts: N,S,F
+  document.addEventListener('keydown',(e)=>{
+    if(quizScreen.classList.contains('hide')) return;
+    if(e.key.toLowerCase()==='n'){ nextBtn.click(); }
+    if(e.key.toLowerCase()==='p'){ prevBtn.click(); }
+    if(e.key.toLowerCase()==='f'){ finishBtn.click(); }
+  });
 
-            const percentage = ((correctCount / totalQuestions) * 100).toFixed(1) + '%';
-            
-            const resultsScreen = document.getElementById('results-screen');
-            const resultMessage = document.getElementById('result-message');
-            
-            document.getElementById('correct-count').textContent = correctCount;
-            document.getElementById('percentage').textContent = percentage;
+  // Accessibility: tapping alt via keyboard (optional)
+  questionArea.addEventListener('keydown',(e)=>{
+    if(e.target.classList.contains('alt') && (e.key==='Enter' || e.key===' ')) e.target.click();
+  });
 
-            if (correctCount >= passingScore) {
-                resultMessage.textContent = `¡Felicidades! Aprobaste el examen.`;
-                resultMessage.className = 'result-pass';
-            } else {
-                resultMessage.textContent = `No Aprobaste. Debes obtener ${passingScore} correctas para aprobar.`;
-                resultMessage.className = 'result-fail';
-            }
-
-            document.getElementById('quiz-container').style.display = 'none';
-            resultsScreen.style.display = 'block';
-        }
-
-        // Función para reiniciar
-        function resetQuiz() {
-            document.getElementById('results-screen').style.display = 'none';
-            document.getElementById('menu-screen').style.display = 'flex';
-            currentQuiz = null;
-        }
-
-        // Función para aplicar estilos a las ecuaciones LaTeX si no se renderizan bien
-        document.addEventListener('DOMContentLoaded', () => {
-            const mathElements = document.querySelectorAll('span.math, span.inline-math');
-            mathElements.forEach(el => {
-                el.classList.add('math-container');
-            });
-        });
-    </script>
+  // On load: (nothing)
+  </script>
 </body>
 </html>
