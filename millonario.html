@@ -32,7 +32,7 @@
 
         /**
          * Llama a la función de inicio principal del juego solo una vez.
-         * ESTA FUNCIÓN AHORA SE LLAMA LO ANTES POSIBLE PARA DIBUJAR LA UI.
+         * ESTA FUNCIÓN SE LLAMA LO ANTES POSIBLE PARA DIBUJAR LA UI.
          */
         function handleInitGame() {
             if (isGameInitialized) return; 
@@ -229,7 +229,7 @@
         /* --- LAYOUT PRINCIPAL CLICKER (3 Columnas) --- */
         #main-game-layout {
             display: grid;
-            grid-template-columns: 250px auto 250px; 
+            grid-template-columns: 280px auto 280px; /* AUMENTADO para mejor visualización de botones */
             width: 100%;
             min-height: 100vh;
             max-width: 1400px; 
@@ -243,7 +243,6 @@
             padding: 10px 5px;
             overflow-y: auto; 
             height: 100%;
-            min-height: 100vh;
         }
 
         #generadores-panel {
@@ -548,7 +547,7 @@
                 <div id="mejoras-clic-panel" class="side-panel">
                     <h2>Mejoras de Clic (IPC)</h2>
                     <div id="mejoras-clic-tienda">
-                        <!-- El JS poblará esto INSTANTÁNEAMENTE al iniciar -->
+                        <!-- Puntos de mejora de IPC se dibujan aquí -->
                     </div>
                 </div>
 
@@ -573,7 +572,7 @@
                 <div id="generadores-panel" class="side-panel">
                     <h2>Generadores Pasivos (IPS)</h2>
                     <div id="generadores-tienda">
-                        <!-- El JS poblará esto INSTANTÁNEAMENTE al iniciar -->
+                        <!-- Generadores pasivos (IPS) se dibujan aquí -->
                     </div>
                 </div>
 
@@ -590,21 +589,21 @@
                 <div class="asset-section">
                     <h2>Vehículos (Lujos)</h2>
                     <div id="tienda-vehiculos" class="asset-shop">
-                        <!-- El JS poblará esto INSTANTÁNEAMENTE al iniciar -->
+                        <!-- Tienda de Vehículos -->
                     </div>
                 </div>
 
                 <div class="asset-section">
                     <h2>Propiedades (Lujos)</h2>
                     <div id="tienda-propiedades" class="asset-shop">
-                        <!-- El JS poblará esto INSTANTÁNEAMENTE al iniciar -->
+                        <!-- Tienda de Propiedades -->
                     </div>
                 </div>
 
                 <div class="asset-section">
                     <h2>Inversión Bursátil (Acciones)</h2>
                     <div id="tienda-acciones" class="asset-shop">
-                        <!-- El JS poblará esto INSTANTÁNEAMENTE al iniciar -->
+                        <!-- Tienda de Acciones -->
                     </div>
                 </div>
             </div>
@@ -620,7 +619,7 @@
                 <div class="company-section" style="grid-column: 1 / span 3;">
                     <h2>Oportunidades de Negocio (Comprar Unidades)</h2>
                     <div id="tienda-empresas" class="company-shop">
-                        <!-- El JS poblará esto INSTANTÁNEAMENTE al iniciar -->
+                        <!-- Tienda de Empresas -->
                     </div>
                 </div>
                 
@@ -644,7 +643,7 @@
                 <div class="investment-section" style="grid-column: 1 / span 3;">
                     <h2>Fondos de Inversión Fija (Binario)</h2>
                     <div id="tienda-inversiones" class="investment-shop">
-                         <!-- El JS poblará esto INSTANTÁNEAMENTE al iniciar -->
+                         <!-- Tienda de Inversiones -->
                     </div>
                 </div>
                 
@@ -807,13 +806,19 @@
                 almacenamiento = estadoJuego.generadores;
             } else if (item.tipo === 'accion') {
                 almacenamiento = estadoJuego.acciones;
-            } else if (item.tipo === 'empresa') {
-                almacenamiento = estadoJuego.empresas;
             } else if (['vehiculo', 'propiedad', 'inversion'].includes(item.tipo)) {
                 almacenamiento = estadoJuego.propiedades;
                 esBinario = true;
+            } else if (item.tipo === 'empresa') {
+                almacenamiento = estadoJuego.empresas;
             }
             
+            // Si el item no fue categorizado correctamente, salimos.
+            if (!almacenamiento) {
+                console.error("Categoría de item no definida correctamente para:", id);
+                return;
+            }
+
             const cantidadActual = esBinario ? (almacenamiento[id] ? 1 : 0) : (almacenamiento[id] || 0);
             const costo = calcularCosto(item, cantidadActual);
 
@@ -840,11 +845,7 @@
             actualizarDisplay();
             
             // Redibujar solo la sección afectada
-            if (item.id.startsWith('mejora_ipc')) dibujarTiendaIPC();
-            else if (ITEMS_IPS.includes(item)) dibujarTiendaIPS();
-            else if (item.tipo === 'accion' || item.tipo === 'vehiculo' || item.tipo === 'propiedad') dibujarTiendaActivos();
-            else if (item.tipo === 'empresa') dibujarTiendaEmpresas();
-            else if (item.tipo === 'inversion') dibujarTiendaInversiones();
+            dibujarTodasLasTiendas(); // Simplificamos redibujando todo por si el item afecta múltiples vistas
 
             actualizarBotones(); 
             guardarJuego();
@@ -882,7 +883,8 @@
             // --- 3. Activos Binarios (Propiedades, Vehículos, Inversiones Fijas) ---
             const binarios = [...ITEMS_ACTIVOS.filter(i => i.tipo !== 'accion'), ...ITEMS_INVESTMENTS];
             binarios.forEach(item => {
-                if (estadoJuego.propiedades[item.id]) {
+                // Todos los items binarios (propiedades, vehiculos, inversiones) se guardan en estadoJuego.propiedades
+                if (estadoJuego.propiedades[item.id]) { 
                     ips_total += item.ips_fijo;
                 }
             });
@@ -916,7 +918,7 @@
             ITEMS_IPC.forEach(item => {
                 const yaComprado = estadoJuego.mejoras[item.id];
                 
-                if (yaComprado) return; 
+                if (yaComprado) return; // Si ya se compró, no se dibuja
                 
                 mejorasPendientes = true;
                 const costo = calcularCosto(item, 0);
