@@ -91,62 +91,90 @@
             activos: {},
             empresas: {},
             inversiones: {},
+            crypto: {
+                bitcoin: { cantidad: 0, valorActual: 20000, costoPromedio: 0 },
+                ethereum: { cantidad: 0, valorActual: 1500, costoPromedio: 0 }
+            },
+            estadisticas: {
+                totalClicks: 0,
+                dineroPorClicks: 0,
+                dineroPasivo: 0,
+                dineroCrypto: 0
+            },
             ultimosSegundos: Date.now()
         };
         
         // ID de la aplicación para Firebase Firestore
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const TIENDA_PATH = `/artifacts/${APP_ID}/users/${window.userId}/tiendaJuego`;
+        
+        // --- CONSTANTES GLOBALES DE CRYPTO ---
+        const CRYPTO_FLUCTUATION_RATE = 0.05; // 5% de cambio máximo por hora
+        const CRYPTO_UPDATE_INTERVAL = 60000; // 60 segundos (1 minuto) para cambios en el valor
+        
 
         // --- DEFINICIÓN DE TIENDAS ---
         const mejorasClick = {
             'dedo-rapido': { nombre: 'Dedo Rápido 🤏', costoBase: 10, costoEscalado: 1.15, ipcAumento: 1, tipo: 'ipc', icono: '👋' },
             'mouse-gamer': { nombre: 'Mouse Gamer 🖱️', costoBase: 100, costoEscalado: 1.15, ipcAumento: 10, tipo: 'ipc', icono: '🎮' },
-            'ai-clicker': { nombre: 'Asistente IA 🤖', costoBase: 1000, costoEscalado: 1.15, ipcAumento: 100, tipo: 'ipc', icono: '💡' }
+            'ai-clicker': { nombre: 'Asistente IA 🤖', costoBase: 1000, costoEscalado: 1.15, ipcAumento: 100, tipo: 'ipc', icono: '💡' },
+            'bot-autoclick': { nombre: 'Bot Autoclick 🦾', costoBase: 10000, costoEscalado: 1.15, ipcAumento: 1000, tipo: 'ipc', icono: '🤖' }
         };
 
         const generadoresIPS = {
             'puesto-limonada': { nombre: 'Puesto de Limonada 🍋', costoBase: 50, costoEscalado: 1.15, ipsGenerado: 0.5, tipo: 'ips', icono: '🥤' },
             'vendedor-ambulante': { nombre: 'Vendedor Ambulante 💼', costoBase: 500, costoEscalado: 1.15, ipsGenerado: 5, tipo: 'ips', icono: '🚶' },
-            'tienda-online': { nombre: 'Tienda Online 💻', costoBase: 5000, costoEscalado: 1.15, ipsGenerado: 50, tipo: 'ips', icono: '🛒' }
+            'tienda-online': { nombre: 'Tienda Online 💻', costoBase: 5000, costoEscalado: 1.15, ipsGenerado: 50, tipo: 'ips', icono: '🛒' },
+            'granja-solar': { nombre: 'Granja Solar ☀️', costoBase: 50000, costoEscalado: 1.15, ipsGenerado: 500, tipo: 'ips', icono: '⚡' },
+            'bienes-raices': { nombre: 'Bienes Raíces 🏘️', costoBase: 500000, costoEscalado: 1.15, ipsGenerado: 5000, tipo: 'ips', icono: '🏠' }
         };
         
         const activosLujos = {
-             'coche-lujo': { nombre: 'Coche Deportivo 🏎️', costo: 50000, efecto: 'Aumenta IPC en 500', ipcAumento: 500, comprado: false },
-             'apartamento': { nombre: 'Apartamento de Lujo 🏙️', costo: 500000, efecto: 'Aumenta IPS en 50', ipsAumento: 50, comprado: false },
-             'yate': { nombre: 'Yate Privado 🛥️', costo: 5000000, efecto: 'Duplica todo el IPC', multiplicadorIPC: 2, comprado: false }
+             'coche-lujo': { nombre: 'Coche Deportivo 🏎️', costo: 50000, efecto: 'Aumenta IPC en 500', ipcAumento: 500, comprado: false, icono: '🏎️' },
+             'apartamento': { nombre: 'Apartamento de Lujo 🏙️', costo: 500000, efecto: 'Aumenta IPS en 50', ipsAumento: 50, comprado: false, icono: '🏙️' },
+             'yate': { nombre: 'Yate Privado 🛥️', costo: 5000000, efecto: 'Duplica todo el IPC', multiplicadorIPC: 2, comprado: false, icono: '🛥️' },
+             'isla-privada': { nombre: 'Isla Privada 🏝️', costo: 50000000, efecto: 'Multiplica IPS por 1.5', multiplicadorIPS: 1.5, comprado: false, icono: '🏝️' }
         };
         
         const empresasVistas = {
-             'restaurante': { nombre: 'Restaurante Exclusivo 🍽️', costo: 1000000, ipsGenerado: 1000, vecesComprado: 0 },
-             'tech-startup': { nombre: 'Tech Startup 🚀', costo: 10000000, ipsGenerado: 10000, vecesComprado: 0 }
+             'restaurante': { nombre: 'Restaurante Exclusivo 🍽️', costo: 1000000, ipsGenerado: 1000, vecesComprado: 0, icono: '🍽️' },
+             'tech-startup': { nombre: 'Tech Startup 🚀', costo: 10000000, ipsGenerado: 10000, vecesComprado: 0, icono: '🚀' },
+             'cadena-hoteles': { nombre: 'Cadena de Hoteles 🏨', costo: 100000000, ipsGenerado: 100000, vecesComprado: 0, icono: '🏨' },
+             'aerolinea-lowcost': { nombre: 'Aerolínea Low Cost ✈️', costo: 1000000000, ipsGenerado: 1000000, vecesComprado: 0, icono: '✈️' }
         };
         
         const inversionesVista = {
-             'bonos-gobierno': { nombre: 'Bonos Gobierno 🏛️', costo: 100000, retorno: 0.05, vecesComprado: 0, tipo: 'retorno' }, // 5% de retorno
-             'crypto-mining': { nombre: 'Crypto Mining ⛏️', costo: 2000000, retorno: 0.1, vecesComprado: 0, tipo: 'retorno' } // 10% de retorno
+             'bonos-gobierno': { nombre: 'Bonos Gobierno 🏛️', costo: 100000, retorno: 0.05, vecesComprado: 0, tipo: 'retorno', icono: '🏛️' }, // 5% de retorno
+             'crypto-mining': { nombre: 'Crypto Mining ⛏️', costo: 2000000, retorno: 0.1, vecesComprado: 0, tipo: 'retorno', icono: '⛏️' }, // 10% de retorno
+             'fondo-indexado': { nombre: 'Fondo Indexado S&P 📈', costo: 5000000, retorno: 0.12, vecesComprado: 0, tipo: 'retorno', icono: '📊' }, // 12% de retorno
+             'venture-capital': { nombre: 'Venture Capital 💸', costo: 50000000, retorno: 0.2, vecesComprado: 0, tipo: 'retorno', icono: '💰' } // 20% de retorno
         };
 
 
         // --- UTILIDADES ---
         
         /** Formatea un número como moneda. */
-        function formatDinero(num) {
+        function formatDinero(num, decimales = 2) {
+            num = parseFloat(num);
             if (num === 0) return '$0.00';
             const sign = num < 0 ? '-' : '';
             const absNum = Math.abs(num);
             
-            if (absNum < 1000) return sign + '$' + absNum.toFixed(2);
+            if (absNum < 1000) return sign + '$' + absNum.toFixed(decimales);
             
-            const suffixes = ['', 'K', 'M', 'B', 'T', 'Q'];
+            const suffixes = ['', 'K', 'M', 'B', 'T', 'Q', 'S', 'O', 'N', 'D', 'UD'];
             const tier = Math.floor(Math.log10(absNum) / 3);
-            const suffix = suffixes[tier] || '';
+            const suffix = suffixes[tier] || 'E';
             const scale = Math.pow(10, tier * 3);
             const scaled = absNum / scale;
 
-            // Mostrar dos decimales solo si no es un número entero.
-            const formatted = scaled.toFixed(scaled % 1 !== 0 ? 2 : 0);
+            const formatted = scaled.toFixed(scaled % 1 !== 0 || tier > 0 ? decimales : 0);
             return sign + '$' + formatted + suffix;
+        }
+        
+        /** Formatea un número para crypto (más decimales para precisión) */
+        function formatCrypto(num, decimales = 6) {
+            return num.toLocaleString('es-ES', { minimumFractionDigits: decimales, maximumFractionDigits: decimales });
         }
 
         /** Calcula el costo de la siguiente compra. */
@@ -155,10 +183,14 @@
         }
 
         /** Muestra una animación de texto cuando se hace clic o se genera dinero. */
-        function mostrarAnimacion(monto, x, y) {
+        function mostrarAnimacion(monto, x, y, esCrypto = false) {
             const anim = document.createElement('div');
-            anim.textContent = `+${formatDinero(monto)}`;
+            anim.textContent = `${monto > 0 ? '+' : ''}${formatDinero(monto)}`;
             anim.classList.add('animacion-clic');
+            
+            if (esCrypto) {
+                 anim.classList.add('animacion-crypto');
+            }
             
             // Posicionar con respecto al billete
             anim.style.left = `${x}px`;
@@ -185,12 +217,17 @@
                     estadoJuego = {
                         ...estadoJuego,
                         ...data,
-                        // Asegurar que el dinero sea un número y no un string si Firebase lo serializa mal
+                        // Asegurar que los números sean floats
                         dinero: parseFloat(data.dinero || 0),
                         ipc: parseFloat(data.ipc || 1),
-                        ips: parseFloat(data.ips || 0)
+                        ips: parseFloat(data.ips || 0),
+                        ultimosSegundos: parseFloat(data.ultimosSegundos || Date.now())
                     };
-                    console.log("Estado cargado:", estadoJuego);
+                    
+                    // Asegurar que las estructuras anidadas existan
+                    estadoJuego.crypto = data.crypto || estadoJuego.crypto;
+                    estadoJuego.estadisticas = data.estadisticas || estadoJuego.estadisticas;
+                    
                     // Forzar el cálculo del progreso offline
                     calcularProgresoOffline();
                 } else {
@@ -215,10 +252,12 @@
                     activos: estadoJuego.activos,
                     empresas: estadoJuego.empresas,
                     inversiones: estadoJuego.inversiones,
+                    crypto: estadoJuego.crypto,
+                    estadisticas: estadoJuego.estadisticas,
                     ultimosSegundos: Date.now() // Actualizar el tiempo de guardado
                 };
                 await window.firebase.firestore.setDoc(docRef, dataToSave);
-                console.log("Estado guardado con éxito.");
+                // console.log("Estado guardado con éxito.");
             } catch (e) {
                 console.error("Error guardando el estado: ", e);
             }
@@ -235,7 +274,8 @@
                     estadoJuego[estadoKey][id] = { 
                         nivel: 0, 
                         vecesComprado: 0,
-                        comprado: tiendas[id].comprado || false // Para activos fijos
+                        comprado: tiendas[id].comprado || false, // Para activos fijos
+                        valorTotal: 0 // Para inversiones
                     };
                 }
             }
@@ -248,6 +288,7 @@
                 const dineroGanado = estadoJuego.ips * elapsedSeconds;
                 estadoJuego.dinero += dineroGanado;
                 console.log(`Ganancia offline: +${formatDinero(dineroGanado)} durante ${Math.round(elapsedSeconds)} segundos.`);
+                estadoJuego.estadisticas.dineroPasivo += dineroGanado;
             }
             estadoJuego.ultimosSegundos = now;
         }
@@ -257,15 +298,16 @@
             document.getElementById('ipc-actual').textContent = formatDinero(estadoJuego.ipc);
             document.getElementById('ips-actual').textContent = formatDinero(estadoJuego.ips) + " / s";
             
-            // Actualizar botones de tienda
+            // Actualizar todas las vistas
             dibujarTodasLasTiendas();
+            dibujarCryptoView();
+            dibujarStatsView();
             
             // Mostrar User ID en el pie de página
             document.getElementById('user-info-footer').textContent = `ID de Sesión: ${window.userId}`;
         }
         
         /** * Llama a las funciones de dibujo de todas las vistas activas/paneles.
-         * Se llama después de cargar el estado y en cada actualización.
          */
         function dibujarTodasLasTiendas() {
             dibujarTienda(mejorasClick, 'mejoras-clic-tienda', 'tiendas');
@@ -278,7 +320,6 @@
 
         /** Actualiza el estado de los botones de navegación según la vista activa */
         function actualizarBotonesVista() {
-             // Asegúrate de que existe una vista activa antes de intentar leer su ID
              const vistaActivaElement = document.querySelector('.game-view.active');
              if (!vistaActivaElement) return;
              
@@ -291,20 +332,41 @@
              });
         }
 
+        // Lógica de fluctuación de Crypto (se ejecuta cada minuto)
+        function fluctuarCrypto() {
+            const now = Date.now();
+            const factor = Math.random() * (CRYPTO_FLUCTUATION_RATE * 2) - CRYPTO_FLUCTUATION_RATE; // Rango: -5% a +5%
+            
+            // Fluctación de Bitcoin
+            const oldBtcValue = estadoJuego.crypto.bitcoin.valorActual;
+            let newBtcValue = oldBtcValue * (1 + factor);
+            newBtcValue = Math.max(1, newBtcValue); // Evitar valor negativo o cero
+            estadoJuego.crypto.bitcoin.valorActual = newBtcValue;
+            
+            // Fluctación de Ethereum (un poco más volátil, ej: factor * 1.2)
+            const oldEthValue = estadoJuego.crypto.ethereum.valorActual;
+            let newEthValue = oldEthValue * (1 + (factor * 1.2));
+            newEthValue = Math.max(1, newEthValue);
+            estadoJuego.crypto.ethereum.valorActual = newEthValue;
+            
+            // No guardar estado, solo actualizar la vista de crypto si está activa
+            if (document.getElementById('view-crypto').classList.contains('active')) {
+                 dibujarCryptoView();
+            }
+            console.log("Crypto fluctuado. BTC:", formatDinero(newBtcValue, 2));
+        }
 
         /** Lógica para el bucle de ingresos pasivos (IPS) */
         function bucleJuego() {
-            estadoJuego.dinero += estadoJuego.ips;
+            const ganancia = estadoJuego.ips;
+            estadoJuego.dinero += ganancia;
+            estadoJuego.estadisticas.dineroPasivo += ganancia;
             actualizarUI();
         }
 
-        // --- LÓGICA DE COMPRA ---
+        // --- LÓGICA DE VISTAS ---
 
-        /** * Dibuja los items de mejora o generadores. 
-         * @param {object} items - El objeto que define la tienda (ej: mejorasClick)
-         * @param {string} contenedorId - El ID del elemento donde se dibujarán los botones
-         * @param {string} estadoKey - La clave en estadoJuego donde se guarda el progreso (ej: 'tiendas')
-         */
+        /** * Dibuja los items de mejora o generadores. */
         function dibujarTienda(items, contenedorId, estadoKey) {
             const contenedor = document.getElementById(contenedorId);
             if (!contenedor) return;
@@ -434,7 +496,73 @@
                  contenedor.appendChild(elemento);
              }
         }
+        
+        // Dibujo de Crypto View
+        function dibujarCryptoView() {
+            const contenedor = document.getElementById('crypto-grid');
+            if (!contenedor) return;
+            contenedor.innerHTML = '';
 
+            const cryptos = [
+                { id: 'bitcoin', nombre: 'Bitcoin (BTC)', icono: '₿', fluctuation: CRYPTO_FLUCTUATION_RATE * 1.5 },
+                { id: 'ethereum', nombre: 'Ethereum (ETH)', icono: 'Ξ', fluctuation: CRYPTO_FLUCTUATION_RATE * 1.8 }
+            ];
+
+            cryptos.forEach(({ id, nombre, icono }) => {
+                const cryptoData = estadoJuego.crypto[id];
+                const valorActual = cryptoData.valorActual;
+                const cantidad = cryptoData.cantidad;
+                
+                // Pérdida/Ganancia no realizada
+                const valorActualTotal = cantidad * valorActual;
+                const perdidaGanancia = cantidad > 0 ? (valorActualTotal - (cantidad * cryptoData.costoPromedio)) : 0;
+                
+                const puedeVender = cantidad > 0;
+                const puedeComprar = estadoJuego.dinero >= valorActual;
+
+                const elemento = document.createElement('div');
+                elemento.className = 'crypto-item';
+                
+                elemento.innerHTML = `
+                    <div class="crypto-header">
+                        <span class="crypto-icon">${icono}</span>
+                        <h3>${nombre}</h3>
+                    </div>
+                    <div class="crypto-info">
+                        <p>Valor Actual: <span class="crypto-price">${formatDinero(valorActual, 2)}</span></p>
+                        <p>Tu Cantidad: <span class="crypto-amount">${formatCrypto(cantidad)}</span></p>
+                        <p>Costo Promedio: <span class="crypto-avg">${formatDinero(cryptoData.costoPromedio, 2)}</span></p>
+                        <p>Ganancia No Realizada: 
+                            <span class="${perdidaGanancia >= 0 ? 'text-success' : 'text-danger'}">
+                                ${formatDinero(perdidaGanancia, 2)}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="crypto-actions">
+                        <button onclick="comprarCrypto('${id}')" ${!puedeComprar ? 'disabled' : ''} class="buy-btn">
+                            Comprar 1 (${formatDinero(valorActual, 2)})
+                        </button>
+                        <button onclick="venderCrypto('${id}')" ${!puedeVender ? 'disabled' : ''} class="sell-btn">
+                            Vender 1 (${formatDinero(valorActual, 2)})
+                        </button>
+                    </div>
+                `;
+                contenedor.appendChild(elemento);
+            });
+        }
+        
+        // Dibujo de Estadísticas
+        function dibujarStatsView() {
+            const stats = estadoJuego.estadisticas;
+            const totalDineroGanado = stats.dineroPorClicks + stats.dineroPasivo + stats.dineroCrypto;
+            
+            document.getElementById('stat-total-clicks').textContent = stats.totalClicks.toLocaleString('es-ES');
+            document.getElementById('stat-dinero-clicks').textContent = formatDinero(stats.dineroPorClicks);
+            document.getElementById('stat-dinero-pasivo').textContent = formatDinero(stats.dineroPasivo);
+            document.getElementById('stat-dinero-crypto').textContent = formatDinero(stats.dineroCrypto);
+            
+            document.getElementById('stat-total-ganado').textContent = formatDinero(totalDineroGanado);
+        }
 
         // --- FUNCIONES ACCIONABLES (GLOBALES) ---
 
@@ -443,6 +571,10 @@
          */
         window.hacerClick = function(e) {
             estadoJuego.dinero += estadoJuego.ipc;
+            
+            // Actualizar estadísticas
+            estadoJuego.estadisticas.totalClicks++;
+            estadoJuego.estadisticas.dineroPorClicks += estadoJuego.ipc;
             
             const x = e.clientX;
             const y = e.clientY;
@@ -466,12 +598,13 @@
                 estadoJuego[estadoKey][id] = estadoActual;
 
                 if (tipo === 'ipc') {
-                    estadoJuego.ipc += item.ipcAumento;
+                    // No ajustamos IPC aquí, se recalcula con recalcularIPC
                 } else if (tipo === 'ips') {
-                    estadoJuego.ips += item.ipsGenerado;
+                    // No ajustamos IPS aquí, se recalcula con recalcularIPS
                 }
                 
-                recalcularIPS(); // Recalcula el IPS total (incluyendo activos y empresas)
+                recalcularIPC(); 
+                recalcularIPS();
                 actualizarUI();
                 guardarEstado();
             }
@@ -489,18 +622,7 @@
                 estado.comprado = true;
                 estadoJuego.activos[id] = estado;
                 
-                // Aplicar el efecto del activo
-                if (item.ipcAumento) {
-                    estadoJuego.ipc += item.ipcAumento;
-                }
-                if (item.ipsAumento) {
-                    estadoJuego.ips += item.ipsAumento;
-                }
-                if (item.multiplicadorIPC) {
-                    // Esto se aplicará en recalcularIPS
-                }
-                
-                recalcularIPC(); // Asegurar que el IPC se recalcule si hay multiplicadores
+                recalcularIPC(); 
                 recalcularIPS();
                 actualizarUI();
                 guardarEstado();
@@ -545,22 +667,81 @@
                 guardarEstado();
             }
         }
+        
+        /**
+         * Función pública para comprar 1 unidad de Crypto.
+         */
+        window.comprarCrypto = function(id) {
+            const crypto = estadoJuego.crypto[id];
+            const valor = crypto.valorActual;
+            
+            if (estadoJuego.dinero >= valor) {
+                estadoJuego.dinero -= valor;
+                
+                // Recalcular costo promedio
+                const nuevaCantidad = crypto.cantidad + 1;
+                const costoTotalAnterior = crypto.cantidad * crypto.costoPromedio;
+                const nuevoCostoTotal = costoTotalAnterior + valor;
+                
+                crypto.costoPromedio = nuevoCostoTotal / nuevaCantidad;
+                crypto.cantidad = nuevaCantidad;
+
+                actualizarUI();
+                guardarEstado();
+                showModal(`Compraste 1 unidad de ${id.toUpperCase()} a ${formatDinero(valor, 2)}`, 'Compra Exitosa', false);
+            } else {
+                 showModal(`Necesitas ${formatDinero(valor, 2)} para comprar 1 unidad de ${id.toUpperCase()}.`, 'Dinero Insuficiente', false);
+            }
+        }
+
+        /**
+         * Función pública para vender 1 unidad de Crypto.
+         */
+        window.venderCrypto = function(id) {
+            const crypto = estadoJuego.crypto[id];
+            const valor = crypto.valorActual;
+
+            if (crypto.cantidad > 0) {
+                estadoJuego.dinero += valor;
+                crypto.cantidad -= 1;
+                
+                // Si la cantidad llega a cero, restablecer el costo promedio
+                if (crypto.cantidad === 0) {
+                     crypto.costoPromedio = 0;
+                } else {
+                     // No es necesario recalcular el promedio después de una venta
+                }
+                
+                // Actualizar estadísticas de ganancia/pérdida
+                const gananciaPerdida = valor - crypto.costoPromedio;
+                estadoJuego.estadisticas.dineroCrypto += gananciaPerdida;
+                
+                actualizarUI();
+                guardarEstado();
+                showModal(`Vendiste 1 unidad de ${id.toUpperCase()} a ${formatDinero(valor, 2)}`, 'Venta Exitosa', false);
+            }
+        }
+
 
         
         /** Recalcula el IPC total base + multiplicadores. */
         function recalcularIPC() {
-            let baseIPC = 1;
+            let baseIPC = 1; // IPC base de inicio (1 por defecto)
             
             // 1. IPC base de Mejoras Click
             for (const id in mejorasClick) {
                  const nivel = estadoJuego.tiendas[id]?.nivel || 0;
-                 baseIPC += nivel * mejorasClick[id].ipcAumento;
+                 if (mejorasClick[id].tipo === 'ipc') {
+                    baseIPC += nivel * mejorasClick[id].ipcAumento;
+                 }
             }
             
             // 2. IPC de Activos fijos (suma)
             for (const id in activosLujos) {
-                if (estadoJuego.activos[id]?.comprado && activosLujos[id].ipcAumento) {
-                    baseIPC += activosLujos[id].ipcAumento;
+                if (estadoJuego.activos[id]?.comprado) {
+                    if (activosLujos[id].ipcAumento) {
+                         baseIPC += activosLujos[id].ipcAumento;
+                    }
                 }
             }
 
@@ -607,9 +788,19 @@
                  const inversion = inversionesVista[id];
                  const estado = estadoJuego.inversiones[id] || { valorTotal: 0 };
                  
-                 // Retorno IPS = Valor total * Tasa de retorno anual / 10 (para hacerlo rápido)
+                 // Retorno IPS = Valor total * Tasa de retorno anual / 10 (para hacerlo rápido y visible)
                  totalIPS += estado.valorTotal * inversion.retorno / 10; 
             }
+            
+            // Aplicar multiplicadores IPS de Activos (ej. Isla Privada)
+            let multiplicadorIPS = 1;
+            for (const id in activosLujos) {
+                if (estadoJuego.activos[id]?.comprado && activosLujos[id].multiplicadorIPS) {
+                    multiplicadorIPS *= activosLujos[id].multiplicadorIPS;
+                }
+            }
+            totalIPS = totalIPS * multiplicadorIPS;
+
 
             estadoJuego.ips = totalIPS;
         }
@@ -624,8 +815,10 @@
             });
             document.getElementById(`view-${vista}`).classList.add('active');
             
-            // **[FIX]: Dibuja las tiendas específicas de la vista para asegurar que aparecen inmediatamente.**
+            // Dibuja las tiendas específicas de la vista
             dibujarTodasLasTiendas();
+            if (vista === 'crypto') dibujarCryptoView();
+            if (vista === 'stats') dibujarStatsView();
 
             // Actualizar botones de navegación
             actualizarBotonesVista();
@@ -657,6 +850,9 @@
             // Guardar el estado cada 10 segundos
             setInterval(guardarEstado, 10000);
             
+            // Bucle de fluctuación de crypto (1 minuto)
+            setInterval(fluctuarCrypto, CRYPTO_UPDATE_INTERVAL);
+            
             // Asegurar que la vista inicial sea 'clicker'
             cambiarVista('clicker');
         };
@@ -664,7 +860,7 @@
         // --- FUNCIÓN DE REINICIO ---
         window.resetGame = async function() {
             // Usamos un modal para la confirmación en lugar de alert/confirm.
-            const confirmed = await showModal('¿Estás seguro de que quieres REINICIAR el juego? Perderás todo el progreso.');
+            const confirmed = await showModal('¿Estás seguro de que quieres REINICIAR el juego? Perderás todo el progreso.', '¡PELIGRO!', true);
             if (!confirmed) return;
             
             estadoJuego = {
@@ -675,6 +871,16 @@
                 activos: {},
                 empresas: {},
                 inversiones: {},
+                crypto: {
+                    bitcoin: { cantidad: 0, valorActual: 20000, costoPromedio: 0 },
+                    ethereum: { cantidad: 0, valorActual: 1500, costoPromedio: 0 }
+                },
+                estadisticas: {
+                    totalClicks: 0,
+                    dineroPorClicks: 0,
+                    dineroPasivo: 0,
+                    dineroCrypto: 0
+                },
                 ultimosSegundos: Date.now()
             };
             
@@ -690,7 +896,7 @@
             await guardarEstado();
             
             // Mostrar modal de éxito
-            showModal('Juego Reiniciado con éxito.', 'Éxito', false);
+            showModal('Juego Reiniciado con éxito. ¡Vuelve a hacerte millonario!', 'Éxito', false);
         }
         
         // --- UTILIDAD: Modal Custom para Reemplazar Alert/Confirm ---
@@ -727,8 +933,8 @@
         window.handleModalClick = function(action) {
             document.getElementById('custom-modal').style.display = 'none';
             if (modalResolve) {
-                if (action === 'confirm') {
-                     // Si es confirmación, resuelve true. Si es solo un mensaje, también.
+                if (action === 'confirm' || !document.getElementById('modal-cancel').style.display || document.getElementById('modal-cancel').style.display === 'none') {
+                     // Si es confirmación, resuelve true. Si es solo un mensaje (sin cancelar), también.
                      modalResolve(true); 
                 } else {
                      modalResolve(false);
@@ -753,6 +959,7 @@
             --color-advertencia: #d32f2f; /* Rojo para reiniciar */
             --color-empresa: #ffc107; /* Amarillo para empresas */
             --color-inversion: #9c27b0; /* Púrpura para inversiones */
+            --color-crypto: #ff6600; /* Naranja para Crypto */
         }
 
         * {
@@ -772,6 +979,11 @@
             overflow-y: auto; /* Permite el scroll vertical si el contenido desborda. */
             overflow-x: hidden; /* Previene el scroll horizontal no deseado */
         }
+        
+        /* Utilidades de texto */
+        .text-success { color: var(--color-exito); font-weight: 700; }
+        .text-danger { color: var(--color-advertencia); font-weight: 700; }
+
 
         /* --- MODAL CUSTOM --- */
         #custom-modal {
@@ -862,6 +1074,7 @@
             border-bottom: 3px solid var(--color-acento-celeste);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
             z-index: 50; 
+            flex-wrap: wrap;
         }
 
         #nav-bar button {
@@ -920,27 +1133,29 @@
         
         .grid-3-cols {
             display: grid;
-            grid-template-columns: repeat(3, 1fr); 
+            grid-template-columns: repeat(1, 1fr); /* Default a 1 columna para móviles */
             gap: 20px;
             max-width: 1200px;
             margin: 0 auto;
         }
         
-        .asset-section, .company-section, .investment-section {
+        /* Sección general para Activos/Empresas/Inversiones/Stats */
+        .asset-section, .company-section, .investment-section, .stats-panel, .crypto-section {
             background-color: #1e1e1e;
-            padding: 15px;
+            padding: 20px;
             border-radius: 10px;
             border: 2px solid var(--color-secundario);
             box-shadow: 0 0 15px rgba(100, 149, 237, 0.2);
             display: flex;
             flex-direction: column;
-            height: 100%; /* Asegura que la columna se extienda */
+            height: 100%; 
         }
         
         .company-section { border-color: var(--color-empresa); }
         .investment-section { border-color: var(--color-inversion); }
+        .crypto-section { border-color: var(--color-crypto); }
 
-        .asset-section h2, .company-section h2, .investment-section h2 {
+        .asset-section h2, .company-section h2, .investment-section h2, .stats-panel h2, .crypto-section h2 {
             color: var(--color-secundario);
             margin-bottom: 10px;
             padding-bottom: 5px;
@@ -951,13 +1166,137 @@
         
         .company-section h2 { color: var(--color-empresa); }
         .investment-section h2 { color: var(--color-inversion); }
+        .crypto-section h2 { color: var(--color-crypto); }
         
-        .asset-shop, .company-shop, .investment-shop {
+        .asset-shop, .company-shop, .investment-shop, .crypto-shop {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 15px;
             padding: 5px 0;
-            flex-grow: 1; /* Permite que la tienda ocupe el espacio restante */
+            flex-grow: 1;
+        }
+        
+        .company-shop, .investment-shop, .asset-shop {
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+        
+        .company-shop .tienda-item, .investment-shop .tienda-item, .asset-shop .tienda-item {
+             width: 48%; /* Dos columnas en desktop */
+        }
+        
+        /* Stats Grid */
+        #stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background-color: #2e2e2e;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid var(--color-acento-celeste);
+        }
+        
+        .stat-card p {
+            font-size: 1em;
+            color: #ccc;
+        }
+        
+        .stat-card span {
+            display: block;
+            font-size: 1.8em;
+            font-weight: 900;
+            color: var(--color-exito);
+            margin-top: 5px;
+        }
+        
+        .stat-card:nth-child(2) { border-left-color: var(--color-secundario); }
+        .stat-card:nth-child(3) { border-left-color: var(--color-empresa); }
+        .stat-card:nth-child(4) { border-left-color: var(--color-crypto); }
+        .stat-card:nth-child(5) { border-left-color: var(--color-inversion); }
+
+
+        /* Crypto Items */
+        .crypto-grid {
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+        }
+        
+        .crypto-item {
+            flex-basis: 48%;
+            background-color: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid var(--color-crypto);
+            box-shadow: 0 0 10px rgba(255, 102, 0, 0.4);
+            text-align: center;
+        }
+        
+        .crypto-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .crypto-icon {
+            font-size: 2.5em;
+            color: var(--color-crypto);
+            margin-right: 10px;
+            font-weight: 900;
+        }
+        
+        .crypto-item h3 {
+            font-size: 1.5em;
+            color: var(--color-crypto);
+        }
+        
+        .crypto-info p {
+            text-align: left;
+            margin: 5px 0;
+            font-size: 1.1em;
+        }
+        
+        .crypto-info span {
+            float: right;
+            font-weight: 700;
+        }
+        
+        .crypto-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .crypto-actions button {
+            flex-grow: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .buy-btn {
+            background-color: var(--color-exito);
+            color: #fff;
+        }
+        .buy-btn:hover:not(:disabled) {
+            background-color: #4CAF50;
+        }
+        
+        .sell-btn {
+            background-color: var(--color-advertencia);
+            color: #fff;
+        }
+        .sell-btn:hover:not(:disabled) {
+            background-color: #f44336;
         }
 
 
@@ -972,7 +1311,7 @@
             width: 100%;
             max-width: 1400px; 
             margin: 0 auto;
-            min-height: calc(100vh - 60px); /* Ajusta para la barra de navegación */
+            min-height: calc(100vh - 60px); 
         }
 
         /* --- ESTILOS DEL PANEL LATERAL (Tienda/Mejoras) --- */
@@ -981,8 +1320,8 @@
             background-color: #1e1e1e;
             border-right: 2px solid var(--color-acento-celeste);
             padding: 10px 5px;
-            overflow-y: auto; /* Scroll dentro del panel */
-            height: calc(100vh - 60px); /* Ajusta la altura para la barra de navegación */
+            overflow-y: auto; 
+            height: calc(100vh - 60px); 
             position: sticky;
             top: 0;
         }
@@ -1169,6 +1508,11 @@
             z-index: 1000; 
         }
         
+        .animacion-crypto {
+            color: var(--color-crypto);
+            text-shadow: 0 0 5px var(--color-crypto);
+        }
+        
         /* Reiniciar Juego */
         #reset-btn {
             background-color: var(--color-advertencia);
@@ -1204,7 +1548,16 @@
         /* --- MEDIA QUERIES (RESPONSIVENESS) --- */
         /* ================================================== */
 
-        @media (max-width: 900px) {
+        @media (min-width: 1024px) {
+            .grid-3-cols {
+                grid-template-columns: repeat(3, 1fr); 
+            }
+             .company-shop .tienda-item, .investment-shop .tienda-item, .asset-shop .tienda-item {
+                 width: 32%; /* Tres columnas en desktop */
+            }
+        }
+
+        @media (max-width: 1023px) {
             
             #nav-bar {
                 gap: 5px;
@@ -1221,7 +1574,7 @@
             #main-game-layout {
                 grid-template-columns: 1fr;
                 padding-top: 0;
-                min-height: auto; /* Permite que la vista se haga larga */
+                min-height: auto; 
             }
 
             #clicker-area {
@@ -1268,21 +1621,23 @@
                 margin-top: 20px;
             }
 
-            /* Activos/Empresas/Inversiones en dos columnas */
-            .grid-3-cols {
+            /* Activos/Empresas/Inversiones/Crypto en una columna (vertical) */
+            .grid-3-cols, .crypto-grid {
                 grid-template-columns: 1fr; 
                 max-width: 90%;
+                flex-direction: column;
             }
             
-            .asset-shop, .company-shop, .investment-shop {
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: space-around;
-                flex-grow: 0;
+            .company-shop .tienda-item, .investment-shop .tienda-item, .asset-shop .tienda-item {
+                width: 100%; 
             }
             
-            .asset-shop .tienda-item, .company-shop .tienda-item, .investment-shop .tienda-item {
-                width: 47%; 
+            .crypto-item {
+                flex-basis: 100%;
+            }
+            
+            #stats-grid {
+                 grid-template-columns: 1fr;
             }
         }
     </style>
@@ -1309,6 +1664,7 @@
         <button id="nav-assets" onclick="cambiarVista('assets')"><i class="fas fa-car"></i> Activos & Lujos</button>
         <button id="nav-companies" onclick="cambiarVista('companies')"><i class="fas fa-building"></i> Mis Empresas</button>
         <button id="nav-investments" onclick="cambiarVista('investments')"><i class="fas fa-chart-line"></i> Inversiones</button>
+        <button id="nav-crypto" onclick="cambiarVista('crypto')"><i class="fab fa-bitcoin"></i> Crypto Trading</button>
         <button id="nav-stats" onclick="cambiarVista('stats')"><i class="fas fa-chart-pie"></i> Estadísticas</button>
     </div>
 
@@ -1363,7 +1719,7 @@
             <h1 class="view-title">Activos y Lujos (Efectos Únicos)</h1>
             <div class="grid-3-cols">
                 <div class="asset-section" style="grid-column: 1 / -1;">
-                    <h2>Mis Lujos Personales</h2>
+                    <h2>Mis Lujos Personales (Compra Única)</h2>
                     <div id="activos-tienda" class="asset-shop">
                         <!-- Lujos se dibujan aquí -->
                     </div>
@@ -1378,7 +1734,7 @@
              <h1 class="view-title">Empresas (Ingresos Pasivos Sostenidos)</h1>
              <div class="grid-3-cols">
                  <div class="company-section" style="grid-column: 1 / -1;">
-                     <h2>Fundar Negocios</h2>
+                     <h2>Fundar y Escalar Negocios</h2>
                      <div id="empresas-tienda" class="company-shop">
                          <!-- Empresas se dibujan aquí -->
                      </div>
@@ -1393,7 +1749,7 @@
              <h1 class="view-title">Inversiones (Retorno Porcentual)</h1>
              <div class="grid-3-cols">
                  <div class="investment-section" style="grid-column: 1 / -1;">
-                     <h2>Instrumentos de Inversión</h2>
+                     <h2>Instrumentos de Inversión (Apalancamiento)</h2>
                      <div id="inversiones-tienda" class="investment-shop">
                          <!-- Inversiones se dibujan aquí -->
                      </div>
@@ -1402,17 +1758,63 @@
         </div>
 
         <!-- ================================================== -->
-        <!-- VISTA 5: ESTADÍSTICAS -->
+        <!-- VISTA 5: CRYPTO TRADING -->
+        <!-- ================================================== -->
+        <div id="view-crypto" class="game-view">
+             <h1 class="view-title">Crypto Trading (Volatilidad y Riesgo)</h1>
+             <div class="grid-3-cols">
+                 <div class="crypto-section" style="grid-column: 1 / -1;">
+                     <h2>Mercado de Criptomonedas (Actualiza cada minuto)</h2>
+                     <div id="crypto-grid" class="crypto-shop">
+                         <!-- Criptomonedas se dibujan aquí -->
+                     </div>
+                 </div>
+             </div>
+        </div>
+
+
+        <!-- ================================================== -->
+        <!-- VISTA 6: ESTADÍSTICAS -->
         <!-- ================================================== -->
         <div id="view-stats" class="game-view">
             <h1 class="view-title">Estadísticas y Gestión</h1>
             <div class="grid-3-cols">
-                <div class="asset-section" style="grid-column: 1 / -1;">
-                    <h2>Gestión del Juego</h2>
-                    <p style="text-align: center; margin-bottom: 20px;">
-                        Toda la información de progreso y dinero se guarda automáticamente.
+                
+                <div class="stats-panel" style="grid-column: 1 / -1;">
+                    <h2>Resumen de Progreso y Dinero</h2>
+                    <div id="stats-grid">
+                        <div class="stat-card">
+                            <p>Dinero Actual</p>
+                            <span id="stat-dinero-actual">${formatDinero(estadoJuego.dinero)}</span>
+                        </div>
+                         <div class="stat-card">
+                            <p>Total Dinero Ganado</p>
+                            <span id="stat-total-ganado">$0.00</span>
+                        </div>
+                        <div class="stat-card">
+                            <p>Total Clics Realizados</p>
+                            <span id="stat-total-clicks">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <p>Ganancia por Clics</p>
+                            <span id="stat-dinero-clicks">$0.00</span>
+                        </div>
+                        <div class="stat-card">
+                            <p>Ganancia Pasiva (IPS)</p>
+                            <span id="stat-dinero-pasivo">$0.00</span>
+                        </div>
+                        <div class="stat-card">
+                            <p>Ganancia por Crypto</p>
+                            <span id="stat-dinero-crypto">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="asset-section" style="grid-column: 1 / -1; margin-top: 20px;">
+                    <h2>Gestión de Datos</h2>
+                    <p style="text-align: center; margin-bottom: 20px; color: #aaa;">
+                        Tu progreso se guarda automáticamente en la nube.
                     </p>
-                    <!-- El botón ahora llama a una función que usa el modal custom -->
                     <button id="reset-btn" onclick="resetGame()">
                         <i class="fas fa-trash-alt"></i> REINICIAR TODO EL PROGRESO
                     </button>
