@@ -3,288 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Millonario Clicker (Unificado y Volátil)</title>
+    <title>Millonario Clicker V2.0 - Corregido</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
-    <style>
-        :root {
-            --color-fondo-oscuro: #121212;
-            --color-texto-claro: #E0E0E0;
-            --color-acento-principal: #FF5733; /* Rojo para acentos de alto impacto (Clic, Ganancia) */
-            --color-acento-secundario: #33A0FF; /* Cian/Azul para botones de acción */
-            --color-clicker: #6200EE;
-            --color-ips: #03DAC6;
-            --color-empresa: #FFC107;
-            --color-inversion: #2196F3;
-            --color-crypto: #F7931A;
-        }
-
-        /* FONDO DE IMAGEN: Usando fondo_rojo.jpg como solicitado */
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            min-height: 100vh;
-            background-color: var(--color-fondo-oscuro);
-            color: var(--color-texto-claro);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow-y: auto;
-            overflow-x: hidden;
-            /* La imagen 'fondo_rojo.jpg' se carga si está en la misma carpeta. */
-            background-image: url('fondo_rojo.jpg'); 
-            background-size: cover; 
-            background-repeat: no-repeat;
-            background-attachment: fixed; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .game-container {
-            max-width: 1200px;
-            width: 95%;
-            margin-top: 20px;
-            margin-bottom: 70px; 
-            background: rgba(0, 0, 0, 0.85); 
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
-            position: relative;
-        }
-
-        /* HEADER y STATS */
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid var(--color-acento-principal);
-            padding-bottom: 10px;
-        }
-
-        .stats-bar {
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            padding: 10px 0;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-        }
-
-        .stat {
-            text-align: center;
-            padding: 10px 15px;
-        }
-
-        .stat h2 {
-            margin: 5px 0;
-            font-size: 1.5em;
-            color: var(--color-acento-secundario);
-        }
-
-        .stat small {
-            color: #999;
-            font-size: 0.8em;
-        }
-
-        /* NAVEGACIÓN */
-        #nav-bar {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 15px;
-        }
-
-        #nav-bar button {
-            background-color: var(--color-fondo-oscuro);
-            color: var(--color-texto-claro);
-            border: 2px solid var(--color-acento-secundario);
-            padding: 10px 20px;
-            margin: 0 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
-            border-radius: 8px;
-        }
-
-        #nav-bar button:hover, #nav-bar button.active {
-            background-color: var(--color-acento-secundario);
-            color: var(--color-fondo-oscuro);
-            border-color: var(--color-acento-secundario);
-        }
-
-        /* VISTAS DE JUEGO */
-        .game-view {
-            display: none;
-            padding: 10px;
-        }
-
-        .game-view.active {
-            display: block;
-        }
-        
-        /* >>> ESTILOS DE LA VISTA PRINCIPAL DE 3 COLUMNAS <<< */
-        #view-clicker {
-            /* 3 Columnas: Tienda IPC (1fr) | Clicker (300px fijo) | Tienda IPS (1fr) */
-            display: grid;
-            grid-template-columns: 1fr 300px 1fr; 
-            gap: 20px;
-            align-items: flex-start;
-        }
-        
-        /* Estilo para las columnas de la tienda (IPC y IPS) */
-        .store-column {
-            padding: 10px;
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-
-        .store-column h2 {
-            color: var(--color-acento-principal);
-            text-align: center;
-            border-bottom: 1px dashed #555;
-            padding-bottom: 5px;
-            margin-top: 0;
-        }
-
-        /* Columna central del clicker */
-        #click-section {
-            text-align: center;
-            padding: 20px;
-            position: relative;
-        }
-
-        #click-area button {
-            background: var(--color-acento-principal);
-            border: none;
-            padding: 50px;
-            border-radius: 50%;
-            font-size: 3em;
-            color: var(--color-texto-claro);
-            cursor: pointer;
-            box-shadow: 0 0 20px var(--color-acento-principal);
-            transition: transform 0.1s;
-            width: 250px; /* Tamaño del botón */
-            height: 250px;
-            margin-top: 50px;
-        }
-
-        #click-area button:active {
-            transform: scale(0.95);
-        }
-        
-        .tienda-grid {
-            display: grid;
-            grid-template-columns: 1fr; /* 1 columna por tienda para este diseño */
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        .crypto-grid {
-             display: grid;
-             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-             gap: 20px;
-        }
-        
-        .tienda-item {
-            background: rgba(255, 255, 255, 0.08);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-            border-left: 5px solid var(--color-acento-secundario);
-        }
-
-        .tienda-item h3 {
-            margin-top: 0;
-            color: var(--color-acento-secundario);
-            font-size: 1.1em;
-        }
-
-        .tienda-item button {
-            width: 100%;
-            padding: 8px;
-            background-color: var(--color-acento-secundario);
-            color: var(--color-fondo-oscuro);
-            border: none;
-            border-radius: 5px;
-            margin-top: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            font-size: 0.9em;
-        }
-
-        .tienda-item button:hover:not([disabled]) {
-            background-color: #66CCFF;
-        }
-
-        .item-bloqueado button, .tienda-item button[disabled] {
-            background-color: #555;
-            cursor: not-allowed;
-            color: #AAA;
-        }
-        
-        .item-comprado {
-             border-left-color: var(--color-acento-principal);
-             opacity: 0.6;
-        }
-        
-        .crypto-item {
-             background: rgba(247, 147, 26, 0.1); 
-             padding: 20px;
-             border-radius: 10px;
-             border: 2px solid var(--color-crypto);
-        }
-
-        .text-success { color: #4CAF50; }
-        .text-danger { color: #F44336; }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-        
-        .stat-card {
-            background: rgba(255, 255, 255, 0.08);
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            border-left: 4px solid var(--color-acento-secundario);
-        }
-
-        /* FOOTER DE ESTUDIO */
-        #winted-footer {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.8em;
-            color: rgba(255, 255, 255, 0.5);
-            font-style: italic;
-            width: 100%;
-        }
-        
-        /* ANIMACIÓN DE CLIC */
-        .animacion-clic {
-            position: fixed;
-            font-size: 1.5em;
-            font-weight: bold;
-            color: var(--color-ips);
-            pointer-events: none;
-            user-select: none;
-            animation: fadeout 1s ease-out forwards;
-            z-index: 100;
-        }
-
-        @keyframes fadeout {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-50px); opacity: 0; }
-        }
-    </style>
-    
     <script type="module">
-        // Importación de Firebase (Mantener para la funcionalidad de guardado en la nube)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -309,9 +31,13 @@
         let isGameInitialized = false;
         let userId = 'anon';
 
+        /**
+         * Llama a la función de inicio principal del juego solo una vez.
+         */
         function handleInitGame() {
             if (isGameInitialized) return; 
             isGameInitialized = true;
+            console.log("--- INICIO DE UI GARANTIZADO. User ID:", userId, "---");
             if (typeof window.initGame === 'function') {
                 window.initGame(); 
             } else {
@@ -319,6 +45,9 @@
             }
         }
 
+        /**
+         * Intenta la autenticación y establece el userId.
+         */
         async function attemptAuth() {
             try {
                 if (initialAuthToken) {
@@ -329,12 +58,14 @@
                     userId = userCredential.user.uid;
                 }
             } catch (error) {
+                console.error("Error en autenticación Firebase, usando ID aleatorio:", error);
                 userId = crypto.randomUUID();
             }
-            window.userId = userId; 
+            window.userId = userId; // Hacer el userId globalmente accesible
             handleInitGame();
         }
 
+        // 2. Observador de estado de autenticación (garantiza el flujo de inicio)
         window.firebase.auth.onAuthStateChanged((user) => {
              if (user) {
                 userId = user.uid;
@@ -353,20 +84,15 @@
         // --- MODELO DE ESTADO ---
         let estadoJuego = {
             dinero: 0,
-            ipc: 1, 
-            ips: 0, 
-            tiendas: {}, 
-            activos: {},
-            empresas: {},
-            inversiones: {},
+            ipc: 1, // Ingreso por Clic
+            ips: 0, // Ingreso por Segundo
+            tiendas: {}, // Mejoras IPC / Generadores IPS
+            activos: {}, // Lujos/Compra única
+            empresas: {}, // Empresas
+            inversiones: {}, // Inversiones de retorno
             crypto: {
-                // Lista de Cryptos completa para la funcionalidad de trading
                 bitcoin: { cantidad: 0, valorActual: 20000, costoPromedio: 0 },
-                ethereum: { cantidad: 0, valorActual: 1500, costoPromedio: 0 },
-                cardano: { cantidad: 0, valorActual: 0.50, costoPromedio: 0 }, 
-                dogecoin: { cantidad: 0, valorActual: 0.10, costoPromedio: 0 },
-                litecoin: { cantidad: 0, valorActual: 80, costoPromedio: 0 }, 
-                solana: { cantidad: 0, valorActual: 50, costoPromedio: 0 }  
+                ethereum: { cantidad: 0, valorActual: 1500, costoPromedio: 0 }
             },
             estadisticas: {
                 totalClicks: 0,
@@ -377,43 +103,63 @@
             ultimosSegundos: Date.now()
         };
         
-        // --- CONSTANTES GLOBALES DE VOLATILIDAD ---
-        const CRYPTO_FLUCTUATION_MAX = 0.15; 
-        const INVESTMENT_FLUCTUATION_MAX = 0.05; 
-        const FLUCTUATION_INTERVAL = 60000; // 60 segundos (1 minuto) para cambios en el valor
-
+        // ID de la aplicación para Firebase Firestore
+        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const TIENDA_PATH = `/artifacts/${APP_ID}/users/${window.userId}/tiendaJuego`;
         
+        // --- CONSTANTES GLOBALES DE CRYPTO Y VOLATILIDAD ---
+        const CRYPTO_FLUCTUATION_RATE = 0.05; // 5% de cambio máximo por minuto
+        // [MODIFICACIÓN: NUEVA FUNCIÓN] Tasa de fluctuación para el mercado de inversiones
+        const INVERSION_FLUCTUATION_RATE = 0.02; // 2% de cambio máximo por minuto para inversiones
+        const CRYPTO_UPDATE_INTERVAL = 60000; // 60 segundos (1 minuto) para cambios en el valor
+        
+
         // --- DEFINICIÓN DE TIENDAS ---
+        // Tienda de IPC (Left Column)
         const mejorasClick = {
             'dedo-rapido': { nombre: 'Dedo Rápido 🤏', costoBase: 10, costoEscalado: 1.15, ipcAumento: 1, tipo: 'ipc', icono: '👋' },
             'mouse-gamer': { nombre: 'Mouse Gamer 🖱️', costoBase: 100, costoEscalado: 1.15, ipcAumento: 10, tipo: 'ipc', icono: '🎮' },
-            'ai-clicker': { nombre: 'Asistente IA 🤖', costoBase: 1000, costoEscalado: 1.15, ipcAumento: 100, tipo: 'ipc', icono: '💡' }
+            'ai-clicker': { nombre: 'Asistente IA 🤖', costoBase: 1000, costoEscalado: 1.15, ipcAumento: 100, tipo: 'ipc', icono: '💡' },
+            'bot-autoclick': { nombre: 'Bot Autoclick 🦾', costoBase: 10000, costoEscalado: 1.15, ipcAumento: 1000, tipo: 'ipc', icono: '🤖' }
         };
 
+        // Tienda de IPS (Right Column)
         const generadoresIPS = {
             'puesto-limonada': { nombre: 'Puesto de Limonada 🍋', costoBase: 50, costoEscalado: 1.15, ipsGenerado: 0.5, tipo: 'ips', icono: '🥤' },
             'vendedor-ambulante': { nombre: 'Vendedor Ambulante 💼', costoBase: 500, costoEscalado: 1.15, ipsGenerado: 5, tipo: 'ips', icono: '🚶' },
-            'tienda-online': { nombre: 'Tienda Online 💻', costoBase: 5000, costoEscalado: 1.15, ipsGenerado: 50, tipo: 'ips', icono: '🛒' }
+            'tienda-online': { nombre: 'Tienda Online 💻', costoBase: 5000, costoEscalado: 1.15, ipsGenerado: 50, tipo: 'ips', icono: '🛒' },
+            'granja-solar': { nombre: 'Granja Solar ☀️', costoBase: 50000, costoEscalado: 1.15, ipsGenerado: 500, tipo: 'ips', icono: '⚡' },
+            'bienes-raices': { nombre: 'Bienes Raíces 🏘️', costoBase: 500000, costoEscalado: 1.15, ipsGenerado: 5000, tipo: 'ips', icono: '🏠' }
         };
         
+        // [MODIFICACIÓN: FUNCIONES NUEVAS] Activos de Lujo (Compra Única)
         const activosLujos = {
              'coche-lujo': { nombre: 'Coche Deportivo 🏎️', costo: 50000, efecto: 'Aumenta IPC en 500', ipcAumento: 500, comprado: false, icono: '🏎️' },
-             'apartamento': { nombre: 'Apartamento de Lujo 🏙️', costo: 500000, efecto: 'Aumenta IPS en 50', ipsAumento: 50, comprado: false, icono: '🏙️' }
+             'apartamento': { nombre: 'Apartamento de Lujo 🏙️', costo: 500000, efecto: 'Aumenta IPS en 50', ipsAumento: 50, comprado: false, icono: '🏙️' },
+             'yate': { nombre: 'Yate Privado 🛥️', costo: 5000000, efecto: 'Duplica todo el IPC', multiplicadorIPC: 2, comprado: false, icono: '🛥️' },
+             'isla-privada': { nombre: 'Isla Privada 🏝️', costo: 50000000, efecto: 'Multiplica IPS por 1.5', multiplicadorIPS: 1.5, comprado: false, icono: '🏝️' }
         };
         
+        // [MODIFICACIÓN: FUNCIONES NUEVAS] Empresas (Generan IPS Escalable)
         const empresasVistas = {
              'restaurante': { nombre: 'Restaurante Exclusivo 🍽️', costo: 1000000, ipsGenerado: 1000, vecesComprado: 0, icono: '🍽️' },
-             'tech-startup': { nombre: 'Tech Startup 🚀', costo: 10000000, ipsGenerado: 10000, vecesComprado: 0, icono: '🚀' }
+             'tech-startup': { nombre: 'Tech Startup 🚀', costo: 10000000, ipsGenerado: 10000, vecesComprado: 0, icono: '🚀' },
+             'cadena-hoteles': { nombre: 'Cadena de Hoteles 🏨', costo: 100000000, ipsGenerado: 100000, vecesComprado: 0, icono: '🏨' },
+             'aerolinea-lowcost': { nombre: 'Aerolínea Low Cost ✈️', costo: 1000000000, ipsGenerado: 1000000, vecesComprado: 0, icono: '✈️' }
         };
         
+        // [MODIFICACIÓN: FUNCIONES NUEVAS] Inversiones (Generan IPS basado en Valor Total)
         const inversionesVista = {
-             'bonos-gobierno': { nombre: 'Bonos Gobierno 🏛️', costo: 100000, retorno: 0.05, vecesComprado: 0, tipo: 'retorno', icono: '🏛️' }, 
-             'crypto-mining': { nombre: 'Crypto Mining ⛏️', costo: 2000000, retorno: 0.1, vecesComprado: 0, tipo: 'retorno', icono: '⛏️' }
+             'bonos-gobierno': { nombre: 'Bonos Gobierno 🏛️', costo: 100000, retorno: 0.05, vecesComprado: 0, tipo: 'retorno', icono: '🏛️' }, // 5% de retorno
+             'crypto-mining': { nombre: 'Crypto Mining ⛏️', costo: 2000000, retorno: 0.1, vecesComprado: 0, tipo: 'retorno', icono: '⛏️' }, // 10% de retorno
+             'fondo-indexado': { nombre: 'Fondo Indexado S&P 📈', costo: 5000000, retorno: 0.12, vecesComprado: 0, tipo: 'retorno', icono: '📊' }, // 12% de retorno
+             'venture-capital': { nombre: 'Venture Capital 💸', costo: 50000000, retorno: 0.2, vecesComprado: 0, tipo: 'retorno', icono: '💰' } // 20% de retorno
         };
 
-        // --- UTILIDADES DE FORMATO ---
+
+        // --- UTILIDADES ---
         
-        /** Formatea un número como moneda (K, M, B, T...). */
+        /** Formatea un número como moneda. */
         function formatDinero(num, decimales = 2) {
             num = parseFloat(num);
             if (num === 0) return '$0.00';
@@ -428,12 +174,7 @@
             const scale = Math.pow(10, tier * 3);
             const scaled = absNum / scale;
 
-            let formatted = scaled.toFixed(decimales);
-            if (tier > 0 && formatted.endsWith('.00')) {
-                formatted = scaled.toFixed(0);
-            } else if (tier > 0 && formatted.endsWith('.0')) {
-                 formatted = scaled.toFixed(1);
-            }
+            const formatted = scaled.toFixed(scaled % 1 !== 0 || tier > 0 ? decimales : 0);
             return sign + '$' + formatted + suffix;
         }
         
@@ -457,41 +198,62 @@
                  anim.classList.add('animacion-crypto');
             }
             
+            // Posicionar con respecto al billete
             anim.style.left = `${x}px`;
             anim.style.top = `${y}px`;
 
             document.body.appendChild(anim);
 
+            // Eliminar después de la animación
             anim.addEventListener('animationend', () => {
                 anim.remove();
             });
         }
+
+        // --- FIREBASE (Guardar/Cargar - Cloud Save) ---
         
-        // --- LÓGICA DE GUARDADO Y CARGA (NUBE Y LOCAL) ---
-        
-        // **Nota:** Las funciones de Firebase se mantienen para la integración con la nube.
-        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const TIENDA_PATH = `/artifacts/${APP_ID}/users/${window.userId}/tiendaJuego`;
-        const LOCAL_STORAGE_KEY = 'millonarioClicker_save'; 
-        
-        async function cargarEstadoNube() {
-            if (!window.db || !window.userId) return null;
+        async function cargarEstado() {
+            if (!window.db || !window.userId) return;
             const docRef = window.firebase.firestore.doc(window.db, TIENDA_PATH);
             try {
                 const docSnap = await window.firebase.firestore.getDoc(docRef);
                 if (docSnap.exists()) {
-                    return docSnap.data();
+                    const data = docSnap.data();
+                    // Cargar estado principal
+                    estadoJuego = {
+                        ...estadoJuego,
+                        ...data,
+                        // Asegurar que los números sean floats
+                        dinero: parseFloat(data.dinero || 0),
+                        ipc: parseFloat(data.ipc || 1),
+                        ips: parseFloat(data.ips || 0),
+                        ultimosSegundos: parseFloat(data.ultimosSegundos || Date.now())
+                    };
+                    
+                    // Asegurar que las estructuras anidadas existan
+                    estadoJuego.tiendas = data.tiendas || estadoJuego.tiendas;
+                    estadoJuego.activos = data.activos || estadoJuego.activos;
+                    estadoJuego.empresas = data.empresas || estadoJuego.empresas;
+                    estadoJuego.inversiones = data.inversiones || estadoJuego.inversiones;
+                    estadoJuego.crypto = data.crypto || estadoJuego.crypto;
+                    estadoJuego.estadisticas = data.estadisticas || estadoJuego.estadisticas;
+                    
+                    // Forzar el cálculo del progreso offline
+                    calcularProgresoOffline();
+                } else {
+                    // Si no existe, inicializar con el estado predeterminado y guardar
+                    await guardarEstado();
                 }
             } catch (e) {
-                console.error("Error al cargar de la nube:", e);
+                console.error("Error cargando el estado: ", e);
             }
-            return null;
         }
 
-        async function guardarEstadoNube() {
+        async function guardarEstado() {
             if (!window.db || !window.userId) return;
             const docRef = window.firebase.firestore.doc(window.db, TIENDA_PATH);
             try {
+                // Solo guardar los valores que cambian
                 const dataToSave = {
                     dinero: estadoJuego.dinero,
                     ipc: estadoJuego.ipc,
@@ -502,87 +264,28 @@
                     inversiones: estadoJuego.inversiones,
                     crypto: estadoJuego.crypto,
                     estadisticas: estadoJuego.estadisticas,
-                    ultimosSegundos: Date.now() 
+                    ultimosSegundos: Date.now() // Actualizar el tiempo de guardado
                 };
                 await window.firebase.firestore.setDoc(docRef, dataToSave);
+                // console.log("Estado guardado con éxito.");
             } catch (e) {
-                console.error("Error al guardar en la nube:", e);
+                console.error("Error guardando el estado: ", e);
             }
         }
         
-        function cargarEstadoLocal() {
-            try {
-                const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
-                if (savedState) {
-                    return JSON.parse(savedState);
-                }
-            } catch (e) {
-                 console.error("Error al cargar de LocalStorage:", e);
-            }
-            return null;
-        }
-        
-        function guardarEstadoLocal() {
-            try {
-                const dataToSave = {
-                    dinero: estadoJuego.dinero,
-                    ipc: estadoJuego.ipc,
-                    ips: estadoJuego.ips,
-                    tiendas: estadoJuego.tiendas,
-                    activos: estadoJuego.activos,
-                    empresas: estadoJuego.empresas,
-                    inversiones: estadoJuego.inversiones,
-                    crypto: estadoJuego.crypto,
-                    estadisticas: estadoJuego.estadisticas,
-                    ultimosSegundos: Date.now() 
-                };
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(dataToSave));
-            } catch (e) {
-                 console.error("Error al guardar en LocalStorage:", e);
-            }
-        }
-        
-        async function cargarEstado() {
-            let data = cargarEstadoLocal();
-            
-            if (!data) {
-                 data = await cargarEstadoNube();
-            }
-            
-            if (data) {
-                estadoJuego = {
-                    ...estadoJuego,
-                    ...data,
-                    dinero: parseFloat(data.dinero || 0),
-                    ipc: parseFloat(data.ipc || 1),
-                    ips: parseFloat(data.ips || 0),
-                    ultimosSegundos: parseFloat(data.ultimosSegundos || Date.now())
-                };
-                
-                estadoJuego.crypto = data.crypto || estadoJuego.crypto;
-                estadoJuego.estadisticas = data.estadisticas || estadoJuego.estadisticas;
-                
-                calcularProgresoOffline();
-            } else {
-                 await guardarEstado();
-            }
-        }
-        
-        async function guardarEstado() {
-            guardarEstadoLocal(); 
-            await guardarEstadoNube(); 
-        }
+        // --- LÓGICA DE JUEGO PRINCIPAL ---
 
-        // --- LÓGICA DE JUEGO PRINCIPAL Y VOLATILIDAD ---
-        
+        /** * Inicializa el estado de las tiendas si es la primera vez.
+         * Lo hacemos aquí para no sobreescribir los datos cargados.
+         */
         function inicializarTiendas(tiendas, estadoKey) {
             for (const id in tiendas) {
                 if (!estadoJuego[estadoKey][id]) {
                     estadoJuego[estadoKey][id] = { 
                         nivel: 0, 
                         vecesComprado: 0,
-                        comprado: tiendas[id].comprado || false, 
-                        valorTotal: 0 
+                        comprado: tiendas[id].comprado || false, // Para activos fijos
+                        valorTotal: 0 // Para inversiones
                     };
                 }
             }
@@ -591,9 +294,10 @@
         function calcularProgresoOffline() {
             const now = Date.now();
             const elapsedSeconds = (now - estadoJuego.ultimosSegundos) / 1000;
-            if (elapsedSeconds > 5) { 
+            if (elapsedSeconds > 5) { // Si estuvo ausente por más de 5 segundos
                 const dineroGanado = estadoJuego.ips * elapsedSeconds;
                 estadoJuego.dinero += dineroGanado;
+                console.log(`Ganancia offline: +${formatDinero(dineroGanado)} durante ${Math.round(elapsedSeconds)} segundos.`);
                 estadoJuego.estadisticas.dineroPasivo += dineroGanado;
             }
             estadoJuego.ultimosSegundos = now;
@@ -604,60 +308,99 @@
             document.getElementById('ipc-actual').textContent = formatDinero(estadoJuego.ipc);
             document.getElementById('ips-actual').textContent = formatDinero(estadoJuego.ips) + " / s";
             
-            // Actualizar solo las vistas activas para mejorar el rendimiento
-            if (document.getElementById('view-clicker').classList.contains('active')) {
-                 // **NOTA:** Llamadas separadas para IPC y IPS (solicitud de diseño 3 columnas)
-                 dibujarTienda(mejorasClick, 'mejoras-clic-tienda', 'tiendas'); 
-                 dibujarTienda(generadoresIPS, 'generadores-tienda', 'tiendas'); 
-            }
-            if (document.getElementById('view-assets').classList.contains('active')) dibujarActivos();
-            if (document.getElementById('view-companies').classList.contains('active')) dibujarEmpresas();
-            if (document.getElementById('view-investments').classList.contains('active')) dibujarInversiones();
-            if (document.getElementById('view-crypto').classList.contains('active')) dibujarCryptoView();
-            // REQUISITO: Estadísticas se actualizan instantáneamente
-            dibujarStatsView(); 
+            // Actualizar todas las vistas
+            dibujarTodasLasTiendas();
+            dibujarCryptoView();
+            dibujarStatsView();
+            
+            // Mostrar User ID en el pie de página
+            document.getElementById('user-info-footer').textContent = `ID de Sesión: ${window.userId}`;
         }
         
-        // Lógica de fluctuación de Crypto (se ejecuta cada 60 segundos)
+        /** * Llama a las funciones de dibujo de todas las vistas activas/paneles.
+         */
+        function dibujarTodasLasTiendas() {
+            // Se dibujan solo los elementos que pertenecen a la vista activa
+            dibujarTienda(mejorasClick, 'mejoras-clic-tienda', 'tiendas'); // IPC Shop (Left Column)
+            dibujarTienda(generadoresIPS, 'generadores-tienda', 'tiendas'); // IPS Shop (Right Column)
+            
+            dibujarActivos();
+            dibujarEmpresas();
+            dibujarInversiones();
+            actualizarBotonesVista();
+        }
+
+        /** Actualiza el estado de los botones de navegación según la vista activa */
+        function actualizarBotonesVista() {
+             const vistaActivaElement = document.querySelector('.game-view.active');
+             if (!vistaActivaElement) return;
+             
+             const vistaActiva = vistaActivaElement.id.replace('view-', '');
+             document.querySelectorAll('#nav-bar button').forEach(btn => {
+                 btn.classList.remove('active');
+                 if (btn.id.includes(vistaActiva)) {
+                     btn.classList.add('active');
+                 }
+             });
+        }
+
+        // [MODIFICACIÓN: NUEVA FUNCIÓN] Lógica de fluctuación de Crypto (Volatilidad)
         function fluctuarCrypto() {
-            for (const id in estadoJuego.crypto) {
-                const cryptoData = estadoJuego.crypto[id];
-                const factor = (Math.random() * (CRYPTO_FLUCTUATION_MAX * 2)) - CRYPTO_FLUCTUATION_MAX; 
-                let newPrice = cryptoData.valorActual * (1 + factor);
-                
-                // Volatilidad Extrema para DOGE
-                if (id === 'dogecoin' && Math.random() < 0.15) { 
-                     newPrice *= (1 + ((Math.random() * 2.0) - 1.0)); 
-                }
-                newPrice = Math.max(0.000001, newPrice); 
-                cryptoData.valorActual = newPrice;
-            }
+            const factor = Math.random() * (CRYPTO_FLUCTUATION_RATE * 2) - CRYPTO_FLUCTUATION_RATE; // Rango: -5% a +5%
+            
+            // Fluctación de Bitcoin
+            const oldBtcValue = estadoJuego.crypto.bitcoin.valorActual;
+            let newBtcValue = oldBtcValue * (1 + factor);
+            newBtcValue = Math.max(1, newBtcValue); // Evitar valor negativo o cero
+            estadoJuego.crypto.bitcoin.valorActual = newBtcValue;
+            
+            // Fluctación de Ethereum (un poco más volátil, ej: factor * 1.2)
+            const oldEthValue = estadoJuego.crypto.ethereum.valorActual;
+            let newEthValue = oldEthValue * (1 + (factor * 1.2));
+            newEthValue = Math.max(1, newEthValue);
+            estadoJuego.crypto.ethereum.valorActual = newEthValue;
+            
+            // No guardar estado, solo actualizar la vista de crypto si está activa
             if (document.getElementById('view-crypto').classList.contains('active')) {
                  dibujarCryptoView();
             }
+            // console.log("Crypto fluctuado. BTC:", formatDinero(newBtcValue, 2));
         }
         
-        // Lógica de fluctuación de Inversiones (se ejecuta cada 60 segundos)
+        // [MODIFICACIÓN: NUEVA FUNCIÓN] Lógica de fluctuación de Inversiones (Volatilidad)
         function fluctuarInversiones() {
-            // Actualmente la inversión no afecta el IPC/IPS directamente, solo el valor.
-            // Si quieres que el IPS de la inversión fluctúe, esta lógica debe ser modificada.
+            // Aplica volatilidad al valor total de las inversiones (solo a valorTotal para simplificar)
+            for (const id in inversionesVista) {
+                const estado = estadoJuego.inversiones[id];
+                if (estado && estado.valorTotal > 0) {
+                    // Volatilidad más suave para inversiones (ej. 2% max)
+                    const factor = Math.random() * (INVERSION_FLUCTUATION_RATE * 2) - INVERSION_FLUCTUATION_RATE;
+                    const cambio = estado.valorTotal * factor;
+                    
+                    estado.valorTotal += cambio;
+                    estado.valorTotal = Math.max(0, estado.valorTotal); // No puede ser negativo
+                    
+                    // Recalcular IPS inmediatamente si el valor cambia
+                    recalcularIPS();
+                }
+            }
+            // Actualizar vista si es necesario
             if (document.getElementById('view-investments').classList.contains('active')) {
                  dibujarInversiones();
             }
         }
 
-
         /** Lógica para el bucle de ingresos pasivos (IPS) */
         function bucleJuego() {
             const ganancia = estadoJuego.ips;
-            estadoJuego.dinero += ganancia; 
+            estadoJuego.dinero += ganancia;
             estadoJuego.estadisticas.dineroPasivo += ganancia;
-            
-            actualizarUI(); 
+            actualizarUI();
         }
 
-        // --- LÓGICA DE DIBUJO DE VISTAS (MENOS MODULAR PARA MAYOR EXTENSIÓN) ---
-        
+        // --- LÓGICA DE VISTAS (Se mantiene la duplicidad de funciones para robustez) ---
+
+        /** * Dibuja los items de mejora o generadores. (Usado por las columnas IPC/IPS) */
         function dibujarTienda(items, contenedorId, estadoKey) {
             const contenedor = document.getElementById(contenedorId);
             if (!contenedor) return;
@@ -670,11 +413,16 @@
                 const costo = calcularCosto(item.costoBase, item.costoEscalado, nivel);
                 const puedeComprar = estadoJuego.dinero >= costo;
 
-                // Bloque de generación de HTML (repetido para cada tipo de tienda)
                 const elemento = document.createElement('div');
                 elemento.className = `tienda-item ${!puedeComprar ? 'item-bloqueado' : ''}`;
-                
-                let efectoTexto = item.tipo === 'ipc' ? `+${formatDinero(item.ipcAumento)} IPC` : `+${formatDinero(item.ipsGenerado)} IPS`;
+                elemento.dataset.id = id;
+
+                let efectoTexto = '';
+                if (item.tipo === 'ipc') {
+                    efectoTexto = `+${formatDinero(item.ipcAumento)} IPC por nivel`;
+                } else if (item.tipo === 'ips') {
+                    efectoTexto = `+${formatDinero(item.ipsGenerado)} IPS por nivel`;
+                }
                 
                 elemento.innerHTML = `
                     <h3>${item.icono} ${item.nombre}</h3>
@@ -689,92 +437,109 @@
             }
         }
         
+        // Dibujo de Activos (Compra única)
         function dibujarActivos() {
-             const contenedor = document.getElementById('activos-tienda');
-             if (!contenedor) return;
-             contenedor.innerHTML = '';
-             
-             // **NOTA:** Implementación extensa para cada item de activo (menos DRY)
-             for (const id in activosLujos) {
-                 const item = activosLujos[id];
-                 const estadoItem = estadoJuego.activos[id];
-                 const comprado = estadoItem.comprado;
-                 const puedeComprar = estadoJuego.dinero >= item.costo && !comprado;
-                 
-                 const elemento = document.createElement('div');
-                 elemento.className = `tienda-item ${comprado ? 'item-comprado' : ''} ${!puedeComprar && !comprado ? 'item-bloqueado' : ''}`;
-                 
-                 elemento.innerHTML = `
-                     <h3>${item.icono} ${item.nombre}</h3>
-                     <p>Efecto: ${item.efecto}</p>
-                     <p>Costo: <span style="font-weight: 700;">${formatDinero(item.costo)}</span></p>
-                     <p style="font-weight: 700; color: ${comprado ? 'var(--color-ips)' : 'var(--color-acento-principal)'}">${comprado ? 'ADQUIRIDO' : 'Disponible'}</p>
-                     <button onclick="comprarActivo('${id}')" ${!puedeComprar ? 'disabled' : ''}>
-                         ${comprado ? 'Comprado' : 'Comprar Activo'}
-                     </button>
-                 `;
-                 contenedor.appendChild(elemento);
-             }
+            const contenedor = document.getElementById('activos-tienda');
+            if (!contenedor) return;
+            contenedor.innerHTML = '';
+
+            for (const id in activosLujos) {
+                const item = activosLujos[id];
+                const estado = estadoJuego.activos[id] || { comprado: false };
+                const comprado = estado.comprado;
+                const puedeComprar = !comprado && estadoJuego.dinero >= item.costo;
+
+                const elemento = document.createElement('div');
+                elemento.className = `tienda-item asset-item ${comprado ? 'item-comprado' : ''} ${!puedeComprar && !comprado ? 'item-bloqueado' : ''}`;
+                elemento.dataset.id = id;
+
+                elemento.innerHTML = `
+                    <h3>${item.icono || '✨'} ${item.nombre}</h3>
+                    <p>Costo: <span style="font-weight: 700;">${formatDinero(item.costo)}</span></p>
+                    <p>Efecto: <span style="color: var(--color-inversion);">${item.efecto}</span></p>
+                    <button onclick="comprarActivo('${id}')" ${comprado || !puedeComprar ? 'disabled' : ''}>
+                        ${comprado ? 'Comprado' : 'Comprar Lujo'}
+                    </button>
+                `;
+                contenedor.appendChild(elemento);
+            }
         }
         
+        // Dibujo de Empresas (Generan IPS)
         function dibujarEmpresas() {
              const contenedor = document.getElementById('empresas-tienda');
              if (!contenedor) return;
              contenedor.innerHTML = '';
-             
+
              for (const id in empresasVistas) {
                  const item = empresasVistas[id];
-                 const estadoItem = estadoJuego.empresas[id];
-                 const nivel = estadoItem.vecesComprado;
-                 const costo = item.costo;
+                 const estado = estadoJuego.empresas[id] || { vecesComprado: 0 };
+                 
+                 // Costo de la empresa: 10% de aumento por cada compra (ejemplo simple)
+                 const costo = item.costo * Math.pow(1.1, estado.vecesComprado); 
                  const puedeComprar = estadoJuego.dinero >= costo;
 
                  const elemento = document.createElement('div');
-                 elemento.className = `tienda-item ${!puedeComprar ? 'item-bloqueado' : ''}`;
-                 
+                 elemento.className = `tienda-item company-item ${!puedeComprar ? 'item-bloqueado' : ''}`;
+                 elemento.dataset.id = id;
+
+                 const ipsTotal = estado.vecesComprado * item.ipsGenerado;
+
                  elemento.innerHTML = `
-                     <h3>${item.icono} ${item.nombre}</h3>
-                     <p>Unidades: <span style="color: var(--color-empresa);">${nivel}</span></p>
-                     <p>Genera: +${formatDinero(item.ipsGenerado)} IPS por unidad</p>
-                     <p>Costo por unidad: <span style="font-weight: 700;">${formatDinero(costo)}</span></p>
+                     <h3>${item.icono || '🏢'} ${item.nombre}</h3>
+                     <p>Compradas: <span style="color: var(--color-empresa);">${estado.vecesComprado}</span></p>
+                     <p>IPS Total: <span style="font-weight: 700;">${formatDinero(ipsTotal)} / s</span></p>
+                     <p>Costo Próxima: <span style="font-weight: 700;">${formatDinero(costo)}</span></p>
                      <button onclick="comprarEmpresa('${id}')" ${!puedeComprar ? 'disabled' : ''}>
-                         Comprar ${item.nombre}
+                         Fundar Nueva (IPS: +${formatDinero(item.ipsGenerado)})
                      </button>
                  `;
                  contenedor.appendChild(elemento);
              }
         }
         
+        // Dibujo de Inversiones (Generan Retorno %)
         function dibujarInversiones() {
              const contenedor = document.getElementById('inversiones-tienda');
              if (!contenedor) return;
              contenedor.innerHTML = '';
-             
+
              for (const id in inversionesVista) {
                  const item = inversionesVista[id];
-                 const estadoItem = estadoJuego.inversiones[id];
-                 const nivel = estadoItem.vecesComprado;
-                 const costo = item.costo;
+                 const estado = estadoJuego.inversiones[id] || { vecesComprado: 0, valorTotal: 0 };
+                 
+                 // El costo es fijo por paquete de inversión
+                 const costo = item.costo; 
                  const puedeComprar = estadoJuego.dinero >= costo;
+                 
+                 // Pérdida/Ganancia (simple: valor actual vs. veces comprado * costo)
+                 const valorInicialTotal = estado.vecesComprado * item.costo;
+                 const perdidaGanancia = estado.valorTotal - valorInicialTotal;
+                 const retornoIPS = estado.valorTotal * item.retorno / 10; // Ejemplo: 5% anual / 10 = 0.5% por segundo
 
                  const elemento = document.createElement('div');
-                 elemento.className = `tienda-item ${!puedeComprar ? 'item-bloqueado' : ''}`;
-                 
-                 // **NOTA:** Aquí la lógica de inversión se simplifica en el dibujo.
+                 elemento.className = `tienda-item investment-item ${!puedeComprar ? 'item-bloqueado' : ''}`;
+                 elemento.dataset.id = id;
+
                  elemento.innerHTML = `
-                     <h3>${item.icono} ${item.nombre}</h3>
-                     <p>Unidades: <span style="color: var(--color-empresa);">${nivel}</span></p>
-                     <p>Retorno Base: ${item.retorno * 100}%</p>
-                     <p>Valor de Inversión: <span style="font-weight: 700; color: var(--color-ips);">${formatDinero(nivel * costo, 0)}</span></p>
-                     <p>Costo por unidad: <span style="font-weight: 700;">${formatDinero(costo)}</span></p>
+                     <h3>${item.icono || '📈'} ${item.nombre}</h3>
+                     <p>Valor Total: <span style="color: var(--color-acento-celeste);">${formatDinero(estado.valorTotal)}</span></p>
+                     <p>Retorno IPS: <span style="font-weight: 700;">${formatDinero(retornoIPS)} / s</span></p>
+                     <p>Pérdida/Ganancia: 
+                        <span class="${perdidaGanancia >= 0 ? 'text-success' : 'text-danger'}">
+                             ${formatDinero(perdidaGanancia, 2)}
+                        </span>
+                     </p>
+                     <p>Costo Paquete: <span style="font-weight: 700;">${formatDinero(costo)}</span></p>
                      <button onclick="comprarInversion('${id}')" ${!puedeComprar ? 'disabled' : ''}>
-                         Invertir $${formatDinero(costo)}
+                         Invertir (+${formatDinero(item.costo)})
                      </button>
                  `;
                  contenedor.appendChild(elemento);
              }
         }
         
+        // Dibujo de Crypto View
         function dibujarCryptoView() {
             const contenedor = document.getElementById('crypto-grid');
             if (!contenedor) return;
@@ -782,20 +547,18 @@
 
             const cryptos = [
                 { id: 'bitcoin', nombre: 'Bitcoin (BTC)', icono: '₿' },
-                { id: 'ethereum', nombre: 'Ethereum (ETH)', icono: 'Ξ' },
-                { id: 'cardano', nombre: 'Cardano (ADA)', icono: '₳' },
-                { id: 'dogecoin', nombre: 'Dogecoin (DOGE)', icono: 'Ɖ' },
-                { id: 'litecoin', nombre: 'Litecoin (LTC)', icono: 'Ł' },
-                { id: 'solana', nombre: 'Solana (SOL)', icono: '◎' }
+                { id: 'ethereum', nombre: 'Ethereum (ETH)', icono: 'Ξ' }
             ];
 
-            // **NOTA:** Implementación extensa para cada item de crypto (menos DRY)
             cryptos.forEach(({ id, nombre, icono }) => {
                 const cryptoData = estadoJuego.crypto[id];
                 const valorActual = cryptoData.valorActual;
                 const cantidad = cryptoData.cantidad;
+                
+                // Pérdida/Ganancia no realizada
                 const valorActualTotal = cantidad * valorActual;
                 const perdidaGanancia = cantidad > 0 ? (valorActualTotal - (cantidad * cryptoData.costoPromedio)) : 0;
+                
                 const puedeVender = cantidad > 0;
                 const puedeComprar = estadoJuego.dinero >= valorActual;
 
@@ -808,7 +571,7 @@
                         <h3>${nombre}</h3>
                     </div>
                     <div class="crypto-info">
-                        <p>Valor Actual: <span class="crypto-price">${formatDinero(valorActual, valorActual < 10 ? 4 : 2)}</span></p>
+                        <p>Valor Actual: <span class="crypto-price">${formatDinero(valorActual, 2)}</span></p>
                         <p>Tu Cantidad: <span class="crypto-amount">${formatCrypto(cantidad)}</span></p>
                         <p>Costo Promedio: <span class="crypto-avg">${formatDinero(cryptoData.costoPromedio, 2)}</span></p>
                         <p>Ganancia No Realizada: 
@@ -818,10 +581,10 @@
                         </p>
                     </div>
                     <div class="crypto-actions">
-                        <button onclick="comprarCrypto('${id}', 1)" ${!puedeComprar ? 'disabled' : ''} class="buy-btn">
+                        <button onclick="comprarCrypto('${id}')" ${!puedeComprar ? 'disabled' : ''} class="buy-btn">
                             Comprar 1 (${formatDinero(valorActual, 2)})
                         </button>
-                        <button onclick="venderCrypto('${id}', 1)" ${!puedeVender ? 'disabled' : ''} class="sell-btn">
+                        <button onclick="venderCrypto('${id}')" ${!puedeVender ? 'disabled' : ''} class="sell-btn">
                             Vender 1 (${formatDinero(valorActual, 2)})
                         </button>
                     </div>
@@ -830,222 +593,272 @@
             });
         }
         
+        // Dibujo de Estadísticas
         function dibujarStatsView() {
             const stats = estadoJuego.estadisticas;
             const totalDineroGanado = stats.dineroPorClicks + stats.dineroPasivo + stats.dineroCrypto;
             
-            document.getElementById('stat-dinero-actual').textContent = formatDinero(estadoJuego.dinero); 
             document.getElementById('stat-total-clicks').textContent = stats.totalClicks.toLocaleString('es-ES');
             document.getElementById('stat-dinero-clicks').textContent = formatDinero(stats.dineroPorClicks);
             document.getElementById('stat-dinero-pasivo').textContent = formatDinero(stats.dineroPasivo);
             document.getElementById('stat-dinero-crypto').textContent = formatDinero(stats.dineroCrypto);
+            
             document.getElementById('stat-total-ganado').textContent = formatDinero(totalDineroGanado);
         }
 
         // --- FUNCIONES ACCIONABLES (GLOBALES) ---
-        
+
+        /** * Función pública para el botón de clic principal. */
         window.hacerClick = function(e) {
             estadoJuego.dinero += estadoJuego.ipc;
+            
+            // Actualizar estadísticas
             estadoJuego.estadisticas.totalClicks++;
             estadoJuego.estadisticas.dineroPorClicks += estadoJuego.ipc;
             
-            mostrarAnimacion(estadoJuego.ipc, e.clientX, e.clientY);
+            const x = e.clientX;
+            const y = e.clientY;
+            mostrarAnimacion(estadoJuego.ipc, x, y);
 
-            actualizarUI(); 
-            guardarEstado(); 
+            actualizarUI();
+            guardarEstado();
         }
 
+        /**
+         * Función pública para comprar Mejoras/Generadores IPS.
+         */
         window.comprarItem = function(id, estadoKey, tipo) {
-            const items = (tipo === 'ipc') ? mejorasClick : generadoresIPS;
-            const item = items[id];
-            const estadoItem = estadoJuego[estadoKey][id];
-            const costo = calcularCosto(item.costoBase, item.costoEscalado, estadoItem.nivel);
+            const item = (tipo === 'ipc' ? mejorasClick[id] : generadoresIPS[id]);
+            const estadoActual = estadoJuego[estadoKey][id] || { nivel: 0 };
+            const costo = calcularCosto(item.costoBase, item.costoEscalado, estadoActual.nivel);
 
             if (estadoJuego.dinero >= costo) {
                 estadoJuego.dinero -= costo;
-                estadoItem.nivel++;
-                
-                if (tipo === 'ipc') {
-                    estadoJuego.ipc += item.ipcAumento;
-                } else if (tipo === 'ips') {
-                    estadoJuego.ips += item.ipsGenerado;
-                }
+                estadoActual.nivel++;
+                estadoJuego[estadoKey][id] = estadoActual;
+
+                // Recalcular el total
+                recalcularIPC(); 
+                recalcularIPS();
+                actualizarUI();
+                guardarEstado();
             }
-            
-            recalcularIPC(); 
-            recalcularIPS();
-            actualizarUI(); 
-            guardarEstado(); 
         }
         
+        /**
+         * Función pública para comprar Activos/Lujos.
+         */
         window.comprarActivo = function(id) {
-             const item = activosLujos[id];
-             const estadoItem = estadoJuego.activos[id];
-             
-             if (!estadoItem.comprado && estadoJuego.dinero >= item.costo) {
-                 estadoJuego.dinero -= item.costo;
-                 estadoItem.comprado = true;
-                 
-                 // Aplicar efecto de activo
-                 if (item.ipcAumento) estadoJuego.ipc += item.ipcAumento;
-                 if (item.ipsAumento) estadoJuego.ips += item.ipsAumento;
-             }
-             recalcularIPC(); 
-             recalcularIPS();
-             actualizarUI(); 
-             guardarEstado(); 
+            const item = activosLujos[id];
+            const estado = estadoJuego.activos[id] || { comprado: false };
+            
+            if (!estado.comprado && estadoJuego.dinero >= item.costo) {
+                estadoJuego.dinero -= item.costo;
+                estado.comprado = true;
+                estadoJuego.activos[id] = estado;
+                
+                recalcularIPC(); 
+                recalcularIPS();
+                actualizarUI();
+                guardarEstado();
+            }
         }
         
+        /**
+         * Función pública para comprar Empresas.
+         */
         window.comprarEmpresa = function(id) {
-             const item = empresasVistas[id];
-             const estadoItem = estadoJuego.empresas[id];
-             
-             if (estadoJuego.dinero >= item.costo) {
-                 estadoJuego.dinero -= item.costo;
-                 estadoItem.vecesComprado++;
-                 estadoJuego.ips += item.ipsGenerado;
-             }
-             recalcularIPS();
-             actualizarUI(); 
-             guardarEstado(); 
+            const item = empresasVistas[id];
+            const estado = estadoJuego.empresas[id] || { vecesComprado: 0 };
+            const costo = item.costo * Math.pow(1.1, estado.vecesComprado); 
+
+            if (estadoJuego.dinero >= costo) {
+                estadoJuego.dinero -= costo;
+                estado.vecesComprado++;
+                estadoJuego.empresas[id] = estado;
+                
+                recalcularIPS();
+                actualizarUI();
+                guardarEstado();
+            }
         }
 
+        /**
+         * Función pública para comprar Inversiones.
+         */
         window.comprarInversion = function(id) {
             const item = inversionesVista[id];
-            const estadoItem = estadoJuego.inversiones[id];
-            
-            if (estadoJuego.dinero >= item.costo) {
-                estadoJuego.dinero -= item.costo;
-                estadoItem.vecesComprado++;
+            const estado = estadoJuego.inversiones[id] || { vecesComprado: 0, valorTotal: 0 };
+            const costo = item.costo; 
+
+            if (estadoJuego.dinero >= costo) {
+                estadoJuego.dinero -= costo;
+                estado.vecesComprado++;
+                estado.valorTotal += costo; // Añadir el costo al valor total invertido
+                estadoJuego.inversiones[id] = estado;
+                
+                recalcularIPS(); // El IPS cambiará por el nuevo valor total
+                actualizarUI();
+                guardarEstado();
             }
-            recalcularIPS(); 
-            actualizarUI(); 
-            guardarEstado(); 
         }
         
-        window.comprarCrypto = function(id, cantidad) {
-            const cryptoData = estadoJuego.crypto[id];
-            const costoTotal = cryptoData.valorActual * cantidad;
+        /**
+         * Función pública para comprar 1 unidad de Crypto.
+         */
+        window.comprarCrypto = function(id) {
+            const crypto = estadoJuego.crypto[id];
+            const valor = crypto.valorActual;
             
-            if (estadoJuego.dinero >= costoTotal) {
-                estadoJuego.dinero -= costoTotal;
+            if (estadoJuego.dinero >= valor) {
+                estadoJuego.dinero -= valor;
                 
-                const cantidadVieja = cryptoData.cantidad;
-                const costoViejoTotal = cantidadVieja * cryptoData.costoPromedio;
-                const nuevoCostoTotal = costoViejoTotal + costoTotal;
-                const nuevaCantidadTotal = cantidadVieja + cantidad;
+                // Recalcular costo promedio (funcionalidad de Volatilidad y Crypto)
+                const nuevaCantidad = crypto.cantidad + 1;
+                const costoTotalAnterior = crypto.cantidad * crypto.costoPromedio;
+                const nuevoCostoTotal = costoTotalAnterior + valor;
                 
-                cryptoData.costoPromedio = nuevaCantidadTotal > 0 ? nuevoCostoTotal / nuevaCantidadTotal : 0;
-                cryptoData.cantidad = nuevaCantidadTotal;
+                crypto.costoPromedio = nuevoCostoTotal / nuevaCantidad;
+                crypto.cantidad = nuevaCantidad;
+
+                actualizarUI();
+                guardarEstado();
+                showModal(`Compraste 1 unidad de ${id.toUpperCase()} a ${formatDinero(valor, 2)}`, 'Compra Exitosa', false);
+            } else {
+                 showModal(`Necesitas ${formatDinero(valor, 2)} para comprar 1 unidad de ${id.toUpperCase()}.`, 'Dinero Insuficiente', false);
             }
-            actualizarUI(); 
-            guardarEstado(); 
         }
 
-        window.venderCrypto = function(id, cantidad) {
-            const cryptoData = estadoJuego.crypto[id];
-            
-            if (cryptoData.cantidad >= cantidad) {
-                const ingreso = cryptoData.valorActual * cantidad;
-                const costoDeVenta = cryptoData.costoPromedio * cantidad;
-                
-                estadoJuego.dinero += ingreso;
-                estadoJuego.estadisticas.dineroCrypto += (ingreso - costoDeVenta);
-                cryptoData.cantidad -= cantidad;
+        /**
+         * Función pública para vender 1 unidad de Crypto.
+         */
+        window.venderCrypto = function(id) {
+            const crypto = estadoJuego.crypto[id];
+            const valor = crypto.valorActual;
 
-                // Si se vende todo, resetear el costo promedio
-                if (cryptoData.cantidad <= 0) {
-                     cryptoData.costoPromedio = 0;
-                     cryptoData.cantidad = 0;
+            if (crypto.cantidad > 0) {
+                // Cálculo de ganancia/pérdida antes de vender
+                const gananciaPerdida = valor - crypto.costoPromedio;
+                
+                estadoJuego.dinero += valor;
+                crypto.cantidad -= 1;
+                
+                // Si la cantidad llega a cero, restablecer el costo promedio
+                if (crypto.cantidad === 0) {
+                     crypto.costoPromedio = 0;
+                } 
+                
+                // Actualizar estadísticas de ganancia/pérdida (funcionalidad de Crypto)
+                estadoJuego.estadisticas.dineroCrypto += gananciaPerdida;
+                
+                actualizarUI();
+                guardarEstado();
+                showModal(`Vendiste 1 unidad de ${id.toUpperCase()} a ${formatDinero(valor, 2)}`, 'Venta Exitosa', false);
+            }
+        }
+
+        
+        /** Recalcula el IPC total base + multiplicadores. (Incluye Activos) */
+        function recalcularIPC() {
+            let baseIPC = 1; // IPC base de inicio (1 por defecto)
+            
+            // 1. IPC base de Mejoras Click
+            for (const id in mejorasClick) {
+                 const nivel = estadoJuego.tiendas[id]?.nivel || 0;
+                 if (mejorasClick[id].tipo === 'ipc') {
+                    baseIPC += nivel * mejorasClick[id].ipcAumento;
+                 }
+            }
+            
+            // 2. IPC de Activos fijos (suma)
+            for (const id in activosLujos) {
+                if (estadoJuego.activos[id]?.comprado) {
+                    if (activosLujos[id].ipcAumento) {
+                         baseIPC += activosLujos[id].ipcAumento;
+                    }
                 }
             }
-            actualizarUI(); 
-            guardarEstado(); 
+
+            // Establecer el nuevo IPC (antes de multiplicadores)
+            estadoJuego.ipc = baseIPC;
+            
+            // 3. Multiplicadores de Activos
+            let multiplicador = 1;
+            for (const id in activosLujos) {
+                if (estadoJuego.activos[id]?.comprado && activosLujos[id].multiplicadorIPC) {
+                    multiplicador *= activosLujos[id].multiplicadorIPC;
+                }
+            }
+            
+            // Aplicar multiplicador
+            estadoJuego.ipc = estadoJuego.ipc * multiplicador;
         }
 
-        /** Recalcula el IPC total base + multiplicadores. */
-        function recalcularIPC() {
-             let nuevoIPC = 1;
-             
-             for (const id in mejorasClick) {
-                 const nivel = estadoJuego.tiendas[id]?.nivel || 0;
-                 nuevoIPC += mejorasClick[id].ipcAumento * nivel;
-             }
-             
-             for (const id in activosLujos) {
-                 const comprado = estadoJuego.activos[id]?.comprado;
-                 if (comprado && activosLujos[id].ipcAumento) {
-                     nuevoIPC += activosLujos[id].ipcAumento;
-                 }
-             }
-             
-             estadoJuego.ipc = nuevoIPC;
-        }
-
-        /** Recalcula el IPS total de todas las fuentes. */
+        /** Recalcula el IPS total de todas las fuentes. (Incluye Generadores, Activos, Empresas, Inversiones) */
         function recalcularIPS() {
-             let nuevoIPS = 0;
-             
-             // 1. IPS de Generadores Pasivos
-             for (const id in generadoresIPS) {
+            let totalIPS = 0;
+
+            // 1. IPS de Generadores (Tienda)
+            for (const id in generadoresIPS) {
                  const nivel = estadoJuego.tiendas[id]?.nivel || 0;
-                 nuevoIPS += generadoresIPS[id].ipsGenerado * nivel;
-             }
-             
-             // 2. IPS de Empresas
-             for (const id in empresasVistas) {
-                 const nivel = estadoJuego.empresas[id]?.vecesComprado || 0;
-                 nuevoIPS += empresasVistas[id].ipsGenerado * nivel;
-             }
-             
-             // 3. IPS de Activos Fijos
-             for (const id in activosLujos) {
-                 const comprado = estadoJuego.activos[id]?.comprado;
-                 if (comprado && activosLujos[id].ipsAumento) {
-                     nuevoIPS += activosLujos[id].ipsAumento;
-                 }
-             }
-             
-             // 4. IPS de Inversiones (Retorno porcentual fijo por ahora)
-             for (const id in inversionesVista) {
-                 const item = inversionesVista[id];
-                 const nivel = estadoJuego.inversiones[id]?.vecesComprado || 0;
-                 const valorInvertido = item.costo * nivel;
-                 nuevoIPS += valorInvertido * item.retorno; // Retorno base
-             }
-             
-             estadoJuego.ips = nuevoIPS;
+                 totalIPS += nivel * generadoresIPS[id].ipsGenerado;
+            }
+            
+            // 2. IPS de Activos Fijos (suma)
+            for (const id in activosLujos) {
+                if (estadoJuego.activos[id]?.comprado && activosLujos[id].ipsAumento) {
+                    totalIPS += activosLujos[id].ipsAumento;
+                }
+            }
+
+            // 3. IPS de Empresas
+            for (const id in empresasVistas) {
+                 const vecesComprado = estadoJuego.empresas[id]?.vecesComprado || 0;
+                 totalIPS += vecesComprado * empresasVistas[id].ipsGenerado;
+            }
+            
+            // 4. IPS de Inversiones (porcentaje de valor total)
+            for (const id in inversionesVista) {
+                const inversion = inversionesVista[id];
+                const estado = estadoJuego.inversiones[id] || { valorTotal: 0 };
+                // Retorno IPS = Valor total * Tasa de retorno anual / 10 (para hacerlo rápido y visible)
+                totalIPS += estado.valorTotal * inversion.retorno / 10; 
+            }
+            
+            // Aplicar multiplicadores IPS de Activos (ej. Isla Privada)
+            let multiplicadorIPS = 1;
+            for (const id in activosLujos) {
+                if (estadoJuego.activos[id]?.comprado && activosLujos[id].multiplicadorIPS) {
+                    multiplicadorIPS *= activosLujos[id].multiplicadorIPS;
+                }
+            }
+            
+            totalIPS = totalIPS * multiplicadorIPS;
+            estadoJuego.ips = totalIPS;
         }
 
-
-        // --- Vistas y Control ---
-        
+        /**
+         * Función pública para cambiar la vista entre Clicker, Activos, Empresas, etc.
+         */
         window.cambiarVista = function(vista) {
             document.querySelectorAll('.game-view').forEach(view => {
                 view.classList.remove('active');
             });
             document.getElementById(`view-${vista}`).classList.add('active');
             
-            // Se actualizan las vistas relevantes al cambiar
-            if (vista === 'clicker') {
-                dibujarTienda(mejorasClick, 'mejoras-clic-tienda', 'tiendas');
-                dibujarTienda(generadoresIPS, 'generadores-tienda', 'tiendas');
-            }
-            if (vista === 'assets') dibujarActivos();
-            if (vista === 'companies') dibujarEmpresas();
-            if (vista === 'investments') dibujarInversiones();
+            // Dibuja las tiendas específicas de la vista
+            dibujarTodasLasTiendas(); 
             if (vista === 'crypto') dibujarCryptoView();
             if (vista === 'stats') dibujarStatsView();
 
-            document.querySelectorAll('#nav-bar button').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.id.includes(vista)) {
-                    btn.classList.add('active');
-                }
-            });
+            // Actualizar botones de navegación
+            actualizarBotonesVista();
         }
 
-        /** Función de inicialización principal del juego. */
+        /**
+         * Función de inicialización principal del juego.
+         * Se llama desde el módulo de Firebase una vez que la autenticación está lista.
+         */
         window.initGame = async function() {
             // Inicializar estructuras de datos si faltan
             inicializarTiendas(mejorasClick, 'tiendas');
@@ -1054,132 +867,681 @@
             inicializarTiendas(empresasVistas, 'empresas');
             inicializarTiendas(inversionesVista, 'inversiones');
 
+            // [MODIFICACIÓN: CLOUD SAVE] Cargar estado guardado
             await cargarEstado(); 
-            
+
+            // Recalcular IPC y IPS después de cargar el estado
             recalcularIPC();
             recalcularIPS();
-            
-            actualizarUI(); 
-            
+
+            // Dibuja la UI inicial (incluyendo los botones de tienda)
+            actualizarUI();
+
             // Configurar el bucle del juego (1 segundo)
             setInterval(bucleJuego, 1000); 
-            
-            // Guardar el estado cada 30 segundos
-            setInterval(guardarEstado, 30000); 
-            
-            // Bucle de fluctuación de crypto y inversiones (1 minuto)
-            setInterval(fluctuarCrypto, FLUCTUATION_INTERVAL);
-            setInterval(fluctuarInversiones, FLUCTUATION_INTERVAL);
-            
+            // Guardar el estado cada 10 segundos
+            setInterval(guardarEstado, 10000); 
+
+            // [MODIFICACIÓN: VOLATILIDAD CRYPTO] Bucle de fluctuación de crypto (1 minuto)
+            setInterval(fluctuarCrypto, CRYPTO_UPDATE_INTERVAL); 
+            // [MODIFICACIÓN: VOLATILIDAD INVERSIONES] Bucle de fluctuación de inversiones (1 minuto)
+            setInterval(fluctuarInversiones, CRYPTO_UPDATE_INTERVAL); 
+
+            // Asegurar que la vista inicial sea 'clicker'
             cambiarVista('clicker');
         };
-        
+
+        // --- FUNCIÓN DE REINICIO ---
         window.resetGame = async function() {
-            if (confirm("¿Estás seguro de que quieres REINICIAR el juego? Perderás todo el progreso guardado.")) {
-                localStorage.removeItem(LOCAL_STORAGE_KEY);
-                // NOTA: Para borrar de la nube se requiere una llamada de Firebase, simplificada aquí.
-                window.location.reload(); 
+            // Usamos un modal para la confirmación en lugar de alert/confirm.
+            const confirmed = await showModal('¿Estás seguro de que quieres REINICIAR el juego? Perderás todo el progreso.', '¡PELIGRO!', true);
+            if (!confirmed) return;
+
+            // Restablecer estado del juego a los valores iniciales
+            estadoJuego = {
+                dinero: 0,
+                ipc: 1,
+                ips: 0,
+                tiendas: {},
+                activos: {},
+                empresas: {},
+                inversiones: {},
+                crypto: {
+                    bitcoin: { cantidad: 0, valorActual: 20000, costoPromedio: 0 },
+                    ethereum: { cantidad: 0, valorActual: 1500, costoPromedio: 0 }
+                },
+                estadisticas: {
+                    totalClicks: 0,
+                    dineroPorClicks: 0,
+                    dineroPasivo: 0,
+                    dineroCrypto: 0
+                },
+                ultimosSegundos: Date.now()
+            };
+
+            // Volver a inicializar las estructuras de datos vacías
+            inicializarTiendas(mejorasClick, 'tiendas');
+            inicializarTiendas(generadoresIPS, 'tiendas');
+            inicializarTiendas(activosLujos, 'activos');
+            inicializarTiendas(empresasVistas, 'empresas');
+            inicializarTiendas(inversionesVista, 'inversiones');
+
+            recalcularIPC();
+            recalcularIPS();
+            actualizarUI();
+            
+            // [MODIFICACIÓN: CLOUD SAVE] Guardar el estado limpio
+            await guardarEstado(); 
+
+            // Mostrar modal de éxito
+            showModal('Juego Reiniciado con éxito. ¡Vuelve a hacerte millonario!', 'Éxito', false);
+        }
+
+        // --- UTILIDAD: Modal Custom para Reemplazar Alert/Confirm ---
+        let modalResolve;
+        /** Muestra un modal personalizado para confirmación o mensaje. */
+        function showModal(message, title = 'Confirmación', isConfirm = true) {
+            return new Promise(resolve => {
+                const modal = document.getElementById('custom-modal');
+                document.getElementById('modal-title').textContent = title;
+                document.getElementById('modal-message').textContent = message;
+                const confirmBtn = document.getElementById('modal-confirm');
+                const cancelBtn = document.getElementById('modal-cancel');
+
+                if (isConfirm) {
+                    confirmBtn.style.display = 'inline-block';
+                    cancelBtn.style.display = 'inline-block';
+                    confirmBtn.textContent = 'Sí, Reiniciar';
+                    cancelBtn.textContent = 'Cancelar';
+                } else { 
+                    // Para mensajes de éxito o info (solo botón de cerrar)
+                    confirmBtn.style.display = 'inline-block';
+                    cancelBtn.style.display = 'none';
+                    confirmBtn.textContent = 'Aceptar';
+                }
+                modal.style.display = 'flex';
+                modalResolve = resolve;
+            });
+        }
+        window.handleModalClick = function(action) {
+            document.getElementById('custom-modal').style.display = 'none';
+            if (modalResolve) {
+                if (action === 'confirm' || !document.getElementById('modal-cancel').style.display || document.getElementById('modal-cancel').style.display === 'none') {
+                    // Si es confirmación, resuelve true. Si es solo un mensaje (sin cancelar), también.
+                    modalResolve(true);
+                } else {
+                    modalResolve(false);
+                }
+                modalResolve = null;
             }
         }
-        
-        
     </script>
+
+    <style>
+        /* --- FUENTES Y ESTILOS GENERALES --- */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap');
+        :root {
+            --color-fondo-oscuro: #121212;
+            --color-texto-claro: #f0f0f0;
+            --color-acento-celeste: #00bcd4; /* Color de acento para todo (portafolio y clicker) */
+            --color-secundario: #6495ed; /* Azul para el IPC del clicker y títulos de panel */
+            --color-exito: #388e3c; /* Verde para el botón de clic y items comprados */
+            --color-advertencia: #d32f2f; /* Rojo para reiniciar */
+            --color-empresa: #ffc107; /* Amarillo para empresas */
+            --color-inversion: #9c27b0; /* Púrpura para inversiones */
+            --color-crypto: #ff6600; /* Naranja para Crypto */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            background-color: var(--color-fondo-oscuro);
+            color: var(--color-texto-claro);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* --- CABECERA Y ESTADO --- */
+        #header-bar {
+            background-color: #1e1e1e;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--color-acento-celeste);
+        }
+
+        #status-panel {
+            display: flex;
+            gap: 30px;
+            font-size: 1.1em;
+            align-items: center;
+        }
+
+        #status-panel div {
+            text-align: right;
+            border-left: 3px solid #333;
+            padding-left: 15px;
+        }
+        
+        #status-panel span {
+            display: block;
+            font-size: 1.6em;
+            font-weight: 900;
+            color: var(--color-texto-claro);
+        }
+
+        #dinero-actual-container span {
+            color: var(--color-exito);
+        }
+
+        #ipc-actual-container span {
+            color: var(--color-secundario);
+        }
+
+        #ips-actual-container span {
+            color: var(--color-empresa);
+        }
+        
+        h1 {
+            font-size: 1.5em;
+            color: var(--color-acento-celeste);
+            font-weight: 900;
+        }
+
+        /* --- NAVEGACIÓN --- */
+        #nav-bar {
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        #nav-bar button {
+            background-color: #1e1e1e;
+            color: var(--color-texto-claro);
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 700;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+            margin: 0 5px;
+            border-radius: 4px;
+            border: 2px solid #1e1e1e;
+        }
+
+        #nav-bar button:hover {
+            background-color: #333;
+        }
+
+        #nav-bar button.active {
+            background-color: var(--color-acento-celeste);
+            color: var(--color-fondo-oscuro);
+            border-color: var(--color-fondo-oscuro);
+        }
+
+        /* --- VISTA PRINCIPAL (AÑADIMOS EL GRID DE 3 COLUMNAS) --- */
+        main {
+            flex-grow: 1;
+        }
+
+        .game-view {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .game-view.active {
+            display: block;
+        }
+        
+        /* [MODIFICACIÓN: NUEVO LAYOUT DE 3 COLUMNAS] */
+        #view-clicker {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr; /* 3 columnas: Tienda IPC | Clicker | Tienda IPS */
+            gap: 15px;
+            height: calc(100vh - 120px); /* Altura ajustable */
+            padding: 15px;
+            overflow: hidden; /* Evitar barras de desplazamiento innecesarias */
+        }
+
+        .shop-container {
+            padding: 10px;
+            background-color: #1e1e1e; 
+            border-radius: 8px;
+            overflow-y: auto;
+            border: 1px solid #333;
+            max-height: 100%; /* Asegurar que el contenedor no se desborde */
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .shop-container h2 {
+            text-align: center;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px dashed #333;
+            color: var(--color-secundario);
+        }
+
+        #clicker-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* --- BOTÓN DE CLICK --- */
+        #click-btn {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background-color: var(--color-exito);
+            color: var(--color-fondo-oscuro);
+            font-size: 1.5em;
+            font-weight: 900;
+            border: 10px solid var(--color-secundario);
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        #click-btn i {
+            font-size: 2em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #click-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 30px var(--color-exito);
+        }
+
+        /* --- TIENDA (ITEMS) --- */
+        .tienda-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .tienda-item {
+            background-color: #2a2a2a;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 5px solid var(--color-acento-celeste);
+        }
+
+        .tienda-item h3 {
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            color: var(--color-texto-claro);
+        }
+
+        .tienda-item p {
+            font-size: 0.9em;
+            color: #aaa;
+            margin: 2px 0;
+        }
+
+        .tienda-item button {
+            background-color: var(--color-acento-celeste);
+            color: var(--color-fondo-oscuro);
+            border: none;
+            padding: 8px;
+            width: 100%;
+            margin-top: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .tienda-item button:hover:not([disabled]) {
+            background-color: #008c99;
+        }
+
+        .item-bloqueado {
+            opacity: 0.5;
+            border-left: 5px solid var(--color-advertencia);
+        }
+
+        .item-bloqueado button,
+        .tienda-item button:disabled {
+            cursor: not-allowed;
+            background-color: #555;
+            color: #ccc;
+        }
+        
+        /* Estilos para Items Comprados (Activos) */
+        .item-comprado {
+            border-left: 5px solid var(--color-exito);
+            opacity: 0.8;
+            background-color: #3a3a3a;
+        }
+
+        /* --- ANIMACIÓN DE CLICK --- */
+        .animacion-clic {
+            position: fixed;
+            font-size: 2em;
+            font-weight: 900;
+            color: var(--color-secundario);
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(0);
+            animation: floatUp 1s ease-out forwards;
+        }
+        
+        .animacion-crypto {
+            color: var(--color-crypto);
+            font-size: 1.8em;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            50% { opacity: 1; transform: translateY(-50px) scale(1.1); }
+            100% { opacity: 0; transform: translateY(-100px) scale(1); }
+        }
+        
+        /* --- ESTILOS DE VISTAS ADICIONALES --- */
+        .shop-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            padding: 15px;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+        
+        /* CRYPTO VIEW */
+        #view-crypto .crypto-item {
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--color-crypto);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .crypto-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .crypto-icon {
+            font-size: 2em;
+            color: var(--color-crypto);
+            margin-right: 10px;
+        }
+        
+        .crypto-item h3 {
+            margin: 0;
+            color: var(--color-crypto);
+        }
+        
+        .crypto-info p {
+            margin: 5px 0;
+            font-size: 0.95em;
+        }
+        
+        .crypto-price {
+            font-weight: 700;
+            color: var(--color-texto-claro);
+        }
+        
+        .crypto-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .crypto-actions button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        
+        .crypto-actions .buy-btn {
+            background-color: var(--color-exito);
+            color: var(--color-fondo-oscuro);
+        }
+        
+        .crypto-actions .sell-btn {
+            background-color: var(--color-advertencia);
+            color: var(--color-fondo-oscuro);
+        }
+        
+        .text-success { color: var(--color-exito); }
+        .text-danger { color: var(--color-advertencia); }
+
+        /* STATS VIEW */
+        #view-stats {
+            padding: 15px;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-card {
+            background-color: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border-bottom: 4px solid var(--color-secundario);
+        }
+
+        .stat-card p {
+            font-size: 0.9em;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .stat-card span {
+            display: block;
+            font-size: 2em;
+            font-weight: 900;
+            color: var(--color-acento-celeste);
+        }
+        
+        .asset-section {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        #reset-btn {
+            background-color: var(--color-advertencia);
+            color: var(--color-texto-claro);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+        
+        /* --- MODAL --- */
+        #custom-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none; /* Se oculta por defecto */
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-content {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            text-align: center;
+            border-top: 5px solid var(--color-acento-celeste);
+        }
+
+        #modal-title {
+            color: var(--color-acento-celeste);
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        #modal-message {
+            margin-bottom: 20px;
+            color: #ccc;
+        }
+
+        .modal-actions button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        #modal-confirm {
+            background-color: var(--color-advertencia);
+            color: white;
+        }
+
+        #modal-cancel {
+            background-color: #444;
+            color: white;
+        }
+        
+        /* FOOTER */
+        #user-info-footer {
+            padding: 5px 15px;
+            background-color: #000;
+            color: #555;
+            font-size: 0.8em;
+            text-align: center;
+            border-top: 1px solid #333;
+        }
+    </style>
 </head>
 <body>
-
-    <div class="game-container">
-        
-        <header>
-            <h1>Millonario Clicker 💰</h1>
-            <div class="stats-bar">
-                <div class="stat">
-                    <small>Dinero Actual</small>
-                    <h2 id="dinero-actual">$0.00</h2>
-                </div>
-                <div class="stat">
-                    <small>Ingreso por Clic (IPC)</small>
-                    <h2 id="ipc-actual">$1.00</h2>
-                </div>
-                <div class="stat">
-                    <small>Ingreso Pasivo (IPS)</small>
-                    <h2 id="ips-actual">$0.00 / s</h2>
-                </div>
+    <div id="custom-modal">
+        <div class="modal-content">
+            <h3 id="modal-title"></h3>
+            <p id="modal-message"></p>
+            <div class="modal-actions">
+                <button id="modal-confirm" onclick="handleModalClick('confirm')">Confirmar</button>
+                <button id="modal-cancel" onclick="handleModalClick('cancel')">Cancelar</button>
             </div>
-        </header>
+        </div>
+    </div>
+    
+    <div id="header-bar">
+        <h1>Millonario Clicker 💰</h1>
+        <div id="status-panel">
+            <div id="dinero-actual-container">
+                <p>Dinero Actual</p>
+                <span id="dinero-actual">$0.00</span>
+            </div>
+            <div id="ipc-actual-container">
+                <p>Ingreso por Clic (IPC)</p>
+                <span id="ipc-actual">$1.00</span>
+            </div>
+            <div id="ips-actual-container">
+                <p>Ingreso Pasivo (IPS)</p>
+                <span id="ips-actual">$0.00 / s</span>
+            </div>
+        </div>
+    </div>
+    
+    <div id="nav-bar">
+        <button id="nav-clicker" onclick="cambiarVista('clicker')"><i class="fas fa-hand-pointer"></i> Clicker</button>
+        <button id="nav-assets" onclick="cambiarVista('assets')"><i class="fas fa-car-side"></i> Activos</button>
+        <button id="nav-companies" onclick="cambiarVista('companies')"><i class="fas fa-building"></i> Empresas</button>
+        <button id="nav-investments" onclick="cambiarVista('investments')"><i class="fas fa-chart-line"></i> Inversiones</button>
+        <button id="nav-crypto" onclick="cambiarVista('crypto')"><i class="fas fa-bitcoin"></i> Crypto</button>
+        <button id="nav-stats" onclick="cambiarVista('stats')"><i class="fas fa-chart-bar"></i> Estadísticas</button>
+    </div>
 
-        <nav id="nav-bar">
-            <button id="nav-clicker" onclick="cambiarVista('clicker')"><i class="fas fa-home"></i> Principal</button>
-            <button id="nav-assets" onclick="cambiarVista('assets')"><i class="fas fa-gem"></i> Activos</button>
-            <button id="nav-companies" onclick="cambiarVista('companies')"><i class="fas fa-building"></i> Empresas</button>
-            <button id="nav-investments" onclick="cambiarVista('investments')"><i class="fas fa-chart-line"></i> Inversiones</button>
-            <button id="nav-crypto" onclick="cambiarVista('crypto')"><i class="fab fa-bitcoin"></i> Crypto</button>
-            <button id="nav-stats" onclick="cambiarVista('stats')"><i class="fas fa-chart-bar"></i> Estadísticas</button>
-        </nav>
+    <main>
         
         <div id="view-clicker" class="game-view active">
             
-            <div id="ipc-store-section" class="store-column">
-                <h2>Mejoras por Click (IPC)</h2>
+            <div id="ipc-shop-col" class="shop-container">
+                <h2>Mejoras por Clic (IPC) <i class="fas fa-hand-pointer"></i></h2>
                 <div id="mejoras-clic-tienda" class="tienda-grid">
                     </div>
             </div>
-            
-            <div id="click-section">
-                <h2>Hacer Click 👆</h2>
-                <div id="click-area">
-                    <button onclick="hacerClick(event)">
-                        $$$
-                    </button>
-                </div>
-                 <div id="winted-footer">
-                    echo por winted studios
-                </div>
-            </div>
 
-            <div id="ips-store-section" class="store-column">
-                <h2>Ingreso Pasivo (IPS)</h2>
+            <div id="clicker-col">
+                <button id="click-btn" onclick="hacerClick(event)">
+                    <i class="fas fa-money-bill-wave"></i><br>
+                    ¡Haz Click para ganar!
+                </button>
+            </div>
+            
+            <div id="ips-shop-col" class="shop-container">
+                <h2>Generadores Pasivos (IPS) <i class="fas fa-money-check-alt"></i></h2>
                 <div id="generadores-tienda" class="tienda-grid">
                     </div>
             </div>
         </div>
-
+        
         <div id="view-assets" class="game-view">
-            <h2>Activos de Lujo (Multiplicadores y Bonos)</h2>
-            <div id="activos-tienda" class="tienda-grid">
+            <h2 style="text-align: center; padding: 15px; color: var(--color-secundario);">Activos de Lujo (Compra Única)</h2>
+            <div id="activos-tienda" class="shop-view">
                 </div>
         </div>
 
         <div id="view-companies" class="game-view">
-            <h2>Compra de Empresas (IPS Fijo por Unidad)</h2>
-            <div id="empresas-tienda" class="tienda-grid">
+            <h2 style="text-align: center; padding: 15px; color: var(--color-empresa);">Empresas (Generación Pasiva Escalable)</h2>
+            <div id="empresas-tienda" class="shop-view">
                 </div>
         </div>
         
         <div id="view-investments" class="game-view">
-            <h2>Inversiones y Acciones (Valor Fluctúa cada 60s)</h2>
-            <p style="text-align: center; color: var(--color-acento-principal);">⚠️ **MERCADO VOLÁTIL:** El valor de tu inversión (y el IPS que genera) sube y baja cada minuto.</p>
-            <div id="inversiones-tienda" class="tienda-grid">
+            <h2 style="text-align: center; padding: 15px; color: var(--color-inversion);">Inversiones (Sujetas a Volatilidad)</h2>
+            <div id="inversiones-tienda" class="shop-view">
                 </div>
         </div>
-
+        
         <div id="view-crypto" class="game-view">
-            <h2>Criptomonedas (Compra/Venta)</h2>
-            <p style="text-align: center; color: var(--color-acento-principal);">📈 **VOLATILIDAD EXTREMA:** El precio cambia cada minuto. ¡Compra barato, vende caro!</p>
-            <div id="crypto-grid" class="crypto-grid">
+            <h2 style="text-align: center; padding: 15px; color: var(--color-crypto);">Mercado Crypto (Volátil)</h2>
+            <div id="crypto-grid" class="shop-view">
                 </div>
         </div>
 
         <div id="view-stats" class="game-view">
             <div class="asset-section">
-                <h2>Resumen de Riqueza</h2>
+                <h2 style="color: var(--color-secundario);">Métricas de Riqueza</h2>
                 <div class="stats-grid">
-                    <div class="stat-card" style="border-left-color: var(--color-acento-principal);">
-                        <p>Valor Total Ganado</p>
-                        <span id="stat-total-ganado">$0.00</span>
-                    </div>
                     <div class="stat-card">
-                        <p>Dinero Actual</p>
-                        <span id="stat-dinero-actual">$0.00</span>
+                        <p>Total Ganado (Acumulado)</p>
+                        <span id="stat-total-ganado">$0.00</span>
                     </div>
                     <div class="stat-card">
                         <p>Total Clics Realizados</p>
@@ -1201,9 +1563,9 @@
             </div>
 
             <div class="asset-section" style="grid-column: 1 / -1; margin-top: 20px;">
-                <h2>Gestión de Datos</h2>
+                <h2>Gestión de Datos (Cloud Save)</h2>
                 <p style="text-align: center; margin-bottom: 20px; color: #aaa;">
-                    Tu progreso se guarda automáticamente cada 30 segundos en LocalStorage y la Nube.
+                    Tu progreso se guarda automáticamente cada 10 segundos en la nube (Firebase).
                 </p>
                 <button id="reset-btn" onclick="resetGame()">
                     <i class="fas fa-trash-alt"></i> REINICIAR TODO EL PROGRESO
@@ -1211,9 +1573,9 @@
             </div>
         </div>
         
-    </div>
+    </main>
     
-    <div id="user-info-footer" style="position: fixed; bottom: 5px; left: 5px; font-size: 0.7em; color: #666;">
+    <div id="user-info-footer">
         </div>
 
 </body>
