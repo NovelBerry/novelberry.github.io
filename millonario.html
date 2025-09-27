@@ -1,4 +1,4 @@
-¡<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -278,7 +278,11 @@
 
         /** Actualiza el estado de los botones de navegación según la vista activa */
         function actualizarBotonesVista() {
-             const vistaActiva = document.querySelector('.game-view.active').id.replace('view-', '');
+             // Asegúrate de que existe una vista activa antes de intentar leer su ID
+             const vistaActivaElement = document.querySelector('.game-view.active');
+             if (!vistaActivaElement) return;
+             
+             const vistaActiva = vistaActivaElement.id.replace('view-', '');
              document.querySelectorAll('#nav-bar button').forEach(btn => {
                  btn.classList.remove('active');
                  if (btn.id.includes(vistaActiva)) {
@@ -387,7 +391,7 @@
 
                  elemento.innerHTML = `
                      <h3>${item.icono || '🏢'} ${item.nombre}</h3>
-                     <p>Compradas: <span style="color: var(--color-exito);">${estado.vecesComprado}</span></p>
+                     <p>Compradas: <span style="color: var(--color-empresa);">${estado.vecesComprado}</span></p>
                      <p>IPS Total: <span style="font-weight: 700;">${formatDinero(ipsTotal)} / s</span></p>
                      <p>Costo Próxima: <span style="font-weight: 700;">${formatDinero(costo)}</span></p>
                      <button onclick="comprarEmpresa('${id}')" ${!puedeComprar ? 'disabled' : ''}>
@@ -620,6 +624,9 @@
             });
             document.getElementById(`view-${vista}`).classList.add('active');
             
+            // **[FIX]: Dibuja las tiendas específicas de la vista para asegurar que aparecen inmediatamente.**
+            dibujarTodasLasTiendas();
+
             // Actualizar botones de navegación
             actualizarBotonesVista();
         }
@@ -656,7 +663,9 @@
         
         // --- FUNCIÓN DE REINICIO ---
         window.resetGame = async function() {
-            if (!confirm('¿Estás seguro de que quieres REINICIAR el juego? Perderás todo el progreso.')) return;
+            // Usamos un modal para la confirmación en lugar de alert/confirm.
+            const confirmed = await showModal('¿Estás seguro de que quieres REINICIAR el juego? Perderás todo el progreso.');
+            if (!confirmed) return;
             
             estadoJuego = {
                 dinero: 0,
@@ -679,8 +688,55 @@
             recalcularIPS();
             actualizarUI();
             await guardarEstado();
-            alert('Juego Reiniciado con éxito.'); // Usamos alert aquí como excepción para el mensaje de confirmación/éxito crítico.
+            
+            // Mostrar modal de éxito
+            showModal('Juego Reiniciado con éxito.', 'Éxito', false);
         }
+        
+        // --- UTILIDAD: Modal Custom para Reemplazar Alert/Confirm ---
+        
+        let modalResolve;
+
+        /** Muestra un modal personalizado para confirmación o mensaje. */
+        function showModal(message, title = 'Confirmación', isConfirm = true) {
+            return new Promise(resolve => {
+                const modal = document.getElementById('custom-modal');
+                document.getElementById('modal-title').textContent = title;
+                document.getElementById('modal-message').textContent = message;
+                
+                const confirmBtn = document.getElementById('modal-confirm');
+                const cancelBtn = document.getElementById('modal-cancel');
+
+                if (isConfirm) {
+                    confirmBtn.style.display = 'inline-block';
+                    cancelBtn.style.display = 'inline-block';
+                    confirmBtn.textContent = 'Sí, Reiniciar';
+                    cancelBtn.textContent = 'Cancelar';
+                } else {
+                    // Para mensajes de éxito o info (solo botón de cerrar)
+                    confirmBtn.style.display = 'inline-block';
+                    cancelBtn.style.display = 'none';
+                    confirmBtn.textContent = 'Aceptar';
+                }
+
+                modal.style.display = 'flex';
+                modalResolve = resolve;
+            });
+        }
+        
+        window.handleModalClick = function(action) {
+            document.getElementById('custom-modal').style.display = 'none';
+            if (modalResolve) {
+                if (action === 'confirm') {
+                     // Si es confirmación, resuelve true. Si es solo un mensaje, también.
+                     modalResolve(true); 
+                } else {
+                     modalResolve(false);
+                }
+                modalResolve = null;
+            }
+        }
+
 
     </script>
     
@@ -716,6 +772,68 @@
             overflow-y: auto; /* Permite el scroll vertical si el contenido desborda. */
             overflow-x: hidden; /* Previene el scroll horizontal no deseado */
         }
+
+        /* --- MODAL CUSTOM --- */
+        #custom-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none; /* Oculto por defecto */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background-color: #1a1a1a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            text-align: center;
+            border: 2px solid var(--color-acento-celeste);
+        }
+        
+        #modal-title {
+            color: var(--color-acento-celeste);
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        
+        #modal-message {
+            margin-bottom: 25px;
+            font-size: 1.1em;
+        }
+        
+        .modal-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 700;
+            margin: 0 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        #modal-confirm {
+            background-color: var(--color-advertencia);
+            color: var(--color-texto-claro);
+        }
+        #modal-confirm:hover {
+            background-color: #ff5252;
+        }
+
+        #modal-cancel {
+            background-color: #555;
+            color: var(--color-texto-claro);
+        }
+        #modal-cancel:hover {
+            background-color: #777;
+        }
+
 
         /* --- DECORACIÓN DE FONDO --- */
         #fondo-decoracion {
@@ -1172,6 +1290,20 @@
 <body>
     <div id="fondo-decoracion"></div>
 
+    <!-- MODAL CUSTOM -->
+    <div id="custom-modal">
+        <div class="modal-content">
+            <h3 id="modal-title">Confirmación</h3>
+            <p id="modal-message">Mensaje del modal.</p>
+            <div class="modal-buttons">
+                <button id="modal-confirm" onclick="handleModalClick('confirm')">Aceptar</button>
+                <button id="modal-cancel" onclick="handleModalClick('cancel')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    <!-- FIN MODAL CUSTOM -->
+
+
     <div id="nav-bar">
         <button id="nav-clicker" onclick="cambiarVista('clicker')" class="active"><i class="fas fa-hand-pointer"></i> Clic & Negocios</button>
         <button id="nav-assets" onclick="cambiarVista('assets')"><i class="fas fa-car"></i> Activos & Lujos</button>
@@ -1280,6 +1412,7 @@
                     <p style="text-align: center; margin-bottom: 20px;">
                         Toda la información de progreso y dinero se guarda automáticamente.
                     </p>
+                    <!-- El botón ahora llama a una función que usa el modal custom -->
                     <button id="reset-btn" onclick="resetGame()">
                         <i class="fas fa-trash-alt"></i> REINICIAR TODO EL PROGRESO
                     </button>
