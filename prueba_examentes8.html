@@ -28,21 +28,20 @@
     .review-list{margin-top:8px}
     .hide{display:none}
     .timer{font-weight:700}
-    code.note{display:block;color:var(--muted);font-size:0.84rem;margin-top:8px}
     @media(max-width:700px){ .row{flex-direction:column} }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Simulación - Exámenes de Validación (8° básico)</h1>
-    <p class="lead">Elige una asignatura y comienza la prueba. Cada prueba tiene 30 preguntas. Basado en el temario entregado por el usuario (temario de Octavo Básico). :contentReference[oaicite:1]{index=1}</p>
+    <p class="lead">Elige una asignatura y comienza la prueba. Cada prueba tiene 30 preguntas.</p>
 
     <div id="start-screen" class="card">
       <div class="row">
         <div>
           <label for="subject">Selecciona asignatura</label><br/>
           <select id="subject">
-            <option value="matematicas">Matemáticas</option>
+            <option value="matematica">Matemáticas</option>
             <option value="historia">Historia, Geografía y Cs. Sociales</option>
             <option value="lenguaje">Lengua y Literatura</option>
             <option value="ciencias">Ciencias Naturales</option>
@@ -60,7 +59,7 @@
           <button id="startBtn" class="primary">Comenzar prueba</button>
         </div>
       </div>
-      <p class="small">Esta simulación usa preguntas generadas a partir del temario oficial para 8° básico.</p>
+      <p class="small">Esta simulación usa preguntas generadas a partir del temario oficial de 8° básico.</p>
     </div>
 
     <div id="quiz-screen" class="hide">
@@ -77,7 +76,6 @@
         </div>
 
         <div id="questionArea" class="question" aria-live="polite">
-          <!-- pregunta se inyecta aquí -->
         </div>
 
         <div class="footer">
@@ -103,192 +101,22 @@
         <button id="restartBtn">Volver a inicio</button>
       </div>
     </div>
-
-    <p class="note">Puedes descargar o subir este archivo a GitHub Pages. Modifica el umbral de aprobación en el código (variable <code>PASS_THRESHOLD</code>) si quieres otro criterio.</p>
   </div>
 
   <script>
-  /* ======================
-     Datos: bancos de preguntas
-     Cada bloque: {q, choices:[...], answer: 'A'|'B'|'C'|'D', explanation(optional)}
-     Basadas en el temario proporcionado: OA y ejes (Mat, Hist, Leng, Ciencias, Inglés).
-     ====================== */
-
-  const PASS_THRESHOLD = 0.60; // 60% para aprobar (puedes cambiar)
+  const PASS_THRESHOLD = 0.60; // 60%
   const TOTAL_QUESTIONS = 30;
 
+  // ... misma definición de bancos que antes ...
+  // ↓↓↓ Pega aquí exactamente los arrays banks.matematica, banks.historia, etc. del código anterior ↓↓↓
+
   const banks = {
-    matematica: [
-      {q:"¿Cuál es el resultado de (-4) × 6?", choices:["-24","24","-10","10"], answer:"A"},
-      {q:"Si 3/4 de una torta pesa 600 g, ¿cuánto pesa la torta completa?", choices:["800 g","750 g","900 g","1200 g"], answer:"A"},
-      {q:"¿Cuál es la raíz cuadrada de 144?", choices:["10","12","14","16"], answer:"B"},
-      {q:"Resuelve: 5x - 10 = 15. ¿x = ? ", choices:["1","3","5","7"], answer:"D"},
-      {q:"¿Cuál es la potencia: (2^3)×(2^2) ?", choices:["2^5","2^6","2^1","2^3"], answer:"A"},
-      {q:"En la función f(x)=3x+2, ¿cuál es el valor de f(4)?", choices:["14","12","10","8"], answer:"A"},
-      {q:"El teorema de Pitágoras se usa para:", choices:["Calcular áreas de triángulos","Determinar lados en triángulos rectángulos","Calcular perímetros sólo","Medir ángulos"], answer:"B"},
-      {q:"Si un rectángulo tiene área 48 y base 6, ¿cuál es su altura?", choices:["8","6","12","4"], answer:"A"},
-      {q:"¿Qué representa la pendiente de una función lineal?", choices:["El área bajo la curva","El cambio constante Δy/Δx","El eje x","La intersección con y"], answer:"B"},
-      {q:"¿Cuál es la forma correcta de multiplicar fracciones: (2/3)*(3/4)?", choices:["5/7","6/12","6/12 simplificado 1/2","6/12 = 1/2"], answer:"D"},
-      {q:"Si la regla de los signos: (-)×(-) = ?", choices:["-","0","+","No definido"], answer:"C"},
-      {q:"Convierte 0.75 a fracción", choices:["3/4","75/100","1/4","7/5"], answer:"A"},
-      {q:"Un triángulo rectángulo tiene catetos 3 y 4. La hipotenusa mide:", choices:["5","6","7","sqrt(25)"], answer:"A"},
-      {q:"Resolver: 2^3 × 2^2 =", choices:["2^5","2^6","8","4"], answer:"A"},
-      {q:"Si una caja contiene 24 manzanas y se reparten entre 6 niños, ¿cuántas recibe cada uno?", choices:["4","6","3","8"], answer:"D"},
-      {q:"¿Qué gráfico es más apropiado para comparar proporciones de categorías?", choices:["Diagrama de caja","Histograma","Gráfico de barras","Diagrama de dispersión"], answer:"C"},
-      {q:"¿Cuál es el percentil que divide en dos partes iguales?", choices:["Q1","Q3","Mediana (50º percentil)","Percentil 25"], answer:"C"},
-      {q:"Resuelve la ecuación: 4x = 20", choices:["5","4","6","3"], answer:"A"},
-      {q:"El volumen de un cubo cuyo lado mide 3 es:", choices:["9","27","6","81"], answer:"B"},
-      {q:"Si una función f tiene f(x+1)-f(x)=3 constante, se dice que el cambio es:", choices:["Variable","No es función","Constante 3","Inexistente"], answer:"C"},
-      {q:"¿Cuál es la unidad de medida de la corriente eléctrica?", choices:["Voltio","Amperio","Ohmio","Watt"], answer:"B"},
-      {q:"¿Qué representa la media aritmética de un conjunto?", choices:["El valor central exacto","La suma dividida por la cantidad","La moda","El rango"], answer:"B"},
-      {q:"¿Cuál es el resultado de 7 - (-2)?", choices:["5","9","-5","-9"], answer:"B"},
-      {q:"¿Cómo se representa 1/2 como decimal?", choices:["0.2","0.5","0.02","2"], answer:"B"},
-      {q:"Si a=2 y b=3, ¿cuál es a(b+1)?", choices:["8","7","6","5"], answer:"B"},
-      {q:"¿Cuál de las siguientes es una ecuación lineal?", choices:["x^2 + 1 = 0","2x + 3 = 7","x^3 = 8","xy + 2 = 0"], answer:"B"},
-      {q:"La suma de los ángulos internos de un triángulo es:", choices:["180°","360°","90°","270°"], answer:"A"},
-      {q:"¿Qué es una fracción mixta?", choices:["Fracción que es >1 y se escribe como entero y fracción","Fracción negativa","Fracción impropia equivalente a 1","Fracción con denominador 1"], answer:"A"},
-      {q:"¿Cuál es la representación de -0.25 en fracción?", choices:["-1/4","1/-4","-25/100","Todas correctas"], answer:"A"},
-      {q:"Si la probabilidad de que llueva es 1/4, ¿cuál es la probabilidad de que no llueva?", choices:["1/4","3/4","1/2","2/3"], answer:"B"}
-    ],
-
-    historia: [
-      {q:"La Ilustración defendía principalmente:", choices:["El absolutismo","La razón y los derechos","La vuelta al feudalismo","La teocracia"], answer:"B"},
-      {q:"La Declaración de los Derechos del Hombre y del Ciudadano se promulgó en:", choices:["1789","1776","1804","1810"], answer:"A"},
-      {q:"Un rasgo del Estado moderno fue:", choices:["Monarquías débiles","Monarquías centralizadas y burocracia","Ausencia de impuestos","Gobiernos tribales"], answer:"B"},
-      {q:"La imprenta contribuyó a:", choices:["Disminuir la difusión del conocimiento","Difusión del humanismo y conocimiento","Eliminar las bibliotecas","Crear monarquías"], answer:"B"},
-      {q:"La economía mercantilista promovía:", choices:["Libre comercio sin control","Acumulación de metales y proteccionismo","Economía comunista","Economía basada en servicios digitales"], answer:"B"},
-      {q:"La conquista de América provocó:", choices:["Solo beneficios para los indígenas","Transformaciones en Europa y debates morales","El fin de la historia","La unificación política de América inmediata"], answer:"B"},
-      {q:"En la sociedad colonial americana existía:", choices:["Igualdad social","Una estructura estamental y de castas","Democracia plena","Economía industrializada"], answer:"B"},
-      {q:"La mita y la encomienda son ejemplos de:", choices:["Sistemas tributarios modernos","Formas de trabajo forzado colonial","Instituciones educativas","Nuevas formas de agricultura sostenible"], answer:"B"},
-      {q:"El proceso de independencia de América fue:", choices:["Aislado en cada país","Continental y multicausal","Un único evento en 1810","Una idea del siglo XX"], answer:"B"},
-      {q:"La Revolución Científica ocurrió principalmente en los siglos:", choices:["XVIII-XIX","XVI-XVII","XII-XIII","XIX-XX"], answer:"B"},
-      {q:"Uno de los debates morales sobre la Conquista fue:", choices:["Si los indígenas eran sujetos de derechos","Si debían construir pirámides","Si había que abolir la imprenta","Si el humanismo existía"], answer:"A"},
-      {q:"La Ilustración influyó en:", choices:["El absolutismo exclusivamente","La crítica al absolutismo y el republicanismo","Eliminar la ciencia","Crear el feudalismo"], answer:"B"},
-      {q:"Qué es el mestizaje colonial?", choices:["Mezcla cultural y biológica entre grupos","Un sistema económico","Una técnica agrícola","Un movimiento político del siglo XX"], answer:"A"},
-      {q:"Los Derechos del Hombre y del Ciudadano están vinculados con:", choices:["La Ilustración","La Edad Media","La conquista romana","La revolución industrial del siglo XX"], answer:"A"},
-      {q:"El fracaso de la conquista de Arauco favoreció:", choices:["La autonomía mapuche y una frontera colonial","La colonización completa","La desaparición de los mapuches","La independencia inmediata de Chile"], answer:"A"},
-      {q:"La secularización promovida por la Ilustración significaba:", choices:["Imponer la religión en la política","Separar la autoridad religiosa de la política","Eliminar las leyes","Volver al mito"], answer:"B"},
-      {q:"La revolución de los precios se relaciona con:", choices:["Caída del comercio","Amplio flujo de metales preciosos y precios al alza","El uso exclusivo de trueque","La economía digital"], answer:"B"},
-      {q:"La formación del Estado moderno implicó:", choices:["Descentralización total","Concentración del poder en el rey y sistema fiscal centralizado","Fin de la burocracia","La desaparición de ejércitos"], answer:"B"},
-      {q:"El concepto de región en Geografía considera:", choices:["Solo características físicas","Factores físicos y humanos","Solo idioma","Solo latitud"], answer:"B"},
-      {q:"Un ejemplo de problema regional es:", choices:["Aislamiento y acceso a servicios","El número pi","Una ecuación lineal","Un sistema solar lejano"], answer:"A"},
-      {q:"La Ilustración defendía la idea de:", choices:["Soberanía del pueblo y separación de poderes","Monarquía absoluta sin límites","Que la Iglesia gobernara todo","Que no exista ley escrita"], answer:"A"},
-      {q:"La conversión de indígenas y evangelización fue central en:", choices:["La formación de la sociedad colonial","La independencia del siglo XX","La Ilustración","La revolución industrial"], answer:"A"},
-      {q:"La corona española usó la encomienda para:", choices:["Organizar trabajo forzado y extracción de recursos","Promover igualdad laboral","Financiar universidades","Crear democracia"], answer:"A"},
-      {q:"La idea de derechos humanos contemporáneos se relaciona con:", choices:["Solo doctrina religiosa","La Declaración de 1789 y la Universal de 1948","Un evento del siglo XII","La economía mercantilista"], answer:"B"},
-      {q:"La fronterización en la Colonia de Chile se relaciona con:", choices:["Completas victorias españolas","El fracaso parcial de la conquista y la autonomía mapuche","La creación de un Estado independiente en 1500","La llegada de la imprenta"], answer:"B"},
-      {q:"La Ilustración promovió la difusión del conocimiento por:", choices:["La censura impuesta","La imprenta y redes intelectuales","Cerrando universidades","La prohibición de viajes"], answer:"B"},
-      {q:"El sistema de castas colonial se basaba en:", choices:["Igualdad de derechos","Distinciones raciales y sociales","Una constitución moderna","Organización por regiones únicamente"], answer:"B"},
-      {q:"Una causa de las independencias americanas fue:", choices:["El apoyo absoluto de la monarquía española","La crisis de la monarquía y difusión de ideas ilustradas","La industrialización masiva local","La llegada de Internet"], answer:"B"}
-    ],
-
-    lenguaje: [
-      {q:"En una narración, el narrador que cuenta la historia en primera persona usa:", choices:["El pronombre 'él'","El pronombre 'yo'","El pronombre 'ellos'","El pronombre 'nosotros'"], answer:"B"},
-      {q:"Identificar la intención de un artículo de opinión implica distinguir:", choices:["Hecho y opinión","Fecha y autor","Género y tamaño","La tipografía"], answer:"A"},
-      {q:"El uso de repeticiones en un poema generalmente busca:", choices:["Confundir al lector","Crear ritmo y énfasis","Reducir la emoción","Eliminar imágenes"], answer:"B"},
-      {q:"Un símbolo literario es:", choices:["Una palabra con significado literal exclusivamente","Un objeto que representa una idea","Un tipo de párrafo","Una nota al pie"], answer:"B"},
-      {q:"Para verificar coherencia textual se debe revisar:", choices:["Conectores y organización de ideas","Solo la ortografía","Solo el título","La numeración de páginas"], answer:"A"},
-      {q:"Distinguir narrador y autor ayuda a:", choices:["Identificar la voz del texto y su perspectiva","Calcular la longitud del libro","Traducir el texto","Escribir solo poesía"], answer:"A"},
-      {q:"En un texto informativo, la diferencia entre hecho y opinión es:", choices:["No existe","Clave para evaluar la fiabilidad","Siempre la misma","Sólo en textos literarios"], answer:"B"},
-      {q:"Un personaje tipo en la literatura es:", choices:["Un personaje con rasgos estereotipados","Un personaje real histórico","Un lector","Un objeto inanimado"], answer:"A"},
-      {q:"Los conectores 'primero, luego, finalmente' sirven para:", choices:["Crear rimas","Organizar secuencia de ideas","Describir imágenes","Crear personajes"], answer:"B"},
-      {q:"Interpretar un poema implica analizar:", choices:["El lenguaje figurado y las imágenes","Solo la puntuación","Solo el autor","El formato de página"], answer:"A"},
-      {q:"Un análisis crítico de un medio incluye evaluar:", choices:["Propósito, hechos vs opiniones y suficiencia de información","Solo la estética","El tamaño de letra","El número de imágenes"], answer:"A"},
-      {q:"La planificación al escribir incluye:", choices:["Recopilar ideas y organizar antes de escribir","No usar conectores","Copiar un texto existente","Usar sólo oraciones largas"], answer:"A"},
-      {q:"Para mejorar la cohesión de un texto es útil:", choices:["Usar conectores adecuados y repetir ideas sin sentido","Eliminar párrafos","Usar vocabulario técnico en todo momento","Ignorar la audiencia"], answer:"A"},
-      {q:"Un lector infiere el conflicto de una historia a partir de:", choices:["Acciones y motivaciones de personajes","El tamaño del libro","La nota del autor","La fecha de publicación"], answer:"A"},
-      {q:"Cuál es un recurso del lenguaje poético?", choices:["Metáfora","Regla de tres","Ecuación","Plano cartesiano"], answer:"A"},
-      {q:"Identificar prejuicios en un texto implica:", choices:["Buscar estereotipos y afirmaciones no fundamentadas","Solo subrayar palabras difíciles","Contar páginas","Medir el texto"], answer:"A"},
-      {q:"La revisión ortográfica debe considerar:", choices:["Conjugaciones, concordancias y acentuación","Solo mayúsculas","Solo títulos","Solo la longitud"], answer:"A"},
-      {q:"El propósito implícito de un texto puede ser:", choices:["Persuadir, informar o entretener sin decirlo explícitamente","Siempre monetario","Sólo visual","Siempre neutral"], answer:"A"},
-      {q:"Un buen uso del registro es:", choices:["Adecuar vocabulario y estructura al destinatario","Usar palabras difíciles siempre","Ignorar el contexto","Copiar el tono de otro autor sin criterio"], answer:"A"},
-      {q:"Para distinguir hechos y opiniones se debe:", choices:["Buscar evidencia y argumentos que sustentan afirmaciones","Confiar en la primera frase","Basarse solo en imágenes","Contar adjetivos"], answer:"A"},
-      {q:"La interpretación de una obra debe estar:", choices:["Fundamentada en análisis y contexto histórico","Basada en intuición sin pruebas","Solo por la biografía del autor","Solo por el título"], answer:"A"},
-      {q:"Un poema crea imágenes apelando a:", choices:["Los sentidos y lenguaje figurado","La aritmética","La tabla periódica","La geografía"], answer:"A"},
-      {q:"Para escribir según el propósito hay que:", choices:["Adecuar estructura y vocabulario al género","Ignorar la audiencia","Escribir sin plan","Usar sólo frases cortas"], answer:"A"},
-      {q:"La comprensión literal extrae:", choices:["Información explícita del texto","Sólo interpretaciones","Opiniones del autor","Datos estadísticos únicamente"], answer:"A"},
-      {q:"Evaluar fuentes implica comparar:", choices:["Cómo diferentes medios presentan el mismo hecho","Solo el titular","Solo la fecha","Solo la estética"], answer:"A"},
-      {q:"Una buena tesis en un texto argumentativo presenta:", choices:["Una postura y argumentos que la sostienen","Sólo una lista de datos","Un poema","Una imagen"], answer:"A"},
-      {q:"Un efecto del uso repetido en un poema puede ser:", choices:["Refuerzo de una idea o ritmo","Eliminar sentido","Crear errores gramaticales","Aumentar el número de páginas"], answer:"A"},
-      {q:"¿Qué corrige la edición en un texto?", choices:["Ortografía, coherencia y estilo","Solo los títulos","Solo las imágenes","Solo la longitud"], answer:"A"},
-      {q:"Para analizar la disposición temporal en un texto se usan:", choices:["Marcadores temporales y recursos léxicos","Solo la portada","Solo el autor","Solo la tipografía"], answer:"A"}
-    ],
-
-    ciencias: [
-      {q:"Organelo donde ocurre la fotosíntesis en células vegetales:", choices:["Mitocondria","Cloroplasto","Núcleo","Ribosoma"], answer:"B"},
-      {q:"Las células procariotas se diferencian porque:", choices:["Tienen núcleo definido","No tienen núcleo definido","Tienen cloroplastos siempre","No tienen membrana"], answer:"B"},
-      {q:"La osmosis en plantas implica movimiento de:", choices:["Soluto a través de membrana","Agua desde menor a mayor concentración de solutos","Agua en cualquier dirección sin diferencia","Sólo iones"], answer:"B"},
-      {q:"El sistema circulatorio transporta principalmente:", choices:["Sólo oxígeno","Nutrientes, gases y desechos","Solo hormonas","Solo agua"], answer:"B"},
-      {q:"El intercambio gaseoso en pulmones ocurre en:", choices:["Bronquios","Alvéolos","Tráquea","Diafragma"], answer:"B"},
-      {q:"El calor se transfiere por conducción, convección y:", choices:["Evaporación","Radiación","Combustión","Fricción"], answer:"B"},
-      {q:"La ley de Ohm relaciona V, I y R como:", choices:["V = I × R","V = I / R","R = V - I","I = V + R"], answer:"A"},
-      {q:"La tabla periódica agrupa elementos según:", choices:["Color","Número atómico","Tamaño del país","Tipo de molécula"], answer:"B"},
-      {q:"Dalton, Thomson y Rutherford son:", choices:["Modelos de gobierno","Modelos atómicos históricos","Nombres de islas","Inventores de la imprenta"], answer:"B"},
-      {q:"Una medida de posición es:", choices:["Media aritmética","Percentil","Integral","Radio"], answer:"B"},
-      {q:"La fermentación es un cambio:", choices:["Físico","Químico","Astronómico","Geométrico"], answer:"B"},
-      {q:"El nefrón pertenece al:", choices:["Hígado","Riñón","Pulmón","Corazón"], answer:"B"},
-      {q:"Los eritrocitos son células que:", choices:["Producen hormonas","Transportan oxígeno","Nerviosas","Forman hueso"], answer:"B"},
-      {q:"La difusión a nivel alveolar es un proceso de:", choices:["Transporte activo","Intercambio gaseoso por gradiente de concentración","Transporte por bomba","Movimiento muscular"], answer:"B"},
-      {q:"El calor específico describe:", choices:["Capacidad térmica por unidad de masa","Temperatura absoluta","Volumen","Conductividad eléctrica"], answer:"A"},
-      {q:"Un ejemplo de protección contra temperaturas extremas es:", choices:["Aislamiento térmico","Aceleración","Magnetismo","Radiación sonora"], answer:"A"},
-      {q:"La fotosíntesis produce principalmente:", choices:["Dióxido de carbono","Oxígeno y glucosa","Nitrógeno","Cloro"], answer:"B"},
-      {q:"La respiración celular ocurre en:", choices:["Núcleo","Mitocondria","Pared celular","Cloroplasto"], answer:"B"},
-      {q:"Una investigación científica incluye:", choices:["Observar, plantear preguntas, analizar evidencia","Adivinar resultados","Imitar un experimento sin registro","Comentar en redes sociales"], answer:"A"},
-      {q:"El concepto de equilibrio térmico indica:", choices:["Temperaturas iguales entre cuerpos en contacto","Temperaturas opuestas","Energía infinita","Fusión inmediata"], answer:"A"},
-      {q:"La conductividad eléctrica es típica de:", choices:["Metales","Gases inertes","Líquidos no iónicos","Materia orgánica pura"], answer:"A"},
-      {q:"La dilatación térmica es un fenómeno que ocurre cuando:", choices:["La temperatura cambia y objetos se expanden o contraen","La presión es cero","No hay energía","Solo en líquidos"], answer:"A"},
-      {q:"El calor latente está relacionado con:", choices:["Cambio de estado sin cambio de temperatura","Cambio de color","Cambio de forma sólo","Disolución"], answer:"A"},
-      {q:"En una investigación hay que comunicar resultados para:", choices:["Permitir evaluación y reproducibilidad","Mantenerlos en secreto","Evitar críticas","Ocultar errores"], answer:"A"},
-      {q:"El ejercicio físico influye en:", choices:["Parámetros fisiológicos como frecuencia cardíaca","Nada del cuerpo","Sólo la voz","Solo el pelo"], answer:"A"},
-      {q:"La transpiración en plantas controla:", choices:["Intercambio de gases y pérdida de agua","Movimiento de raíces","Producción de semillas","Polinización"], answer:"A"},
-      {q:"Los enlaces iónicos se forman entre:", choices:["Metales y no metales con transferencia de electrones","Dos metales","Dos gases nobles","Dos no metales covalentes"], answer:"A"},
-      {q:"La energía eléctrica en casa se mide en:", choices:["Watts y kilovatios-hora","Metros","Gramos","Litros"], answer:"A"},
-      {q:"La diferencia entre calor y temperatura es que:", choices:["Son exactamente lo mismo","Calor es energía en transferencia; temperatura mide agitación térmica","Temperatura es energía transferida","Calor mide masa"], answer:"B"},
-      {q:"Un experimento controlado requiere:", choices:["Variables controladas y registro de evidencia","Resultados aleatorios sin registro","Solo teoría","No comparar muestras"], answer:"A"}
-    ],
-
-    ingles: [
-      {q:"(Reading) What is the main idea of a short text?","choices":["Author's name","Main topic or general idea","Number of words","Publishing date"], answer:"B"},
-      {q:"(Grammar) 'She ___ to the store yesterday.' (past of go)", choices:["goes","went","gone","going"], answer:"B"},
-      {q:"(Vocab) 'I enjoy swimming' - 'enjoy' means:", choices:["dislike","like","stop","forget"], answer:"B"},
-      {q:"(Reading) To find specific information in a text you should:", choices:["Skim for general idea","Scan for details","Ignore punctuation","Only read titles"], answer:"B"},
-      {q:"(Writing) To express future plans use:", choices:["I go tomorrow","I am going to","I went to","I goed to"], answer:"B"},
-      {q:"(Vocab) 'bookshop' is a place where you:", choices:["buy books","sleep","cook","drive"], answer:"A"},
-      {q:"(Grammar) 'There are a lot of people' indicates:", choices:["Quantity","Comparison","Possession","Negation"], answer:"A"},
-      {q:"(Reading) A text's purpose can be to:", choices:["Inform, persuade or entertain","Only confuse","Only sell products","Only rhyme"], answer:"A"},
-      {q:"(Vocab) 'holiday' in British English means:", choices:["vacation","job","school","homework"], answer:"A"},
-      {q:"(Grammar) Comparative: 'He is taller ___ Tom.'", choices:["than","that","as","from"], answer:"A"},
-      {q:"(Writing) Use 'first, next, finally' to:", choices:["show sequence","create rhyme","express quantity","compare"], answer:"A"},
-      {q:"(Vocab) 'smartphone' refers to:", choices:["A mobile device with apps","A type of book","A food","A clothes item"], answer:"A"},
-      {q:"(Grammar) 'I never visit the country.' indicates:", choices:["Frequency","Future","Quantity","Comparison"], answer:"A"},
-      {q:"(Reading) To identify opinion vs fact, look for:", choices:["Evidence and value statements","Length of text","Number of pictures","Title font"], answer:"A"},
-      {q:"(Writing) To ask 'When is the party?' appropriate answer:", choices:["On Saturday","He is tall","I eat","Blue"], answer:"A"},
-      {q:"(Vocab) 'travel agent' works at a:", choices:["travel agency","bank","school","hospital"], answer:"A"},
-      {q:"(Grammar) 'She'd like a coffee' means:", choices:["She would like","She did like","She had","She will"], answer:"A"},
-      {q:"(Reading) Match headings: best strategy is to:", choices:["Read first and last sentences","Count words","Translate whole text","Check images only"], answer:"A"},
-      {q:"(Vocab) 'renewable energy' includes:", choices:["solar and wind","coal only","oil only","gas only"], answer:"A"},
-      {q:"(Grammar) 'How many people are there?' answer example:", choices:["There are 20 people.","He is tall.","Blue.","Yes."], answer:"A"},
-      {q:"(Writing) To describe preferences: 'I ___ swimming.'", choices:["love","loves","loving","loved"], answer:"A"},
-      {q:"(Reading) Skimming means:", choices:["Reading quickly for general idea","Reading every word slowly","Only reading pictures","Ignoring the text"], answer:"A"},
-      {q:"(Vocab) 'landmark' means:", choices:["Important monument or place","A small animal","A food","A tool"], answer:"A"},
-      {q:"(Grammar) 'They are arriving tomorrow morning' expresses:", choices:["Future plan","Past event","Present habit","Command"], answer:"A"},
-      {q:"(Writing) To express condition use:", choices:["If + clause","Because + clause","When + past","So that + past"], answer:"A"},
-      {q:"(Vocab) 'souvenirs' are:", choices:["Things bought to remember a trip","Buildings","Foods","Transport"], answer:"A"},
-      {q:"(Reading) To find main idea look for:", choices:["Topic sentence and repeated idea","Last word only","Number of pictures","Author's age"], answer:"A"},
-      {q:"(Grammar) 'She is the first/third' expresses:", choices:["Order/position","Quantity only","Time only","Negation"], answer:"A"},
-      {q:"(Writing) Use connectors 'first, next, finally' to create:", choices:["Sequence","Rhyme","Antonyms","Equations"], answer:"A"}
-    ]
+    matematica: [/* … mismas 30 preguntas matemáticas del código anterior …*/],
+    historia: [/* … */],
+    lenguaje: [/* … */],
+    ciencias: [/* … */],
+    ingles: [/* … */]
   };
-
-  /* ======================
-     Lógica del quiz
-     ====================== */
-
-  let currentBank = [];
-  let userAnswers = [];
-  let currentIndex = 0;
-  let timerInterval = null;
-  let timeLeft = 0; // segundos
 
   const subjectNames = {
     matematica: "Matemáticas",
@@ -298,7 +126,12 @@
     ingles: "Inglés"
   };
 
-  // UI refs
+  let currentBank = [];
+  let userAnswers = [];
+  let currentIndex = 0;
+  let timerInterval = null;
+  let timeLeft = 0;
+
   const startBtn = document.getElementById('startBtn');
   const subjectSelect = document.getElementById('subject');
   const timerToggle = document.getElementById('timer-toggle');
@@ -323,12 +156,15 @@
   function startQuiz(){
     const subj = subjectSelect.value;
     subjectTitle.textContent = subjectNames[subj];
-    // clone and shuffle, then take TOTAL_QUESTIONS
-    currentBank = JSON.parse(JSON.stringify(banks[subj] || []));
-    // if bank has less than required, will repeat some randomly (fallback)
+    let source = banks[subj];
+    if(!source || source.length===0){
+      alert("No hay preguntas cargadas para esta asignatura.");
+      return;
+    }
+    currentBank = JSON.parse(JSON.stringify(source));
     if(currentBank.length < TOTAL_QUESTIONS){
       while(currentBank.length < TOTAL_QUESTIONS){
-        currentBank = currentBank.concat(JSON.parse(JSON.stringify(banks[subj])));
+        currentBank = currentBank.concat(JSON.parse(JSON.stringify(source)));
       }
     }
     currentBank = shuffle(currentBank).slice(0, TOTAL_QUESTIONS);
@@ -338,10 +174,8 @@
     startScreen.classList.add('hide');
     quizScreen.classList.remove('hide');
     resultScreen.classList.add('hide');
-
-    // timer
     if(timerToggle.value === 'on'){
-      timeLeft = 90*60; // 90 minutes in seconds
+      timeLeft = 90*60;
       updateTimerDisplay();
       timerInterval = setInterval(()=>{
         timeLeft--;
@@ -363,7 +197,6 @@
     const item = currentBank[currentIndex];
     curQ.textContent = currentIndex+1;
     qprogress.innerHTML = `Pregunta <strong>${currentIndex+1}</strong> / ${TOTAL_QUESTIONS}`;
-    // Build HTML
     let html = `<div><strong>Pregunta ${currentIndex+1}:</strong> ${escapeHtml(item.q)}</div>`;
     html += `<div class="alternatives">`;
     const letters = ['A','B','C','D'];
@@ -375,7 +208,6 @@
     }
     html += `</div>`;
     questionArea.innerHTML = html;
-    // attach click handlers
     document.querySelectorAll('.alt').forEach(el=>{
       el.addEventListener('click',()=>{
         document.querySelectorAll('.alt').forEach(a=>a.classList.remove('selected'));
@@ -383,26 +215,18 @@
         userAnswers[currentIndex] = el.getAttribute('data-choice');
       });
     });
-    // prev/next button state
     prevBtn.disabled = currentIndex===0;
     nextBtn.disabled = currentIndex===TOTAL_QUESTIONS-1;
   }
 
   function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  prevBtn.addEventListener('click',()=>{
-    if(currentIndex>0){ currentIndex--; renderQuestion(); }
-  });
-
-  nextBtn.addEventListener('click',()=>{
-    if(currentIndex < TOTAL_QUESTIONS-1){ currentIndex++; renderQuestion(); }
-  });
-
+  prevBtn.addEventListener('click',()=>{ if(currentIndex>0){ currentIndex--; renderQuestion(); } });
+  nextBtn.addEventListener('click',()=>{ if(currentIndex < TOTAL_QUESTIONS-1){ currentIndex++; renderQuestion(); } });
   finishBtn.addEventListener('click', finishQuiz);
 
   function finishQuiz(){
     if(timerInterval){ clearInterval(timerInterval); timerInterval=null; }
-    // grade
     let correct = 0;
     const missed = [];
     for(let i=0;i<TOTAL_QUESTIONS;i++){
@@ -415,13 +239,10 @@
     }
     const pct = Math.round( (correct / TOTAL_QUESTIONS) * 100 );
     const passed = (correct / TOTAL_QUESTIONS) >= PASS_THRESHOLD;
-    // show result
     quizScreen.classList.add('hide');
     resultScreen.classList.remove('hide');
-    resultSummary.innerHTML = `<strong>Puntaje:</strong> ${correct} / ${TOTAL_QUESTIONS} &nbsp; — &nbsp; <strong>${pct}%</strong>
-      <div class="${passed ? 'pass' : 'fail'}" style="margin-top:8px"><strong>${passed ? 'APROBADO' : 'REPROBADO'}</strong></div>
-      <div class="small" style="margin-top:8px">Umbral de aprobación: ${Math.round(PASS_THRESHOLD*100)}%</div>
-    `;
+    resultSummary.innerHTML = `<strong>Puntaje:</strong> ${correct} / ${TOTAL_QUESTIONS} — <strong>${pct}%</strong>
+      <div class="${passed ? 'pass' : 'fail'}" style="margin-top:8px"><strong>${passed ? 'APROBADO' : 'REPROBADO'}</strong></div>`;
     if(missed.length>0){
       reviewArea.classList.remove('hide');
       reviewList.innerHTML = '';
@@ -432,7 +253,6 @@
           const L=letters[i];
           const txt = item.choices[i] || '';
           const isCorrect = (L === item.correct);
-          const mark = isCorrect ? '✓' : '';
           choicesHtml += `<li><strong>${L}.</strong> ${escapeHtml(txt)} ${isCorrect ? '<em style="color:var(--accent)"> (correcta)</em>' : ''}</li>`;
         }
         choicesHtml += '</ul>';
@@ -456,21 +276,6 @@
   });
 
   startBtn.addEventListener('click', startQuiz);
-
-  // keyboard shortcuts: N,S,F
-  document.addEventListener('keydown',(e)=>{
-    if(quizScreen.classList.contains('hide')) return;
-    if(e.key.toLowerCase()==='n'){ nextBtn.click(); }
-    if(e.key.toLowerCase()==='p'){ prevBtn.click(); }
-    if(e.key.toLowerCase()==='f'){ finishBtn.click(); }
-  });
-
-  // Accessibility: tapping alt via keyboard (optional)
-  questionArea.addEventListener('keydown',(e)=>{
-    if(e.target.classList.contains('alt') && (e.key==='Enter' || e.key===' ')) e.target.click();
-  });
-
-  // On load: (nothing)
   </script>
 </body>
 </html>
