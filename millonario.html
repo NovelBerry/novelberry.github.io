@@ -13,6 +13,7 @@
         import { getFirestore, doc, getDoc, setDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Configuración global (usa las variables del entorno Canvas)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
         
@@ -29,70 +30,673 @@
         window.firebase.firestore.setLogLevel('silent'); 
 
         let isGameInitialized = false;
+        let userId = 'anon';
 
         /**
          * Llama a la función de inicio principal del juego solo una vez.
-         * ESTA FUNCIÓN SE LLAMA LO ANTES POSIBLE PARA DIBUJAR LA UI.
          */
         function handleInitGame() {
             if (isGameInitialized) return; 
             isGameInitialized = true;
+            console.log("--- INICIO DE UI GARANTIZADO. User ID:", userId, "---");
             if (typeof window.initGame === 'function') {
                 window.initGame(); 
-                console.log("--- INICIO DE UI GARANTIZADO ---");
             } else {
                 setTimeout(handleInitGame, 50);
             }
         }
 
         /**
-         * Intenta la autenticación (preferido) y luego inicializa.
+         * Intenta la autenticación y establece el userId.
          */
-        async function attemptAuthAndInit() {
-            if (isGameInitialized) return; 
-            
+        async function attemptAuth() {
             try {
                 if (initialAuthToken) {
-                    await window.firebase.auth.signInWithCustomToken(window.auth, initialAuthToken);
+                    const userCredential = await window.firebase.auth.signInWithCustomToken(window.auth, initialAuthToken);
+                    userId = userCredential.user.uid;
                 } else {
-                    await window.firebase.auth.signInAnonymously(window.auth);
+                    const userCredential = await window.firebase.auth.signInAnonymously(window.auth);
+                    userId = userCredential.user.uid;
                 }
             } catch (error) {
-                console.error("Error en autenticación Firebase, iniciando en modo local:", error);
+                console.error("Error en autenticación Firebase, usando ID aleatorio:", error);
+                userId = crypto.randomUUID();
             }
+            window.userId = userId; // Hacer el userId globalmente accesible
             handleInitGame();
         }
 
-        // 2. Observador de estado de autenticación
-        window.auth.onAuthStateChanged((user) => {
+        // 2. Observador de estado de autenticación (garantiza el flujo de inicio)
+        window.firebase.auth.onAuthStateChanged((user) => {
              if (user) {
-                attemptAuthAndInit();
-             } else if (!isGameInitialized) {
-                 attemptAuthAndInit();
+                userId = user.uid;
+             }
+             if (!isGameInitialized) {
+                attemptAuth();
              }
         });
-
-        // 3. Fallback de tiempo (si la carga de Firebase es muy rápida, podemos inicializar inmediatamente)
-        setTimeout(() => {
-            if (!isGameInitialized) {
-                handleInitGame(); 
-            }
-        }, 100); // 100ms es un buen compromiso para no esperar demasiado.
     </script>
 
+    <script>
+        // ====================================================================
+        // --- LÓGICA DEL JUEGO MILLONARIO CLICKER (JavaScript) ---
+        // ====================================================================
+
+        // --- MODELO DE ESTADO ---
+        let estadoJuego = {
+            dinero: 0,
+            ipc: 1, // Ingreso por Clic
+            ips: 0, // Ingreso por Segundo
+            tiendas: {}, // Clave: ID de la tienda, Valor: { nivel: X, vecesComprado: Y }
+            activos: {},
+            empresas: {},
+            inversiones: {},
+            ultimosSegundos: Date.now()
+        };
+        
+        // ID de la aplicación para Firebase Firestore
+        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const TIENDA_PATH = `/artifacts/${APP_ID}/users/${window.userId}/tiendaJuego`;
+
+        // --- DEFINICIÓN DE TIENDAS ---
+        const mejorasClick = {
+            'dedo-rapido': { nombre: 'Dedo Rápido 🤏', costoBase: 10, costoEscalado: 1.15, ipcAumento: 1, tipo: 'ipc', icono: '👋' },
+            'mouse-gamer': { nombre: 'Mouse Gamer 🖱️', costoBase: 100, costoEscalado: 1.15, ipcAumento: 10, tipo: 'ipc', icono: '🎮' },
+            'ai-clicker': { nombre: 'Asistente IA 🤖', costoBase: 1000, costoEscalado: 1.15, ipcAumento: 100, tipo: 'ipc', icono: '💡' }
+        };
+
+        const generadoresIPS = {
+            'puesto-limonada': { nombre: 'Puesto de Limonada 🍋', costoBase: 50, costoEscalado: 1.15, ipsGenerado: 0.5, tipo: 'ips', icono: '🥤' },
+            'vendedor-ambulante': { nombre: 'Vendedor Ambulante 💼', costoBase: 500, costoEscalado: 1.15, ipsGenerado: 5, tipo: 'ips', icono: '🚶' },
+            'tienda-online': { nombre: 'Tienda Online 💻', costoBase: 5000, costoEscalado: 1.15, ipsGenerado: 50, tipo: 'ips', icono: '🛒' }
+        };
+        
+        const activosLujos = {
+             'coche-lujo': { nombre: 'Coche Deportivo 🏎️', costo: 50000, efecto: 'Aumenta IPC en 500', ipcAumento: 500, comprado: false },
+             'apartamento': { nombre: 'Apartamento de Lujo 🏙️', costo: 500000, efecto: 'Aumenta IPS en 50', ipsAumento: 50, comprado: false },
+             'yate': { nombre: 'Yate Privado 🛥️', costo: 5000000, efecto: 'Duplica todo el IPC', multiplicadorIPC: 2, comprado: false }
+        };
+        
+        const empresasVistas = {
+             'restaurante': { nombre: 'Restaurante Exclusivo 🍽️', costo: 1000000, ipsGenerado: 1000, vecesComprado: 0 },
+             'tech-startup': { nombre: 'Tech Startup 🚀', costo: 10000000, ipsGenerado: 10000, vecesComprado: 0 }
+        };
+        
+        const inversionesVista = {
+             'bonos-gobierno': { nombre: 'Bonos Gobierno 🏛️', costo: 100000, retorno: 0.05, vecesComprado: 0, tipo: 'retorno' }, // 5% de retorno
+             'crypto-mining': { nombre: 'Crypto Mining ⛏️', costo: 2000000, retorno: 0.1, vecesComprado: 0, tipo: 'retorno' } // 10% de retorno
+        };
+
+
+        // --- UTILIDADES ---
+        
+        /** Formatea un número como moneda. */
+        function formatDinero(num) {
+            if (num === 0) return '$0.00';
+            const sign = num < 0 ? '-' : '';
+            const absNum = Math.abs(num);
+            
+            if (absNum < 1000) return sign + '$' + absNum.toFixed(2);
+            
+            const suffixes = ['', 'K', 'M', 'B', 'T', 'Q'];
+            const tier = Math.floor(Math.log10(absNum) / 3);
+            const suffix = suffixes[tier] || '';
+            const scale = Math.pow(10, tier * 3);
+            const scaled = absNum / scale;
+
+            // Mostrar dos decimales solo si no es un número entero.
+            const formatted = scaled.toFixed(scaled % 1 !== 0 ? 2 : 0);
+            return sign + '$' + formatted + suffix;
+        }
+
+        /** Calcula el costo de la siguiente compra. */
+        function calcularCosto(base, escalado, nivel) {
+            return base * Math.pow(escalado, nivel);
+        }
+
+        /** Muestra una animación de texto cuando se hace clic o se genera dinero. */
+        function mostrarAnimacion(monto, x, y) {
+            const anim = document.createElement('div');
+            anim.textContent = `+${formatDinero(monto)}`;
+            anim.classList.add('animacion-clic');
+            
+            // Posicionar con respecto al billete
+            anim.style.left = `${x}px`;
+            anim.style.top = `${y}px`;
+
+            document.body.appendChild(anim);
+
+            // Eliminar después de la animación
+            anim.addEventListener('animationend', () => {
+                anim.remove();
+            });
+        }
+
+        // --- FIREBASE (Guardar/Cargar) ---
+        
+        async function cargarEstado() {
+            if (!window.db || !window.userId) return;
+            const docRef = window.firebase.firestore.doc(window.db, TIENDA_PATH);
+            try {
+                const docSnap = await window.firebase.firestore.getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    // Cargar estado principal
+                    estadoJuego = {
+                        ...estadoJuego,
+                        ...data,
+                        // Asegurar que el dinero sea un número y no un string si Firebase lo serializa mal
+                        dinero: parseFloat(data.dinero || 0),
+                        ipc: parseFloat(data.ipc || 1),
+                        ips: parseFloat(data.ips || 0)
+                    };
+                    console.log("Estado cargado:", estadoJuego);
+                    // Forzar el cálculo del progreso offline
+                    calcularProgresoOffline();
+                } else {
+                    // Si no existe, inicializar con el estado predeterminado y guardar
+                    await guardarEstado();
+                }
+            } catch (e) {
+                console.error("Error cargando el estado: ", e);
+            }
+        }
+
+        async function guardarEstado() {
+            if (!window.db || !window.userId) return;
+            const docRef = window.firebase.firestore.doc(window.db, TIENDA_PATH);
+            try {
+                // Solo guardar los valores que cambian
+                const dataToSave = {
+                    dinero: estadoJuego.dinero,
+                    ipc: estadoJuego.ipc,
+                    ips: estadoJuego.ips,
+                    tiendas: estadoJuego.tiendas,
+                    activos: estadoJuego.activos,
+                    empresas: estadoJuego.empresas,
+                    inversiones: estadoJuego.inversiones,
+                    ultimosSegundos: Date.now() // Actualizar el tiempo de guardado
+                };
+                await window.firebase.firestore.setDoc(docRef, dataToSave);
+                console.log("Estado guardado con éxito.");
+            } catch (e) {
+                console.error("Error guardando el estado: ", e);
+            }
+        }
+        
+        // --- LÓGICA DE JUEGO PRINCIPAL ---
+
+        /** * Inicializa el estado de las tiendas si es la primera vez.
+         * Lo hacemos aquí para no sobreescribir los datos cargados.
+         */
+        function inicializarTiendas(tiendas, estadoKey) {
+            for (const id in tiendas) {
+                if (!estadoJuego[estadoKey][id]) {
+                    estadoJuego[estadoKey][id] = { 
+                        nivel: 0, 
+                        vecesComprado: 0,
+                        comprado: tiendas[id].comprado || false // Para activos fijos
+                    };
+                }
+            }
+        }
+        
+        function calcularProgresoOffline() {
+            const now = Date.now();
+            const elapsedSeconds = (now - estadoJuego.ultimosSegundos) / 1000;
+            if (elapsedSeconds > 5) { // Si estuvo ausente por más de 5 segundos
+                const dineroGanado = estadoJuego.ips * elapsedSeconds;
+                estadoJuego.dinero += dineroGanado;
+                console.log(`Ganancia offline: +${formatDinero(dineroGanado)} durante ${Math.round(elapsedSeconds)} segundos.`);
+            }
+            estadoJuego.ultimosSegundos = now;
+        }
+
+        function actualizarUI() {
+            document.getElementById('dinero-actual').textContent = formatDinero(estadoJuego.dinero);
+            document.getElementById('ipc-actual').textContent = formatDinero(estadoJuego.ipc);
+            document.getElementById('ips-actual').textContent = formatDinero(estadoJuego.ips) + " / s";
+            
+            // Actualizar botones de tienda
+            dibujarTodasLasTiendas();
+            
+            // Mostrar User ID en el pie de página
+            document.getElementById('user-info-footer').textContent = `ID de Sesión: ${window.userId}`;
+        }
+        
+        /** * Llama a las funciones de dibujo de todas las vistas activas/paneles.
+         * Se llama después de cargar el estado y en cada actualización.
+         */
+        function dibujarTodasLasTiendas() {
+            dibujarTienda(mejorasClick, 'mejoras-clic-tienda', 'tiendas');
+            dibujarTienda(generadoresIPS, 'generadores-tienda', 'tiendas');
+            dibujarActivos();
+            dibujarEmpresas();
+            dibujarInversiones();
+            actualizarBotonesVista();
+        }
+
+        /** Actualiza el estado de los botones de navegación según la vista activa */
+        function actualizarBotonesVista() {
+             const vistaActiva = document.querySelector('.game-view.active').id.replace('view-', '');
+             document.querySelectorAll('#nav-bar button').forEach(btn => {
+                 btn.classList.remove('active');
+                 if (btn.id.includes(vistaActiva)) {
+                     btn.classList.add('active');
+                 }
+             });
+        }
+
+
+        /** Lógica para el bucle de ingresos pasivos (IPS) */
+        function bucleJuego() {
+            estadoJuego.dinero += estadoJuego.ips;
+            actualizarUI();
+        }
+
+        // --- LÓGICA DE COMPRA ---
+
+        /** * Dibuja los items de mejora o generadores. 
+         * @param {object} items - El objeto que define la tienda (ej: mejorasClick)
+         * @param {string} contenedorId - El ID del elemento donde se dibujarán los botones
+         * @param {string} estadoKey - La clave en estadoJuego donde se guarda el progreso (ej: 'tiendas')
+         */
+        function dibujarTienda(items, contenedorId, estadoKey) {
+            const contenedor = document.getElementById(contenedorId);
+            if (!contenedor) return;
+
+            contenedor.innerHTML = '';
+            
+            for (const id in items) {
+                const item = items[id];
+                const nivel = estadoJuego[estadoKey][id]?.nivel || 0;
+                const costo = calcularCosto(item.costoBase, item.costoEscalado, nivel);
+                const puedeComprar = estadoJuego.dinero >= costo;
+
+                const elemento = document.createElement('div');
+                elemento.className = `tienda-item ${!puedeComprar ? 'item-bloqueado' : ''}`;
+                elemento.dataset.id = id;
+
+                let efectoTexto = '';
+                if (item.tipo === 'ipc') {
+                    efectoTexto = `+${formatDinero(item.ipcAumento)} IPC por nivel`;
+                } else if (item.tipo === 'ips') {
+                    efectoTexto = `+${formatDinero(item.ipsGenerado)} IPS por nivel`;
+                }
+                
+                elemento.innerHTML = `
+                    <h3>${item.icono} ${item.nombre}</h3>
+                    <p>Nivel: <span style="color: var(--color-empresa);">${nivel}</span></p>
+                    <p>Efecto: ${efectoTexto}</p>
+                    <p>Costo: <span style="font-weight: 700;">${formatDinero(costo)}</span></p>
+                    <button onclick="comprarItem('${id}', '${estadoKey}', '${item.tipo}')" ${!puedeComprar ? 'disabled' : ''}>
+                        Comprar (Nivel ${nivel + 1})
+                    </button>
+                `;
+                contenedor.appendChild(elemento);
+            }
+        }
+        
+        // Dibujo de Activos (Compra única)
+        function dibujarActivos() {
+            const contenedor = document.getElementById('activos-tienda');
+            if (!contenedor) return;
+            contenedor.innerHTML = '';
+
+            for (const id in activosLujos) {
+                const item = activosLujos[id];
+                const estado = estadoJuego.activos[id] || { comprado: false };
+                const comprado = estado.comprado;
+                const puedeComprar = !comprado && estadoJuego.dinero >= item.costo;
+
+                const elemento = document.createElement('div');
+                elemento.className = `tienda-item asset-item ${comprado ? 'item-comprado' : ''} ${!puedeComprar && !comprado ? 'item-bloqueado' : ''}`;
+                elemento.dataset.id = id;
+
+                elemento.innerHTML = `
+                    <h3>${item.icono || '✨'} ${item.nombre}</h3>
+                    <p>Costo: <span style="font-weight: 700;">${formatDinero(item.costo)}</span></p>
+                    <p>Efecto: <span style="color: var(--color-inversion);">${item.efecto}</span></p>
+                    <button onclick="comprarActivo('${id}')" ${comprado || !puedeComprar ? 'disabled' : ''}>
+                        ${comprado ? 'Comprado' : 'Comprar Lujo'}
+                    </button>
+                `;
+                contenedor.appendChild(elemento);
+            }
+        }
+        
+        // Dibujo de Empresas (Generan IPS)
+        function dibujarEmpresas() {
+             const contenedor = document.getElementById('empresas-tienda');
+             if (!contenedor) return;
+             contenedor.innerHTML = '';
+
+             for (const id in empresasVistas) {
+                 const item = empresasVistas[id];
+                 const estado = estadoJuego.empresas[id] || { vecesComprado: 0 };
+                 
+                 // Costo de la empresa: 10% de aumento por cada compra (ejemplo simple)
+                 const costo = item.costo * Math.pow(1.1, estado.vecesComprado); 
+                 const puedeComprar = estadoJuego.dinero >= costo;
+
+                 const elemento = document.createElement('div');
+                 elemento.className = `tienda-item company-item ${!puedeComprar ? 'item-bloqueado' : ''}`;
+                 elemento.dataset.id = id;
+
+                 const ipsTotal = estado.vecesComprado * item.ipsGenerado;
+
+                 elemento.innerHTML = `
+                     <h3>${item.icono || '🏢'} ${item.nombre}</h3>
+                     <p>Compradas: <span style="color: var(--color-exito);">${estado.vecesComprado}</span></p>
+                     <p>IPS Total: <span style="font-weight: 700;">${formatDinero(ipsTotal)} / s</span></p>
+                     <p>Costo Próxima: <span style="font-weight: 700;">${formatDinero(costo)}</span></p>
+                     <button onclick="comprarEmpresa('${id}')" ${!puedeComprar ? 'disabled' : ''}>
+                         Fundar Nueva (IPS: +${formatDinero(item.ipsGenerado)})
+                     </button>
+                 `;
+                 contenedor.appendChild(elemento);
+             }
+        }
+        
+        // Dibujo de Inversiones (Generan Retorno %)
+        function dibujarInversiones() {
+             const contenedor = document.getElementById('inversiones-tienda');
+             if (!contenedor) return;
+             contenedor.innerHTML = '';
+
+             for (const id in inversionesVista) {
+                 const item = inversionesVista[id];
+                 const estado = estadoJuego.inversiones[id] || { vecesComprado: 0, valorTotal: 0 };
+                 
+                 // El costo es fijo por paquete de inversión
+                 const costo = item.costo; 
+                 const puedeComprar = estadoJuego.dinero >= costo;
+
+                 const elemento = document.createElement('div');
+                 elemento.className = `tienda-item investment-item ${!puedeComprar ? 'item-bloqueado' : ''}`;
+                 elemento.dataset.id = id;
+
+                 const retornoIPS = estado.valorTotal * item.retorno / 10; // Ejemplo: 5% anual / 10 = 0.5% por segundo (para hacerlo rápido)
+                 
+                 elemento.innerHTML = `
+                     <h3>${item.icono || '📈'} ${item.nombre}</h3>
+                     <p>Valor Total: <span style="color: var(--color-acento-celeste);">${formatDinero(estado.valorTotal)}</span></p>
+                     <p>Retorno IPS: <span style="font-weight: 700;">${formatDinero(retornoIPS)} / s</span></p>
+                     <p>Costo Paquete: <span style="font-weight: 700;">${formatDinero(costo)}</span></p>
+                     <button onclick="comprarInversion('${id}')" ${!puedeComprar ? 'disabled' : ''}>
+                         Invertir (+${formatDinero(item.costo)})
+                     </button>
+                 `;
+                 contenedor.appendChild(elemento);
+             }
+        }
+
+
+        // --- FUNCIONES ACCIONABLES (GLOBALES) ---
+
+        /** * Función pública para el botón de clic principal.
+         * @param {Event} e - Evento de clic para obtener posición.
+         */
+        window.hacerClick = function(e) {
+            estadoJuego.dinero += estadoJuego.ipc;
+            
+            const x = e.clientX;
+            const y = e.clientY;
+            mostrarAnimacion(estadoJuego.ipc, x, y);
+
+            actualizarUI();
+            guardarEstado();
+        }
+
+        /**
+         * Función pública para comprar Mejoras/Generadores IPS.
+         */
+        window.comprarItem = function(id, estadoKey, tipo) {
+            const item = (tipo === 'ipc' ? mejorasClick[id] : generadoresIPS[id]);
+            const estadoActual = estadoJuego[estadoKey][id] || { nivel: 0 };
+            const costo = calcularCosto(item.costoBase, item.costoEscalado, estadoActual.nivel);
+
+            if (estadoJuego.dinero >= costo) {
+                estadoJuego.dinero -= costo;
+                estadoActual.nivel++;
+                estadoJuego[estadoKey][id] = estadoActual;
+
+                if (tipo === 'ipc') {
+                    estadoJuego.ipc += item.ipcAumento;
+                } else if (tipo === 'ips') {
+                    estadoJuego.ips += item.ipsGenerado;
+                }
+                
+                recalcularIPS(); // Recalcula el IPS total (incluyendo activos y empresas)
+                actualizarUI();
+                guardarEstado();
+            }
+        }
+        
+        /**
+         * Función pública para comprar Activos/Lujos.
+         */
+        window.comprarActivo = function(id) {
+            const item = activosLujos[id];
+            const estado = estadoJuego.activos[id] || { comprado: false };
+            
+            if (!estado.comprado && estadoJuego.dinero >= item.costo) {
+                estadoJuego.dinero -= item.costo;
+                estado.comprado = true;
+                estadoJuego.activos[id] = estado;
+                
+                // Aplicar el efecto del activo
+                if (item.ipcAumento) {
+                    estadoJuego.ipc += item.ipcAumento;
+                }
+                if (item.ipsAumento) {
+                    estadoJuego.ips += item.ipsAumento;
+                }
+                if (item.multiplicadorIPC) {
+                    // Esto se aplicará en recalcularIPS
+                }
+                
+                recalcularIPC(); // Asegurar que el IPC se recalcule si hay multiplicadores
+                recalcularIPS();
+                actualizarUI();
+                guardarEstado();
+            }
+        }
+        
+        /**
+         * Función pública para comprar Empresas.
+         */
+        window.comprarEmpresa = function(id) {
+            const item = empresasVistas[id];
+            const estado = estadoJuego.empresas[id] || { vecesComprado: 0 };
+            const costo = item.costo * Math.pow(1.1, estado.vecesComprado); 
+
+            if (estadoJuego.dinero >= costo) {
+                estadoJuego.dinero -= costo;
+                estado.vecesComprado++;
+                estadoJuego.empresas[id] = estado;
+                
+                recalcularIPS();
+                actualizarUI();
+                guardarEstado();
+            }
+        }
+
+        /**
+         * Función pública para comprar Inversiones (bonos/crypto).
+         */
+        window.comprarInversion = function(id) {
+            const item = inversionesVista[id];
+            const estado = estadoJuego.inversiones[id] || { vecesComprado: 0, valorTotal: 0 };
+            const costo = item.costo; 
+
+            if (estadoJuego.dinero >= costo) {
+                estadoJuego.dinero -= costo;
+                estado.vecesComprado++;
+                estado.valorTotal += costo; // Añadir el costo al valor total invertido
+                estadoJuego.inversiones[id] = estado;
+                
+                recalcularIPS(); // El IPS cambiará por el nuevo valor total
+                actualizarUI();
+                guardarEstado();
+            }
+        }
+
+        
+        /** Recalcula el IPC total base + multiplicadores. */
+        function recalcularIPC() {
+            let baseIPC = 1;
+            
+            // 1. IPC base de Mejoras Click
+            for (const id in mejorasClick) {
+                 const nivel = estadoJuego.tiendas[id]?.nivel || 0;
+                 baseIPC += nivel * mejorasClick[id].ipcAumento;
+            }
+            
+            // 2. IPC de Activos fijos (suma)
+            for (const id in activosLujos) {
+                if (estadoJuego.activos[id]?.comprado && activosLujos[id].ipcAumento) {
+                    baseIPC += activosLujos[id].ipcAumento;
+                }
+            }
+
+            // Establecer el nuevo IPC (antes de multiplicadores)
+            estadoJuego.ipc = baseIPC;
+            
+            // 3. Multiplicadores de Activos
+            let multiplicador = 1;
+            for (const id in activosLujos) {
+                if (estadoJuego.activos[id]?.comprado && activosLujos[id].multiplicadorIPC) {
+                    multiplicador *= activosLujos[id].multiplicadorIPC;
+                }
+            }
+            
+            // Aplicar multiplicador
+            estadoJuego.ipc = estadoJuego.ipc * multiplicador;
+        }
+
+        /** Recalcula el IPS total de todas las fuentes. */
+        function recalcularIPS() {
+            let totalIPS = 0;
+
+            // 1. IPS de Generadores (Tienda)
+            for (const id in generadoresIPS) {
+                 const nivel = estadoJuego.tiendas[id]?.nivel || 0;
+                 totalIPS += nivel * generadoresIPS[id].ipsGenerado;
+            }
+            
+            // 2. IPS de Activos Fijos (suma)
+            for (const id in activosLujos) {
+                if (estadoJuego.activos[id]?.comprado && activosLujos[id].ipsAumento) {
+                    totalIPS += activosLujos[id].ipsAumento;
+                }
+            }
+
+            // 3. IPS de Empresas
+            for (const id in empresasVistas) {
+                 const vecesComprado = estadoJuego.empresas[id]?.vecesComprado || 0;
+                 totalIPS += vecesComprado * empresasVistas[id].ipsGenerado;
+            }
+            
+            // 4. IPS de Inversiones (porcentaje de valor total)
+            for (const id in inversionesVista) {
+                 const inversion = inversionesVista[id];
+                 const estado = estadoJuego.inversiones[id] || { valorTotal: 0 };
+                 
+                 // Retorno IPS = Valor total * Tasa de retorno anual / 10 (para hacerlo rápido)
+                 totalIPS += estado.valorTotal * inversion.retorno / 10; 
+            }
+
+            estadoJuego.ips = totalIPS;
+        }
+
+
+        /**
+         * Función pública para cambiar la vista entre Clicker, Activos, Empresas, etc.
+         */
+        window.cambiarVista = function(vista) {
+            document.querySelectorAll('.game-view').forEach(view => {
+                view.classList.remove('active');
+            });
+            document.getElementById(`view-${vista}`).classList.add('active');
+            
+            // Actualizar botones de navegación
+            actualizarBotonesVista();
+        }
+
+        /** * Función de inicialización principal del juego.
+         * Se llama desde el módulo de Firebase una vez que la autenticación está lista.
+         */
+        window.initGame = async function() {
+            // Inicializar estructuras de datos si faltan
+            inicializarTiendas(mejorasClick, 'tiendas');
+            inicializarTiendas(generadoresIPS, 'tiendas');
+            inicializarTiendas(activosLujos, 'activos');
+            inicializarTiendas(empresasVistas, 'empresas');
+            inicializarTiendas(inversionesVista, 'inversiones');
+
+            await cargarEstado(); 
+            
+            // Recalcular IPC y IPS después de cargar el estado
+            recalcularIPC();
+            recalcularIPS();
+            
+            // Dibuja la UI inicial (incluyendo los botones de tienda)
+            actualizarUI(); 
+            
+            // Configurar el bucle del juego (1 segundo)
+            setInterval(bucleJuego, 1000); 
+            
+            // Guardar el estado cada 10 segundos
+            setInterval(guardarEstado, 10000);
+            
+            // Asegurar que la vista inicial sea 'clicker'
+            cambiarVista('clicker');
+        };
+        
+        // --- FUNCIÓN DE REINICIO ---
+        window.resetGame = async function() {
+            if (!confirm('¿Estás seguro de que quieres REINICIAR el juego? Perderás todo el progreso.')) return;
+            
+            estadoJuego = {
+                dinero: 0,
+                ipc: 1, 
+                ips: 0, 
+                tiendas: {}, 
+                activos: {},
+                empresas: {},
+                inversiones: {},
+                ultimosSegundos: Date.now()
+            };
+            
+            inicializarTiendas(mejorasClick, 'tiendas');
+            inicializarTiendas(generadoresIPS, 'tiendas');
+            inicializarTiendas(activosLujos, 'activos');
+            inicializarTiendas(empresasVistas, 'empresas');
+            inicializarTiendas(inversionesVista, 'inversiones');
+            
+            recalcularIPC();
+            recalcularIPS();
+            actualizarUI();
+            await guardarEstado();
+            alert('Juego Reiniciado con éxito.'); // Usamos alert aquí como excepción para el mensaje de confirmación/éxito crítico.
+        }
+
+    </script>
+    
     <style>
-        /* --- ESTILOS GENERALES Y LAYOUT --- */
+        /* --- FUENTES Y ESTILOS GENERALES --- */
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap');
 
         :root {
             --color-fondo-oscuro: #121212;
             --color-texto-claro: #f0f0f0;
-            --color-acento-celeste: #00bcd4; 
-            --color-secundario: #6495ed; 
-            --color-exito: #388e3c; 
-            --color-advertencia: #d32f2f; 
-            --color-empresa: #ffc107; 
-            --color-inversion: #9c27b0; 
+            --color-acento-celeste: #00bcd4; /* Color de acento para todo (portafolio y clicker) */
+            --color-secundario: #6495ed; /* Azul para el IPC del clicker y títulos de panel */
+            --color-exito: #388e3c; /* Verde para el botón de clic y items comprados */
+            --color-advertencia: #d32f2f; /* Rojo para reiniciar */
+            --color-empresa: #ffc107; /* Amarillo para empresas */
+            --color-inversion: #9c27b0; /* Púrpura para inversiones */
         }
 
         * {
@@ -100,17 +704,20 @@
             margin: 0;
             padding: 0;
             font-family: 'Roboto', sans-serif;
-            transition: color 0.2s, background-color 0.2s; 
+            transition: color 0.2s, background-color 0.2s, border-color 0.2s;
         }
 
+        /* --- REGLAS MODIFICADAS PARA PERMITIR EL SCROLL --- */
         html, body {
             width: 100%;
             min-height: 100vh;
             background-color: var(--color-fondo-oscuro);
             color: var(--color-texto-claro);
-            overflow-x: hidden; 
+            overflow-y: auto; /* Permite el scroll vertical si el contenido desborda. */
+            overflow-x: hidden; /* Previene el scroll horizontal no deseado */
         }
 
+        /* --- DECORACIÓN DE FONDO --- */
         #fondo-decoracion {
             position: fixed;
             top: 0;
@@ -177,6 +784,7 @@
         .game-view {
             padding: 20px;
             display: none; 
+            min-height: 80vh; 
         }
         
         .game-view.active {
@@ -208,6 +816,7 @@
             box-shadow: 0 0 15px rgba(100, 149, 237, 0.2);
             display: flex;
             flex-direction: column;
+            height: 100%; /* Asegura que la columna se extienda */
         }
         
         .company-section { border-color: var(--color-empresa); }
@@ -224,25 +833,40 @@
         
         .company-section h2 { color: var(--color-empresa); }
         .investment-section h2 { color: var(--color-inversion); }
+        
+        .asset-shop, .company-shop, .investment-shop {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 5px 0;
+            flex-grow: 1; /* Permite que la tienda ocupe el espacio restante */
+        }
 
 
+        /* ================================================== */
         /* --- LAYOUT PRINCIPAL CLICKER (3 Columnas) --- */
+        /* ================================================== */
+
         #main-game-layout {
             display: grid;
-            grid-template-columns: 280px auto 280px; /* AUMENTADO para mejor visualización de botones */
+            /* Grid de 3 columnas: Panel Izq (280px), Centro (Auto), Panel Der (280px) */
+            grid-template-columns: 280px auto 280px; 
             width: 100%;
-            min-height: 100vh;
             max-width: 1400px; 
             margin: 0 auto;
+            min-height: calc(100vh - 60px); /* Ajusta para la barra de navegación */
         }
 
         /* --- ESTILOS DEL PANEL LATERAL (Tienda/Mejoras) --- */
+
         .side-panel {
             background-color: #1e1e1e;
             border-right: 2px solid var(--color-acento-celeste);
             padding: 10px 5px;
-            overflow-y: auto; 
-            height: 100%;
+            overflow-y: auto; /* Scroll dentro del panel */
+            height: calc(100vh - 60px); /* Ajusta la altura para la barra de navegación */
+            position: sticky;
+            top: 0;
         }
 
         #generadores-panel {
@@ -251,6 +875,7 @@
             grid-column: 3;
         }
 
+        /* Título del Panel */
         .side-panel h2 {
             text-align: center;
             color: var(--color-secundario); 
@@ -281,6 +906,20 @@
             background-color: #2e2e2e;
         }
 
+        .tienda-item p {
+            font-size: 0.9em;
+            margin: 3px 0;
+        }
+
+        .tienda-item h3 {
+            font-size: 1em;
+            color: var(--color-secundario);
+            margin-bottom: 5px;
+            font-weight: 900;
+        }
+
+
+        /* Estilo para items que no se pueden comprar (bloqueados por gating o costo) */
         .item-bloqueado {
             opacity: 0.4;
             cursor: not-allowed;
@@ -300,7 +939,9 @@
             cursor: default !important;
         }
 
-        /* --- ÁREA CENTRAL CLICKER --- */
+
+        /* --- ESTILOS DEL ÁREA CENTRAL (Clicker y Stats) --- */
+
         #clicker-area {
             padding: 20px;
             text-align: center;
@@ -309,6 +950,13 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start; 
+        }
+
+        #clicker-area h1 {
+            color: var(--color-acento-celeste);
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
         }
 
         /* Sección de Información */
@@ -403,15 +1051,6 @@
             z-index: 1000; 
         }
         
-        /* Contenedores de Activos, Empresas, Inversiones */
-        .asset-shop, .company-shop, .investment-shop {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding: 5px 0;
-            overflow-y: auto;
-        }
-        
         /* Reiniciar Juego */
         #reset-btn {
             background-color: var(--color-advertencia);
@@ -448,10 +1087,11 @@
         /* ================================================== */
 
         @media (max-width: 900px) {
-            /* ... Estilos de Media Query ... */
+            
             #nav-bar {
                 gap: 5px;
                 flex-wrap: wrap; 
+                padding: 10px;
             }
             #nav-bar button {
                 flex-grow: 1; 
@@ -463,6 +1103,7 @@
             #main-game-layout {
                 grid-template-columns: 1fr;
                 padding-top: 0;
+                min-height: auto; /* Permite que la vista se haga larga */
             }
 
             #clicker-area {
@@ -470,6 +1111,7 @@
                 padding-top: 10px;
             }
 
+            /* Los paneles laterales ahora van abajo y se hacen estáticos */
             #mejoras-clic-panel {
                 grid-row: 2;
                 border-right: none;
@@ -489,6 +1131,7 @@
                 padding: 10px;
             }
             
+            /* Tiendas en dos columnas para móviles */
             #mejoras-clic-tienda, #generadores-tienda {
                 display: flex;
                 flex-wrap: wrap;
@@ -507,6 +1150,7 @@
                 margin-top: 20px;
             }
 
+            /* Activos/Empresas/Inversiones en dos columnas */
             .grid-3-cols {
                 grid-template-columns: 1fr; 
                 max-width: 90%;
@@ -516,6 +1160,7 @@
                 flex-direction: row;
                 flex-wrap: wrap;
                 justify-content: space-around;
+                flex-grow: 0;
             }
             
             .asset-shop .tienda-item, .company-shop .tienda-item, .investment-shop .tienda-item {
@@ -558,21 +1203,21 @@
                     <div id="info-dinero">
                         <p>DINERO: <span id="dinero-actual">$0.00</span></p>
                         <p>IPC (por Clic): <span id="ipc-actual">$1.00</span></p>
-                        <p>IPS (por Segundo): <span id="ips-actual">$0.00</span></p>
+                        <p>IPS (por Seg): <span id="ips-actual">$0.00 / s</span></p>
                     </div>
 
-                    <button id="billete-btn" onclick="hacerClic()">
+                    <button id="billete-btn" onclick="hacerClick(event)">
                         <span class="emoji-billete">💵</span>
-                        <br>HACER CLIC
+                        HACER CLIC
                     </button>
                     
                 </div>
 
-                <!-- Panel Derecho: Generadores Pasivos -->
+                <!-- Panel Derecho: Generadores IPS -->
                 <div id="generadores-panel" class="side-panel">
                     <h2>Generadores Pasivos (IPS)</h2>
                     <div id="generadores-tienda">
-                        <!-- Generadores pasivos (IPS) se dibujan aquí -->
+                        <!-- Generadores de IPS se dibujan aquí -->
                     </div>
                 </div>
 
@@ -580,812 +1225,73 @@
         </div>
 
         <!-- ================================================== -->
-        <!-- VISTA 2: ACTIVOS Y LUJOS -->
+        <!-- VISTA 2: ACTIVOS & LUJOS -->
         <!-- ================================================== -->
         <div id="view-assets" class="game-view">
-            <h1 class="view-title" style="color:var(--color-secundario);">Activos, Lujos y Capital</h1>
+            <h1 class="view-title">Activos y Lujos (Efectos Únicos)</h1>
             <div class="grid-3-cols">
-                
-                <div class="asset-section">
-                    <h2>Vehículos (Lujos)</h2>
-                    <div id="tienda-vehiculos" class="asset-shop">
-                        <!-- Tienda de Vehículos -->
-                    </div>
-                </div>
-
-                <div class="asset-section">
-                    <h2>Propiedades (Lujos)</h2>
-                    <div id="tienda-propiedades" class="asset-shop">
-                        <!-- Tienda de Propiedades -->
-                    </div>
-                </div>
-
-                <div class="asset-section">
-                    <h2>Inversión Bursátil (Acciones)</h2>
-                    <div id="tienda-acciones" class="asset-shop">
-                        <!-- Tienda de Acciones -->
+                <div class="asset-section" style="grid-column: 1 / -1;">
+                    <h2>Mis Lujos Personales</h2>
+                    <div id="activos-tienda" class="asset-shop">
+                        <!-- Lujos se dibujan aquí -->
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- ================================================== -->
-        <!-- VISTA 3: EMPRESAS PROPIAS -->
+        <!-- VISTA 3: EMPRESAS -->
         <!-- ================================================== -->
         <div id="view-companies" class="game-view">
-            <h1 class="view-title" style="color:var(--color-empresa);">Crea tu Propia Empresa</h1>
-            <div id="companies-grid" class="grid-3-cols">
-                
-                <div class="company-section" style="grid-column: 1 / span 3;">
-                    <h2>Oportunidades de Negocio (Comprar Unidades)</h2>
-                    <div id="tienda-empresas" class="company-shop">
-                        <!-- Tienda de Empresas -->
-                    </div>
-                </div>
-                
-                <div class="company-section" style="grid-column: 1 / span 3;">
-                    <h2>Mis Empresas Activas (Estadísticas)</h2>
-                    <div id="empresas-activas" class="company-shop" style="display: flex; flex-wrap: wrap;">
-                        <p style="text-align: center; color: #999; width: 100%;">Compra tu primera empresa para ver sus estadísticas.</p>
-                    </div>
-                </div>
-                
-            </div>
+             <h1 class="view-title">Empresas (Ingresos Pasivos Sostenidos)</h1>
+             <div class="grid-3-cols">
+                 <div class="company-section" style="grid-column: 1 / -1;">
+                     <h2>Fundar Negocios</h2>
+                     <div id="empresas-tienda" class="company-shop">
+                         <!-- Empresas se dibujan aquí -->
+                     </div>
+                 </div>
+             </div>
         </div>
 
         <!-- ================================================== -->
-        <!-- VISTA 4: INVERSIONES EXTERNAS -->
+        <!-- VISTA 4: INVERSIONES -->
         <!-- ================================================== -->
         <div id="view-investments" class="game-view">
-            <h1 class="view-title" style="color:var(--color-inversion);">Invierte en el Mercado de Capitales</h1>
-            <div class="grid-3-cols">
-                
-                <div class="investment-section" style="grid-column: 1 / span 3;">
-                    <h2>Fondos de Inversión Fija (Binario)</h2>
-                    <div id="tienda-inversiones" class="investment-shop">
-                         <!-- Tienda de Inversiones -->
-                    </div>
-                </div>
-                
-            </div>
+             <h1 class="view-title">Inversiones (Retorno Porcentual)</h1>
+             <div class="grid-3-cols">
+                 <div class="investment-section" style="grid-column: 1 / -1;">
+                     <h2>Instrumentos de Inversión</h2>
+                     <div id="inversiones-tienda" class="investment-shop">
+                         <!-- Inversiones se dibujan aquí -->
+                     </div>
+                 </div>
+             </div>
         </div>
 
         <!-- ================================================== -->
         <!-- VISTA 5: ESTADÍSTICAS -->
         <!-- ================================================== -->
         <div id="view-stats" class="game-view">
-            <h1 class="view-title">Tu Perfil de Riqueza</h1>
-            <div id="stats-content">
-                <p style="text-align:center; color:var(--color-acento-celeste);">Cargando estadísticas...</p>
-            </div>
-             <button id="reset-btn" onclick="mostrarConfirmacionReset()">
-                <i class="fas fa-redo-alt"></i> REINICIAR EL JUEGO (PERDERÁS TODO)
-            </button>
-            <div id="user-info-footer">
-                ID de Usuario: <span id="user-id-display">Cargando...</span> | ¡Guarda tu progreso automáticamente!
-            </div>
-            
-            <!-- Modal simple de confirmación (alternativa a alert/confirm) -->
-            <div id="reset-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
-                <div style="background: #222; padding: 30px; border-radius: 10px; border: 2px solid var(--color-advertencia); text-align: center; max-width: 400px;">
-                    <h3 style="color: var(--color-advertencia); margin-bottom: 20px;">ATENCIÓN: REINICIO DE JUEGO</h3>
-                    <p style="margin-bottom: 20px;">¿Estás absolutamente seguro de que quieres reiniciar? Esta acción es irreversible y perderás todo tu dinero y activos.</p>
-                    <button onclick="resetearJuego(); document.getElementById('reset-modal').style.display = 'none';" style="background-color: var(--color-advertencia); color: white; padding: 10px 20px; border: none; border-radius: 4px; margin-right: 10px;">
-                        Sí, REINICIAR
-                    </button>
-                    <button onclick="document.getElementById('reset-modal').style.display = 'none';" style="background-color: #444; color: white; padding: 10px 20px; border: none; border-radius: 4px;">
-                        Cancelar
+            <h1 class="view-title">Estadísticas y Gestión</h1>
+            <div class="grid-3-cols">
+                <div class="asset-section" style="grid-column: 1 / -1;">
+                    <h2>Gestión del Juego</h2>
+                    <p style="text-align: center; margin-bottom: 20px;">
+                        Toda la información de progreso y dinero se guarda automáticamente.
+                    </p>
+                    <button id="reset-btn" onclick="resetGame()">
+                        <i class="fas fa-trash-alt"></i> REINICIAR TODO EL PROGRESO
                     </button>
                 </div>
             </div>
         </div>
-
+        
+    </div>
+    
+    <div id="user-info-footer">
+        <!-- El ID del usuario se muestra aquí -->
     </div>
 
-    <script>
-        // =========================================================================
-        // 1. ESTADO GLOBAL Y DEFINICIONES DE ITEMS
-        // =========================================================================
-
-        let estadoJuego = {
-            dineroActual: 0,
-            ipc: 1, 
-            ips: 0, 
-            conteoClicks: 0,
-            totalGanado: 0,
-            
-            // Almacenamiento de items comprados
-            generadores: {}, 
-            mejoras: {},     
-            propiedades: {}, 
-            acciones: {},    
-            empresas: {},    
-        };
-
-        const formatMoneda = new Intl.NumberFormat('es-US', {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 2
-        });
-
-        // --- Catálogos de Items ---
-        const ITEMS_IPC = [];
-        for (let i = 1; i <= 40; i++) {
-            const costoBase = 50;
-            const factorCosto = 1.6;
-            const costo = Math.round(costoBase * Math.pow(factorCosto, i));
-            const multiplicador = 2; 
-            ITEMS_IPC.push({ id: `mejora_ipc_${i}`, nombre: `Eficiencia de Clic Nivel ${i}`, costo: costo, multiplicador_ipc: multiplicador, descripcion: `Duplica el ingreso base de tu clic.` });
-        }
-
-        const ITEMS_IPS = [
-            { id: 'puesto_limonada', nombre: 'Puesto de Limonada', costo: 100, ips_base: 0.1, factor: 1.15, descripcion: 'Genera $0.10 por segundo.' },
-            { id: 'vendedor_ambulante', nombre: 'Vendedor Ambulante', costo: 1100, ips_base: 1, factor: 1.15, descripcion: 'Genera $1 por segundo.' },
-            { id: 'tienda_online', nombre: 'Tienda Online', costo: 12000, ips_base: 8, factor: 1.15, descripcion: 'Genera $8 por segundo.' },
-            { id: 'bienes_raices_peq', nombre: 'Agencia de Bienes Raíces', costo: 150000, ips_base: 50, factor: 1.15, descripcion: 'Genera $50 por segundo.' },
-            { id: 'granja_servidores', nombre: 'Granja de Servidores 🖥️', costo: 1800000, ips_base: 400, factor: 1.17, descripcion: 'Ingreso constante por procesamiento de datos.' },
-            { id: 'planta_solar', nombre: 'Planta de Energía Solar ☀️', costo: 25000000, ips_base: 3000, factor: 1.18, descripcion: 'Venta de energía renovable a la red.' },
-        ];
-        
-        const ITEMS_ACTIVOS = [
-            { id: 'auto_deportivo', nombre: 'Auto Deportivo 🏎️', costo: 1000000, tipo: 'vehiculo', ips_fijo: 100, descripcion: 'Lujo. Aumenta tu IPS en $100.' },
-            { id: 'yate_lujo', nombre: 'Yate de Lujo 🛥️', costo: 4000000, tipo: 'vehiculo', ips_fijo: 300, descripcion: 'Lujo. Aumenta tu IPS en $300.' },
-            { id: 'apartamento_lujo', nombre: 'Apartamento de Lujo 🏙️', costo: 2000000, tipo: 'propiedad', ips_fijo: 200, descripcion: 'Propiedad. Aumenta tu IPS en $200.' },
-            { id: 'mansion_lujo', nombre: 'Mansión de Lujo 🏰', costo: 5000000, tipo: 'propiedad', ips_fijo: 500, descripcion: 'Propiedad. Aumenta tu IPS en $500.' },
-            
-            { id: 'acciones_bluechip', nombre: 'Acciones Blue Chip 📊', costo: 100000, tipo: 'accion', ips_por_unidad: 5, factor: 1.2, descripcion: 'Inversión estable. Genera $5 IPS por unidad.', factor: 1.2 },
-            { id: 'techcorp_stock', nombre: 'Acciones TechCorp (TC) 💻', costo: 800000, tipo: 'accion', ips_por_unidad: 45, factor: 1.3, descripcion: 'Gigante tecnológico. Genera $45 IPS por unidad.', factor: 1.3 },
-        ];
-        
-        const ITEMS_COMPANIES = [
-            { id: 'stand_comida', nombre: 'Food Truck (Comida)', costo: 10000, ips_por_unidad: 5, factor: 1.2, descripcion: 'Pequeño negocio de comida callejera.' },
-            { id: 'consultoria_it', nombre: 'Consultoría IT', costo: 150000, ips_por_unidad: 40, factor: 1.3, descripcion: 'Servicios de desarrollo de software.' },
-            { id: 'produccion_cine', nombre: 'Estudio de Producción 🎬', costo: 1000000, ips_por_unidad: 200, factor: 1.4, descripcion: 'Crea contenido de entretenimiento digital.' },
-        ];
-
-        const ITEMS_INVESTMENTS = [
-            { id: 'fondo_riesgo', nombre: 'Fondo de Alto Riesgo 🚨', costo: 25000, tipo: 'inversion', ips_fijo: 10, descripcion: 'Alto retorno, alto riesgo (IPS fijo).' },
-            { id: 'bonos_estado', nombre: 'Bonos del Estado 🛡️', costo: 500000, tipo: 'inversion', ips_fijo: 100, descripcion: 'Inversión segura con rendimiento estable.' },
-        ];
-        
-        // Catálogo unificado para búsqueda rápida
-        const ALL_ITEMS = [...ITEMS_IPC, ...ITEMS_IPS, ...ITEMS_ACTIVOS, ...ITEMS_COMPANIES, ...ITEMS_INVESTMENTS];
-
-
-        // =========================================================================
-        // 2. FUNCIONES CORE DEL JUEGO
-        // =========================================================================
-
-        /**
-         * Calcula el costo del siguiente nivel de un ítem.
-         */
-        function calcularCosto(item, cantidad) {
-            // Si tiene factor (escalable), usa progresión geométrica.
-            if (item.factor) {
-                // El costo se redondea para evitar números decimales en los precios
-                return Math.round(item.costo * Math.pow(item.factor, cantidad));
-            }
-            // Si es binario (compra única), devuelve el costo base.
-            return item.costo;
-        }
-
-        /**
-         * Lógica del click principal.
-         */
-        function hacerClic() {
-            const ipc_actual = calcularIPC();
-            
-            estadoJuego.dineroActual += ipc_actual;
-            estadoJuego.conteoClicks++;
-            estadoJuego.totalGanado += ipc_actual;
-
-            crearAnimacionClic(formatMoneda.format(ipc_actual));
-
-            actualizarDisplay();
-            actualizarBotones(); 
-            guardarJuego();
-        }
-
-        /**
-         * Lógica para comprar cualquier ítem.
-         */
-        function comprarItem(tipo, id) {
-            const item = ALL_ITEMS.find(i => i.id === id);
-            if (!item) {
-                console.error("Item no encontrado:", id);
-                return;
-            }
-
-            let almacenamiento;
-            let esBinario = false;
-
-            if (item.id.startsWith('mejora_ipc')) {
-                almacenamiento = estadoJuego.mejoras;
-                esBinario = true;
-            } else if (ITEMS_IPS.includes(item)) {
-                almacenamiento = estadoJuego.generadores;
-            } else if (item.tipo === 'accion') {
-                almacenamiento = estadoJuego.acciones;
-            } else if (['vehiculo', 'propiedad', 'inversion'].includes(item.tipo)) {
-                almacenamiento = estadoJuego.propiedades;
-                esBinario = true;
-            } else if (item.tipo === 'empresa') {
-                almacenamiento = estadoJuego.empresas;
-            }
-            
-            // Si el item no fue categorizado correctamente, salimos.
-            if (!almacenamiento) {
-                console.error("Categoría de item no definida correctamente para:", id);
-                return;
-            }
-
-            const cantidadActual = esBinario ? (almacenamiento[id] ? 1 : 0) : (almacenamiento[id] || 0);
-            const costo = calcularCosto(item, cantidadActual);
-
-            // 1. Check de binario: Ya comprado
-            if (esBinario && cantidadActual > 0) return; 
-
-            // 2. Check de dinero
-            if (estadoJuego.dineroActual < costo) {
-                console.warn("Dinero insuficiente para comprar:", item.nombre);
-                return;
-            }
-            
-            estadoJuego.dineroActual -= costo;
-
-            // 3. Actualizar almacenamiento
-            if (esBinario) {
-                almacenamiento[id] = true; 
-            } else {
-                almacenamiento[id] = (almacenamiento[id] || 0) + 1;
-            }
-            
-            // 4. Actualizar juego
-            recalcularIPS();
-            actualizarDisplay();
-            
-            // Redibujar solo la sección afectada
-            dibujarTodasLasTiendas(); // Simplificamos redibujando todo por si el item afecta múltiples vistas
-
-            actualizarBotones(); 
-            guardarJuego();
-        }
-
-        function calcularIPC() {
-            let ipc_base = 1;
-            
-            ITEMS_IPC.forEach(item => {
-                if (estadoJuego.mejoras[item.id]) {
-                    ipc_base *= item.multiplicador_ipc; 
-                }
-            });
-            // El IPC siempre debe ser un número entero (o con un decimal para evitar errores de coma flotante)
-            return Math.round(ipc_base * 100) / 100 || 1; 
-        }
-
-        function recalcularIPS() {
-            let ips_total = 0;
-            
-            // --- 1. Generadores Pasivos (IPS) ---
-            ITEMS_IPS.forEach(item => {
-                const cantidad = estadoJuego.generadores[item.id] || 0;
-                ips_total += cantidad * item.ips_base;
-            });
-            
-            // --- 2. Acciones y Empresas (Escalables) ---
-            const escalables = [...ITEMS_ACTIVOS.filter(i => i.tipo === 'accion'), ...ITEMS_COMPANIES];
-            escalables.forEach(item => {
-                const almacenamiento = item.tipo === 'accion' ? estadoJuego.acciones : estadoJuego.empresas;
-                const cantidad = almacenamiento[item.id] || 0;
-                ips_total += cantidad * item.ips_por_unidad;
-            });
-
-            // --- 3. Activos Binarios (Propiedades, Vehículos, Inversiones Fijas) ---
-            const binarios = [...ITEMS_ACTIVOS.filter(i => i.tipo !== 'accion'), ...ITEMS_INVESTMENTS];
-            binarios.forEach(item => {
-                // Todos los items binarios (propiedades, vehiculos, inversiones) se guardan en estadoJuego.propiedades
-                if (estadoJuego.propiedades[item.id]) { 
-                    ips_total += item.ips_fijo;
-                }
-            });
-
-            estadoJuego.ips = Math.round(ips_total * 100) / 100;
-        }
-
-        // =========================================================================
-        // 3. FUNCIONES DE UI Y RENDERIZADO
-        // =========================================================================
-
-        function actualizarDisplay() {
-            document.getElementById('dinero-actual').textContent = formatMoneda.format(estadoJuego.dineroActual);
-            document.getElementById('ipc-actual').textContent = formatMoneda.format(calcularIPC());
-            document.getElementById('ips-actual').textContent = formatMoneda.format(estadoJuego.ips);
-
-            // Actualizar vistas secundarias si están activas
-            if (document.getElementById('view-stats')?.classList.contains('active')) {
-                dibujarEstadisticas();
-            }
-            if (document.getElementById('view-companies')?.classList.contains('active')) {
-                dibujarEmpresasActivas();
-            }
-        }
-
-        function dibujarTiendaIPC() {
-            const contenedor = document.getElementById('mejoras-clic-tienda');
-            contenedor.innerHTML = ''; 
-            let mejorasPendientes = false;
-            
-            ITEMS_IPC.forEach(item => {
-                const yaComprado = estadoJuego.mejoras[item.id];
-                
-                if (yaComprado) return; // Si ya se compró, no se dibuja
-                
-                mejorasPendientes = true;
-                const costo = calcularCosto(item, 0);
-
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'tienda-item';
-                itemDiv.setAttribute('data-costo', costo);
-                itemDiv.innerHTML = `
-                    <p><strong>${item.nombre}</strong></p>
-                    <p style="font-size:0.8em; margin-top:5px;">${item.descripcion}</p>
-                    <p style="color:#ffd700; font-weight:700;">Costo: ${formatMoneda.format(costo)}</p>
-                    <button id="btn-${item.id}" onclick="comprarItem('ipc_mejora', '${item.id}')">
-                        COMPRAR
-                    </button>
-                `;
-                contenedor.appendChild(itemDiv);
-            });
-            
-            if (!mejorasPendientes) {
-                 contenedor.innerHTML = '<p style="text-align: center; color: #999;">Todas las mejoras de IPC han sido adquiridas.</p>';
-            }
-        }
-
-        function dibujarTiendaIPS() {
-            const contenedor = document.getElementById('generadores-tienda');
-            contenedor.innerHTML = ''; 
-
-            ITEMS_IPS.forEach(item => {
-                const cantidad = estadoJuego.generadores[item.id] || 0;
-                const costo = calcularCosto(item, cantidad);
-                const ipsTotal = (cantidad * item.ips_base).toFixed(2);
-
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'tienda-item';
-                itemDiv.setAttribute('data-costo', costo); 
-                itemDiv.innerHTML = `
-                    <p><strong>${item.nombre} (x${cantidad})</strong></p>
-                    <p style="font-size:0.8em; margin-top:5px;">IPS/Unidad: ${formatMoneda.format(item.ips_base)} | Total: ${formatMoneda.format(ipsTotal)}</p>
-                    <p style="color:#ffd700; font-weight:700;">Costo Siguiente: ${formatMoneda.format(costo)}</p>
-                    <button id="btn-${item.id}" onclick="comprarItem('ips', '${item.id}')">
-                        COMPRAR
-                    </button>
-                `;
-                contenedor.appendChild(itemDiv);
-            });
-        }
-
-        function dibujarTiendaActivos() {
-            const contVehiculos = document.getElementById('tienda-vehiculos');
-            const contPropiedades = document.getElementById('tienda-propiedades');
-            const contAcciones = document.getElementById('tienda-acciones');
-            
-            contVehiculos.innerHTML = '';
-            contPropiedades.innerHTML = '';
-            contAcciones.innerHTML = '';
-
-            // Activos Binarios (Vehículos y Propiedades)
-            ITEMS_ACTIVOS.filter(i => i.tipo !== 'accion').forEach(item => {
-                const yaComprado = estadoJuego.propiedades[item.id];
-                const contenedorObjetivo = item.tipo === 'vehiculo' ? contVehiculos : contPropiedades;
-                const costo = item.costo;
-
-                const itemDiv = document.createElement('div');
-                itemDiv.className = `tienda-item ${yaComprado ? 'item-comprado' : ''}`;
-                itemDiv.setAttribute('data-costo', costo);
-                itemDiv.innerHTML = `
-                    <p><strong>${item.nombre}</strong></p>
-                    <p style="font-size:0.8em; margin-top:5px;">${item.descripcion}</p>
-                    <p>IPS Fijo: ${formatMoneda.format(item.ips_fijo)}</p>
-                    <p style="color:#ffd700; font-weight:700;">Costo: ${formatMoneda.format(costo)}</p>
-                    <button id="btn-${item.id}" onclick="comprarItem('${item.tipo}', '${item.id}')" ${yaComprado ? 'disabled' : ''}>
-                        ${yaComprado ? 'ADQUIRIDO ✅' : 'COMPRAR'}
-                    </button>
-                `;
-                contenedorObjetivo.appendChild(itemDiv);
-            });
-
-            // Acciones (Escalables)
-            ITEMS_ACTIVOS.filter(i => i.tipo === 'accion').forEach(item => {
-                const cantidad = estadoJuego.acciones[item.id] || 0;
-                const costo = calcularCosto(item, cantidad);
-                const ipsTotal = cantidad * item.ips_por_unidad;
-
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'tienda-item';
-                itemDiv.setAttribute('data-costo', costo);
-                itemDiv.innerHTML = `
-                    <p><strong>${item.nombre} (x${cantidad})</strong></p>
-                    <p style="font-size:0.8em; margin-top:5px;">Genera ${formatMoneda.format(item.ips_por_unidad)} IPS por unidad.</p>
-                    <p>IPS Total: <span style="font-weight:700; color:#ffd700;">${formatMoneda.format(ipsTotal)}</span></p>
-                    <p style="color:var(--color-secundario); font-weight:700;">Costo Siguiente: ${formatMoneda.format(costo)}</p>
-                    <button id="btn-${item.id}" onclick="comprarItem('${item.tipo}', '${item.id}')">
-                        COMPRAR ACCIÓN
-                    </button>
-                `;
-                contAcciones.appendChild(itemDiv);
-            });
-        }
-        
-        function dibujarTiendaEmpresas() {
-            const contenedor = document.getElementById('tienda-empresas');
-            contenedor.innerHTML = ''; 
-
-            ITEMS_COMPANIES.forEach(item => {
-                const cantidad = estadoJuego.empresas[item.id] || 0;
-                const costo = calcularCosto(item, cantidad);
-                const ipsTotal = cantidad * item.ips_por_unidad;
-
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'tienda-item';
-                itemDiv.setAttribute('data-costo', costo); 
-                itemDiv.innerHTML = `
-                    <p><strong>${item.nombre} (Unidades: ${cantidad})</strong></p>
-                    <p style="font-size:0.8em; margin-top:5px;">IPS/Unidad: ${formatMoneda.format(item.ips_por_unidad)} | Total IPS: ${formatMoneda.format(ipsTotal)}</p>
-                    <p style="color:var(--color-empresa); font-weight:700;">Costo Siguiente: ${formatMoneda.format(costo)}</p>
-                    <button id="btn-${item.id}" onclick="comprarItem('empresa', '${item.id}')">
-                        CONSTRUIR UNIDAD
-                    </button>
-                `;
-                contenedor.appendChild(itemDiv);
-            });
-            dibujarEmpresasActivas();
-        }
-
-        function dibujarEmpresasActivas() {
-            const contenedor = document.getElementById('empresas-activas');
-            contenedor.innerHTML = '';
-            let tieneEmpresas = false;
-
-            ITEMS_COMPANIES.forEach(item => {
-                const cantidad = estadoJuego.empresas[item.id] || 0;
-                if (cantidad > 0) {
-                    tieneEmpresas = true;
-                    const ipsTotal = cantidad * item.ips_por_unidad;
-
-                    const statsDiv = document.createElement('div');
-                    statsDiv.className = 'tienda-item';
-                    statsDiv.style.border = '2px solid var(--color-empresa)';
-                    statsDiv.innerHTML = `
-                        <p><strong>${item.nombre}</strong></p>
-                        <p>Unidades Activas: <span style="font-weight:700; color:var(--color-empresa);">${cantidad}</span></p>
-                        <p>IPS Total: <span style="font-weight:700; color:#ffd700;">${formatMoneda.format(ipsTotal)}</span></p>
-                        <p style="font-size:0.8em; margin-top:5px; color:#ccc;">${item.descripcion}</p>
-                    `;
-                    contenedor.appendChild(statsDiv);
-                }
-            });
-
-            if (!tieneEmpresas) {
-                contenedor.innerHTML = '<p style="text-align: center; color: #999; width: 100%;">Compra tu primera empresa para ver sus estadísticas.</p>';
-            }
-        }
-        
-        function dibujarTiendaInversiones() {
-            const contenedor = document.getElementById('tienda-inversiones');
-            contenedor.innerHTML = ''; 
-
-            ITEMS_INVESTMENTS.forEach(item => {
-                const yaComprado = estadoJuego.propiedades[item.id];
-                const costo = item.costo; 
-
-                const itemDiv = document.createElement('div');
-                itemDiv.className = `tienda-item ${yaComprado ? 'item-comprado' : ''}`;
-                itemDiv.setAttribute('data-costo', costo);
-                itemDiv.innerHTML = `
-                    <p><strong>${item.nombre}</strong></p>
-                    <p style="font-size:0.8em; margin-top:5px;">${item.descripcion}</p>
-                    <p>Rentabilidad: <span style="font-weight:700; color:#ffd700;">${formatMoneda.format(item.ips_fijo)} IPS</span></p>
-                    <p style="color:var(--color-inversion); font-weight:700;">Costo: ${formatMoneda.format(costo)}</p>
-                    <button id="btn-${item.id}" onclick="comprarItem('${item.tipo}', '${item.id}')" ${yaComprado ? 'disabled' : ''}>
-                        ${yaComprado ? 'INVERTIDO' : 'INVERTIR'}
-                    </button>
-                `;
-                contenedor.appendChild(itemDiv);
-            });
-        }
-
-
-        /**
-         * Actualiza los botones de compra (habilitar/deshabilitar y bloqueo visual)
-         */
-        function actualizarBotones() {
-            const botones = document.querySelectorAll('.tienda-item button'); 
-            
-            botones.forEach(button => {
-                const itemDiv = button.closest('.tienda-item');
-                if (!itemDiv) return;
-                
-                // Si ya fue comprado (binario), se mantiene deshabilitado.
-                if (itemDiv.classList.contains('item-comprado')) {
-                     button.disabled = true;
-                     return; 
-                }
-                
-                const costoAttr = itemDiv.getAttribute('data-costo');
-                if (!costoAttr) return; 
-                
-                const costo = parseFloat(costoAttr);
-                
-                if (estadoJuego.dineroActual >= costo) {
-                    button.disabled = false;
-                    itemDiv.classList.remove('item-bloqueado');
-                } else {
-                    button.disabled = true;
-                    itemDiv.classList.add('item-bloqueado');
-                }
-            });
-        }
-
-        function dibujarEstadisticas() {
-            const contenedor = document.getElementById('stats-content');
-            if (!contenedor) return;
-            
-            recalcularIPS();
-
-            let inventarioHTML = '<h3 style="color: var(--color-empresa); border-bottom: 1px dashed #333; padding-bottom: 5px;">Resumen de Inventario Activo</h3><ul style="list-style-type: none; padding-left: 0;">';
-            let inventarioVacio = true;
-
-            // Mostrar todas las mejoras, generadores, etc.
-            ALL_ITEMS.forEach(item => {
-                let cantidad = 0;
-                let ipsTotal = 0;
-                let simbolo = '❓';
-
-                if (item.id.startsWith('mejora_ipc') && estadoJuego.mejoras[item.id]) {
-                    cantidad = 1;
-                    simbolo = '✅';
-                    ipsTotal = 0; // El IPC no suma IPS
-                } else if (ITEMS_IPS.includes(item)) {
-                    cantidad = estadoJuego.generadores[item.id] || 0;
-                    simbolo = '⚙️';
-                    ipsTotal = cantidad * item.ips_base;
-                } else if (item.tipo === 'accion') {
-                    cantidad = estadoJuego.acciones[item.id] || 0;
-                    simbolo = '📊';
-                    ipsTotal = cantidad * item.ips_por_unidad;
-                } else if (item.tipo === 'empresa') {
-                    cantidad = estadoJuego.empresas[item.id] || 0;
-                    simbolo = '🏢';
-                    ipsTotal = cantidad * item.ips_por_unidad;
-                } else if (['vehiculo', 'propiedad', 'inversion'].includes(item.tipo) && estadoJuego.propiedades[item.id]) {
-                    cantidad = 1;
-                    simbolo = item.tipo === 'vehiculo' ? '🚗' : item.tipo === 'propiedad' ? '🏡' : '📈';
-                    ipsTotal = item.ips_fijo;
-                }
-
-                if (cantidad > 0) {
-                    inventarioVacio = false;
-                    const ipsText = ipsTotal > 0 ? `| IPS: ${formatMoneda.format(ipsTotal)}` : '(IPC)';
-                    inventarioHTML += `<li style="margin-bottom: 5px; background: #222; padding: 5px; border-radius: 4px;">${simbolo} ${item.nombre} (x${cantidad > 1 ? cantidad : ''}) ${ipsText}</li>`;
-                }
-            });
-            
-            if (inventarioVacio) {
-                inventarioHTML += '<li>No has adquirido ningún activo o mejora aún.</li>';
-            }
-            
-            inventarioHTML += '</ul>';
-
-            contenedor.innerHTML = `
-                <div class="stats-panel" style="background: #1e1e1e; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px solid var(--color-acento-celeste);">
-                    <h3>Estadísticas de Capital</h3>
-                    <p><strong>Dinero Actual:</strong> <span style="color: var(--color-exito);">${formatMoneda.format(estadoJuego.dineroActual)}</span></p>
-                    <p><strong>Dinero Total Ganado:</strong> ${formatMoneda.format(estadoJuego.totalGanado)}</p>
-                    <p><strong>Número de Clics:</strong> ${estadoJuego.conteoClicks}</p>
-                    <p><strong>Ingreso por Clic (IPC):</strong> <span style="color: var(--color-exito);">${formatMoneda.format(calcularIPC())}</span></p>
-                    <p><strong>Ingreso por Segundo (IPS):</strong> <span style="color: var(--color-secundario);">${formatMoneda.format(estadoJuego.ips)}</span></p>
-                </div>
-                <div class="stats-panel" style="background: #1e1e1e; padding: 20px; border-radius: 10px; border: 2px solid var(--color-empresa);">
-                    ${inventarioHTML}
-                </div>
-            `;
-        }
-
-        function crearAnimacionClic(texto) {
-            const billeteBtn = document.getElementById('billete-btn');
-            const anim = document.createElement('div');
-            anim.textContent = texto;
-            anim.className = 'animacion-clic';
-            
-            const rect = billeteBtn.getBoundingClientRect();
-            // Posicionar justo encima del botón
-            anim.style.left = `${rect.left + rect.width / 2}px`;
-            anim.style.top = `${rect.top + rect.height / 2}px`;
-            
-            document.body.appendChild(anim);
-
-            setTimeout(() => {
-                anim.remove();
-            }, 800);
-        }
-
-        function mostrarConfirmacionReset() {
-             document.getElementById('reset-modal').style.display = 'flex';
-        }
-
-        // =========================================================================
-        // 4. GESTIÓN DE VISTAS Y ESTADO PERSISTENTE (FIREBASE)
-        // =========================================================================
-
-        function cambiarVista(vista) {
-            document.querySelectorAll('.game-view').forEach(view => {
-                view.style.display = 'none';
-                view.classList.remove('active');
-            });
-            document.querySelectorAll('#nav-bar button').forEach(btn => {
-                btn.classList.remove('active');
-            });
-
-            const vistaElement = document.getElementById(`view-${vista}`);
-            const navButton = document.getElementById(`nav-${vista}`);
-            
-            if (vistaElement) {
-                vistaElement.style.display = 'block';
-                vistaElement.classList.add('active');
-            }
-            if (navButton) {
-                navButton.classList.add('active');
-            }
-            
-            // Forzar actualización de datos en vistas de contenido
-            if (vista === 'stats') dibujarEstadisticas();
-            else if (vista === 'companies') { dibujarTiendaEmpresas(); dibujarEmpresasActivas(); }
-            else if (vista === 'assets') dibujarTiendaActivos(); 
-            else if (vista === 'investments') dibujarTiendaInversiones();
-
-            actualizarBotones();
-        }
-
-        function resetearJuego() {
-            estadoJuego = {
-                dineroActual: 0, ipc: 1, ips: 0, conteoClicks: 0, totalGanado: 0,
-                generadores: {}, mejoras: {}, propiedades: {}, acciones: {}, empresas: {},
-            };
-            
-            dibujarTodasLasTiendas(); // Redibujar la UI con el estado inicial
-            actualizarDisplay();
-            actualizarBotones();
-            cambiarVista('clicker');
-            guardarJuego(); 
-        }
-
-        let db;
-        let auth;
-        let userId;
-
-        const getDocRef = () => {
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-            return window.firebase.firestore.doc(window.db, `/artifacts/${appId}/users/${userId}/clicker_data/game_state`);
-        };
-
-
-        async function guardarJuego() {
-            // Guardar solo si Firebase está inicializado y tenemos un ID de usuario
-            if (!db || !userId || !auth.currentUser) return;
-            try {
-                const gameRef = getDocRef();
-                // Usamos un clon simple del estado para guardar
-                const dataToSave = JSON.parse(JSON.stringify(estadoJuego));
-                await window.firebase.firestore.setDoc(gameRef, dataToSave);
-            } catch (e) {
-                console.error("Error guardando el juego: ", e);
-            }
-        }
-
-        async function cargarJuego() {
-            // Cargar solo si Firebase está inicializado y tenemos un ID de usuario
-            if (!db || !userId || !auth.currentUser) {
-                console.warn("CargarJuego: Firebase no inicializado. Jugando sin persistencia.");
-                actualizarDisplay();
-                return;
-            }
-            try {
-                const gameRef = getDocRef();
-                const docSnap = await window.firebase.firestore.getDoc(gameRef);
-
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    // Asegurar que los campos numéricos se carguen como float
-                    data.dineroActual = parseFloat(data.dineroActual || 0);
-                    data.conteoClicks = parseInt(data.conteoClicks || 0);
-                    data.totalGanado = parseFloat(data.totalGanado || 0);
-                    
-                    estadoJuego = { ...estadoJuego, ...data };
-                    console.log("Juego cargado exitosamente. Progreso recuperado.");
-                } else {
-                    console.log("No se encontraron datos guardados. Iniciando juego nuevo.");
-                }
-                
-                document.getElementById('user-id-display').textContent = userId;
-
-                // Actualizar la interfaz con los datos cargados
-                dibujarTodasLasTiendas(); // Redibuja con las cantidades/costos correctos
-                actualizarDisplay();
-                actualizarBotones();
-                
-            } catch (e) {
-                console.error("Error cargando el juego: ", e);
-                // Si falla la carga, al menos nos aseguramos de que el display se actualice (con el estado base)
-                actualizarDisplay(); 
-            }
-        }
-
-        // =========================================================================
-        // 5. INICIALIZACIÓN Y BUCLE DE JUEGO
-        // =========================================================================
-
-        function ingresosPasivos() {
-            recalcularIPS();
-            // Generamos ingreso cada 100ms (10 veces por segundo)
-            const ingreso = estadoJuego.ips / 10; 
-            estadoJuego.dineroActual += ingreso;
-            estadoJuego.totalGanado += ingreso;
-            
-            actualizarDisplay(); 
-            actualizarBotones();
-        }
-
-        let saveCounter = 0; 
-
-        function gameLoop() {
-            ingresosPasivos();
-
-            // Guardar cada 10 segundos (100 iteraciones * 100ms)
-            saveCounter++;
-            if (saveCounter >= 100) { 
-                guardarJuego();
-                saveCounter = 0;
-            }
-
-            // Llamada recurrente al bucle
-            setTimeout(gameLoop, 100); 
-        }
-
-        /**
-         * Inicializa el juego (llamada desde el módulo de Firebase).
-         */
-        window.initGame = function() {
-            db = window.db;
-            auth = window.auth;
-            // Usar el UID si estamos autenticados, si no, usar un ID temporal para modo local
-            userId = auth.currentUser?.uid || crypto.randomUUID(); 
-
-            // 1. DIBUJAR INMEDIATAMENTE: Esto garantiza que todos los botones aparecen al instante.
-            dibujarTodasLasTiendas(); 
-            
-            // 2. Iniciar la carga de datos (asíncrona)
-            cargarJuego();
-            
-            // 3. Iniciar el bucle del juego (IPS)
-            gameLoop();
-        }
-
-        function dibujarTodasLasTiendas() {
-            dibujarTiendaIPC();
-            dibujarTiendaIPS();
-            dibujarTiendaActivos();
-            dibujarTiendaEmpresas();
-            dibujarTiendaInversiones();
-        }
-        
-        // Exponer funciones necesarias globalmente
-        window.hacerClic = hacerClic;
-        window.comprarItem = comprarItem;
-        window.cambiarVista = cambiarVista;
-        window.resetearJuego = resetearJuego;
-        window.mostrarConfirmacionReset = mostrarConfirmacionReset;
-    </script>
 </body>
 </html>
