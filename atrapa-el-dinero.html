@@ -8,10 +8,11 @@
         /* --- ESTILOS CSS --- */
 
         :root {
+            /* Colores Base */
             --sky-color: #87CEEB; /* Azul cielo */
             --ground-color: #6B8E23; /* Verde tierra */
-            --player-color: #FFD700; /* Color oro para la canasta */
-            --bad-item-color: #B22222; /* Rojo ladrillo para la bomba */
+            --player-color: #FFD700; 
+            --bad-item-color: #B22222;
             --text-color: #000000;
         }
 
@@ -23,7 +24,9 @@
             min-height: 100vh;
             margin: 0;
             background: linear-gradient(to bottom, var(--sky-color) 0%, var(--sky-color) 70%, var(--ground-color) 70%, var(--ground-color) 100%);
-            overflow: hidden; /* Oculta barras de desplazamiento */
+            overflow: hidden;
+            /* Transición para el cambio de escenario/fondo */
+            transition: background 1s ease-in-out;
         }
 
         #game-container {
@@ -31,13 +34,17 @@
             max-width: 800px;
             height: 80vh;
             max-height: 600px;
-            border: 10px solid #5D4037; /* Marco profesional */
+            border: 10px solid #5D4037; 
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-            background: linear-gradient(to bottom, var(--sky-color) 0%, var(--sky-color) 70%, var(--ground-color) 70%, var(--ground-color) 100%);
+            /* Importante: Hereda el fondo de body para el efecto de cambio de color */
+            background: inherit; 
             position: relative;
-            overflow: hidden; /* Esencial para el movimiento del juego */
+            overflow: hidden;
             cursor: crosshair;
         }
+        
+        /* Omitido el resto de estilos CSS que no se modifican */
+        /* ... */
 
         #title-area {
             text-align: center;
@@ -160,6 +167,7 @@
             border-radius: 5px;
             margin-top: 15px;
         }
+
     </style>
 </head>
 <body>
@@ -199,15 +207,17 @@
         const messageText = document.getElementById('message-text');
         const messageDetail = document.getElementById('message-detail');
         const nextLevelButton = document.getElementById('next-level-button');
+        const body = document.body;
 
         // --- Variables del Juego ---
         let score = 0;
         let currentLevel = 1;
         let gameInterval;
         let itemDropInterval;
-        let itemFallSpeed = 3; // Velocidad base de caída (pixeles por frame)
+        let itemFallSpeed = 3; 
+        let isPaused = true; // El juego empieza pausado (instrucción inicial)
 
-        // Definición de Niveles (Objetivo: Cantidad de dinero requerida)
+        // Definición de Niveles (Objetivo: Cantidad de dinero acumulado requerida)
         const levels = [
             100, 250, 450, 700, 1000,
             1400, 1900, 2500, 3200, 4000,
@@ -216,71 +226,39 @@
 
         // Tipos de ítems: [valor, texto, clase_css, es_malo]
         const itemTypes = [
-            [1, "$1", "bill-1", false],
-            [5, "$5", "bill-5", false],
-            [10, "$10", "bill-10", false],
-            [20, "$20", "bill-20", false],
-            [50, "$50", "bill-50", false],
-            [100, "$100", "bill-100", false],
+            [1, "$1", "bill-1", false], [5, "$5", "bill-5", false],
+            [10, "$10", "bill-10", false], [20, "$20", "bill-20", false],
+            [50, "$50", "bill-50", false], [100, "$100", "bill-100", false],
             [-25, "💣", "bad-item", true] // Objeto malo: Bomba, quita $25
         ];
 
+        // Función para cambiar el fondo (simula un nuevo escenario)
+        function changeScenario(level) {
+            // Utilizamos el nivel para calcular una ligera variación en el color de fondo (rotación de matiz)
+            const hue = (level * 30) % 360; // 30 grados de rotación por nivel
+            const skyColor = `hsl(${hue + 200}, 70%, 55%)`; // Base azul/cielo
+            const groundColor = `hsl(${hue + 80}, 30%, 35%)`; // Base verde/tierra
+            
+            // Aplica la nueva propiedad CSS personalizada (CSS Variable)
+            body.style.background = `linear-gradient(to bottom, ${skyColor} 0%, ${skyColor} 70%, ${groundColor} 70%, ${groundColor} 100%)`;
+        }
+
         // --- Movimiento del Jugador (Canasta) ---
         gameContainer.addEventListener('mousemove', (e) => {
-            // Calcula la posición X del ratón dentro del contenedor
+            if (isPaused) return; // Ignorar movimiento si el juego está pausado
+
             const containerRect = gameContainer.getBoundingClientRect();
             let mouseX = e.clientX - containerRect.left;
-
-            // Mantiene el jugador centrado en la posición del ratón y dentro de los límites
             let playerX = mouseX - player.offsetWidth / 2;
-
-            // Limitar el movimiento
             playerX = Math.max(0, Math.min(playerX, gameContainer.offsetWidth - player.offsetWidth));
 
             player.style.left = `${playerX}px`;
         });
 
-        // --- Lógica de Creación de Ítems ---
-        function createItem() {
-            // Aumenta la probabilidad de billetes de mayor valor y del ítem malo con el nivel
-            let itemIndex;
-            const rand = Math.random();
-
-            if (currentLevel >= 10 && rand < 0.1) {
-                itemIndex = 6; // Bomba (10% de probabilidad en niveles altos)
-            } else if (currentLevel >= 10 && rand < 0.3) {
-                itemIndex = 5; // $100
-            } else if (currentLevel >= 5 && rand < 0.25) {
-                itemIndex = 4; // $50
-            } else if (rand < 0.05 + (currentLevel * 0.015)) { // Probabilidad de item malo (max ~27.5%)
-                itemIndex = 6;
-            } else if (rand < 0.15) {
-                itemIndex = 5; // $100
-            } else if (rand < 0.25) {
-                itemIndex = 4; // $50
-            } else if (rand < 0.45) {
-                itemIndex = 3; // $20
-            } else if (rand < 0.65) {
-                itemIndex = 2; // $10
-            } else if (rand < 0.85) {
-                itemIndex = 1; // $5
-            } else {
-                itemIndex = 0; // $1
-            }
-
-            const [value, text, className, isBad] = itemTypes[itemIndex];
-
-            const item = document.createElement('div');
-            item.className = `falling-item ${className}`;
-            item.innerHTML = text;
-            item.setAttribute('data-value', value);
-            item.setAttribute('data-bad', isBad);
-            item.style.left = `${Math.random() * (gameContainer.offsetWidth - 50)}px`; // Posición X aleatoria
-            gameContainer.appendChild(item);
-        }
-
         // --- Lógica del Bucle Principal del Juego (Caída y Colisión) ---
         function updateGame() {
+            if (isPaused) return;
+
             const items = document.querySelectorAll('.falling-item');
             const containerHeight = gameContainer.offsetHeight;
             const playerRect = player.getBoundingClientRect();
@@ -288,9 +266,7 @@
 
             items.forEach(item => {
                 let currentTop = parseFloat(item.style.top) || 0;
-                
-                // La velocidad aumenta con el nivel
-                let fallAmount = itemFallSpeed + (currentLevel * 0.5); 
+                let fallAmount = itemFallSpeed + (currentLevel * 0.5); // Velocidad aumenta con el nivel
                 item.style.top = `${currentTop + fallAmount}px`;
 
                 const itemRect = item.getBoundingClientRect();
@@ -305,25 +281,21 @@
                     score += value;
                     scoreDisplay.textContent = score;
 
-                    // Efecto visual rápido de desaparecer al atrapar
                     item.style.opacity = '0'; 
-
-                    // Feedback de puntuación (opcional, se puede añadir un texto flotante)
-
                     item.remove();
-                    checkLevelCompletion();
+                    checkLevelCompletion(); // Verifica al atrapar un ítem
                     return;
                 }
 
                 // 2. Elemento ha caído al suelo (pasó la canasta)
-                if (currentTop > containerHeight - 50) { // 50px sobre el suelo
+                if (currentTop > containerHeight - 50) { 
                     const isBad = item.getAttribute('data-bad') === 'true';
 
                     // Si un BILLETE cae al suelo, descuenta la mitad de su valor (penalización)
                     if (!isBad) {
                          const value = parseInt(item.getAttribute('data-value'));
-                         score -= Math.floor(value / 2); // Penalización
-                         score = Math.max(0, score); // La puntuación mínima es 0
+                         score -= Math.floor(value / 2); 
+                         score = Math.max(0, score);
                          scoreDisplay.textContent = score;
                     }
 
@@ -332,18 +304,38 @@
             });
         }
 
+        // --- Funciones de Control de Pausa/Inicio ---
+        function pauseGame() {
+            isPaused = true;
+            clearInterval(gameInterval);
+            clearInterval(itemDropInterval);
+            // Limpiar items anteriores para que el siguiente nivel empiece limpio
+            document.querySelectorAll('.falling-item').forEach(item => item.remove());
+        }
+
+        function resumeGame() {
+            isPaused = false;
+            // Bucle principal de movimiento (aproximadamente 60 FPS)
+            gameInterval = setInterval(updateGame, 1000 / 60); 
+
+            // Intervalo de creación de nuevos ítems (disminuye el tiempo entre ítems con el nivel)
+            let dropDelay = Math.max(500, 1500 - (currentLevel * 100)); 
+            itemDropInterval = setInterval(createItem, dropDelay); 
+        }
+
         // --- Sistema de Niveles ---
         function checkLevelCompletion() {
-            const goal = levels[currentLevel - 1];
+            // CORRECCIÓN CLAVE: El objetivo del nivel actual es levels[currentLevel - 1]
+            const goal = levels[currentLevel - 1]; 
             
             if (score >= goal) {
-                clearInterval(gameInterval);
-                clearInterval(itemDropInterval);
+                pauseGame(); // Pausar el juego al completar el objetivo
 
                 if (currentLevel < levels.length) {
                     // Siguiente Nivel
                     messageText.textContent = "¡Nivel Superado! 🎉";
-                    messageDetail.innerHTML = `Has reunido $${score}. Necesitas $${levels[currentLevel]} para el siguiente.`;
+                    // Muestra el objetivo del *siguiente* nivel (levels[currentLevel])
+                    messageDetail.innerHTML = `Has acumulado $${score}. El objetivo para el Nivel ${currentLevel + 1} es $${levels[currentLevel]}.`;
                     nextLevelButton.textContent = "Continuar al Nivel " + (currentLevel + 1);
                     nextLevelButton.style.display = 'block';
                 } else {
@@ -351,11 +343,8 @@
                     messageText.textContent = "¡Felicidades, HAS GANADO! 🏆";
                     messageDetail.innerHTML = `¡Has completado los ${levels.length} niveles con un total de $${score}!`;
                     nextLevelButton.textContent = "Volver a Jugar (Nivel 1)";
-                    currentLevel = 0; // Se incrementará en nextLevel()
                 }
                 gameMessage.style.display = 'block';
-            } else if (score < 0) {
-                 // Opción: Perder si la puntuación es muy baja (no implementada, pero buena idea)
             }
         }
 
@@ -363,53 +352,50 @@
             if (currentLevel < levels.length) {
                 currentLevel++;
             } else {
-                // Reiniciar juego
+                // Reiniciar juego completo
                 currentLevel = 1;
-                score = 0;
+                score = 0; // Se resetea el dinero solo si se vuelve al Nivel 1
             }
 
             // Aumenta la dificultad y actualiza la UI
-            goalDisplay.textContent = levels[currentLevel - 1];
+            itemFallSpeed = 3 + (currentLevel * 0.25); 
+
+            // Actualiza la interfaz
             levelDisplay.textContent = currentLevel;
-            scoreDisplay.textContent = score;
+            goalDisplay.textContent = levels[currentLevel - 1];
+            scoreDisplay.textContent = score; // Mantiene el puntaje acumulado
 
-            itemFallSpeed = 3 + (currentLevel * 0.25); // Aumenta la velocidad
-
-            // Limpiar items anteriores
-            document.querySelectorAll('.falling-item').forEach(item => item.remove());
+            // Cambia el escenario
+            changeScenario(currentLevel);
 
             gameMessage.style.display = 'none';
-            startGame();
+            resumeGame();
         }
 
-        // --- Inicio del Juego ---
-        function startGame() {
-            // Bucle principal de movimiento (aproximadamente 60 FPS)
-            gameInterval = setInterval(updateGame, 1000 / 60); 
+        // --- Inicialización del Juego ---
+        function initGame() {
+             // Configura el estado inicial
+            currentLevel = 1;
+            score = 0;
+            levelDisplay.textContent = 1;
+            goalDisplay.textContent = levels[0];
+            scoreDisplay.textContent = 0;
+            changeScenario(1);
 
-            // Intervalo de creación de nuevos ítems (disminuye el tiempo entre ítems con el nivel)
-            let dropDelay = Math.max(500, 1500 - (currentLevel * 100)); 
-            itemDropInterval = setInterval(createItem, dropDelay); 
-
-            // Asegurar que el nivel 1 se muestre correctamente al inicio
-            if (currentLevel === 1) {
-                goalDisplay.textContent = levels[0];
-                levelDisplay.textContent = 1;
-            }
+            // Muestra la pantalla de inicio (pausado)
+            pauseGame(); 
+            messageText.textContent = "¡Bienvenido a Atrapa el dinero! 💰";
+            messageDetail.innerHTML = `Atrapa el dinero ($1, $5, $10, $20, $50, $100) y esquiva las bombas (💣).<br>El objetivo del Nivel 1 es $${levels[0]}.`;
+            nextLevelButton.textContent = "¡Empezar a Jugar!";
+            nextLevelButton.onclick = () => {
+                 gameMessage.style.display = 'none';
+                 resumeGame(); // Inicia el juego
+            };
+            gameMessage.style.display = 'block';
         }
 
         // Inicia el juego al cargar la página
-        startGame();
-
-        // Instrucción inicial al cargar
-        messageText.textContent = "¡Bienvenido a Atrapa el dinero! 💰";
-        messageDetail.innerHTML = `Atrapa el dinero ($1, $5, $10, $20, $50, $100) y esquiva las bombas (💣).<br>El objetivo del Nivel 1 es $${levels[0]}.`;
-        nextLevelButton.textContent = "¡Empezar a Jugar!";
-        nextLevelButton.onclick = () => {
-             gameMessage.style.display = 'none';
-             startGame();
-        };
-        gameMessage.style.display = 'block';
+        initGame();
 
     </script>
 </body>
