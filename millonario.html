@@ -32,22 +32,21 @@
 
         /**
          * Llama a la función de inicio principal del juego solo una vez.
+         * ESTA FUNCIÓN AHORA SE LLAMA LO ANTES POSIBLE PARA DIBUJAR LA UI.
          */
         function handleInitGame() {
             if (isGameInitialized) return; 
             isGameInitialized = true;
             if (typeof window.initGame === 'function') {
                 window.initGame(); 
-                // Mensaje de depuración
-                console.log("--- INICIO DEL JUEGO GARANTIZADO ---");
+                console.log("--- INICIO DE UI GARANTIZADO ---");
             } else {
-                // Si el script global no ha cargado aún, reintentar brevemente
                 setTimeout(handleInitGame, 50);
             }
         }
 
         /**
-         * Intenta la autenticación (preferido)
+         * Intenta la autenticación (preferido) y luego inicializa.
          */
         async function attemptAuthAndInit() {
             if (isGameInitialized) return; 
@@ -59,31 +58,26 @@
                     await window.firebase.auth.signInAnonymously(window.auth);
                 }
             } catch (error) {
-                // No es un error crítico, el juego iniciará en modo local si falla la persistencia.
                 console.error("Error en autenticación Firebase, iniciando en modo local:", error);
             }
             handleInitGame();
         }
 
-        // 2. Observador de estado de autenticación (Método preferido para asegurar el inicio)
+        // 2. Observador de estado de autenticación
         window.auth.onAuthStateChanged((user) => {
-             // onAuthStateChanged a veces se dispara antes o después del token, 
-             // pero garantiza que el objeto 'user' (y por ende el userId) esté disponible.
              if (user) {
                 attemptAuthAndInit();
              } else if (!isGameInitialized) {
-                 // Si no hay usuario, intentar forzar la sesión anónima e inicializar
                  attemptAuthAndInit();
              }
         });
 
-        // 3. Fallback de tiempo (para entornos donde onAuthStateChanged es lento)
+        // 3. Fallback de tiempo (si la carga de Firebase es muy rápida, podemos inicializar inmediatamente)
         setTimeout(() => {
             if (!isGameInitialized) {
-                console.warn("Tiempo límite de 300ms alcanzado. Forzando inicio del juego.");
                 handleInitGame(); 
             }
-        }, 300); 
+        }, 100); // 100ms es un buen compromiso para no esperar demasiado.
     </script>
 
     <style>
@@ -554,8 +548,7 @@
                 <div id="mejoras-clic-panel" class="side-panel">
                     <h2>Mejoras de Clic (IPC)</h2>
                     <div id="mejoras-clic-tienda">
-                        <!-- Esto será reemplazado por el código JS al iniciar -->
-                        <p style="text-align:center; color:var(--color-acento-celeste);">Inicializando...</p>
+                        <!-- El JS poblará esto INSTANTÁNEAMENTE al iniciar -->
                     </div>
                 </div>
 
@@ -580,8 +573,7 @@
                 <div id="generadores-panel" class="side-panel">
                     <h2>Generadores Pasivos (IPS)</h2>
                     <div id="generadores-tienda">
-                        <!-- Esto será reemplazado por el código JS al iniciar -->
-                         <p style="text-align:center; color:var(--color-acento-celeste);">Inicializando...</p>
+                        <!-- El JS poblará esto INSTANTÁNEAMENTE al iniciar -->
                     </div>
                 </div>
 
@@ -598,21 +590,21 @@
                 <div class="asset-section">
                     <h2>Vehículos (Lujos)</h2>
                     <div id="tienda-vehiculos" class="asset-shop">
-                        <p style="text-align:center; color:var(--color-acento-celeste);">Inicializando...</p>
+                        <!-- El JS poblará esto INSTANTÁNEAMENTE al iniciar -->
                     </div>
                 </div>
 
                 <div class="asset-section">
                     <h2>Propiedades (Lujos)</h2>
                     <div id="tienda-propiedades" class="asset-shop">
-                        <p style="text-align:center; color:var(--color-acento-celeste);">Inicializando...</p>
+                        <!-- El JS poblará esto INSTANTÁNEAMENTE al iniciar -->
                     </div>
                 </div>
 
                 <div class="asset-section">
                     <h2>Inversión Bursátil (Acciones)</h2>
                     <div id="tienda-acciones" class="asset-shop">
-                        <p style="text-align:center; color:var(--color-acento-celeste);">Inicializando...</p>
+                        <!-- El JS poblará esto INSTANTÁNEAMENTE al iniciar -->
                     </div>
                 </div>
             </div>
@@ -628,7 +620,7 @@
                 <div class="company-section" style="grid-column: 1 / span 3;">
                     <h2>Oportunidades de Negocio (Comprar Unidades)</h2>
                     <div id="tienda-empresas" class="company-shop">
-                        <p style="text-align:center; color:var(--color-acento-celeste);">Inicializando...</p>
+                        <!-- El JS poblará esto INSTANTÁNEAMENTE al iniciar -->
                     </div>
                 </div>
                 
@@ -652,7 +644,7 @@
                 <div class="investment-section" style="grid-column: 1 / span 3;">
                     <h2>Fondos de Inversión Fija (Binario)</h2>
                     <div id="tienda-inversiones" class="investment-shop">
-                         <p style="text-align:center; color:var(--color-acento-celeste);">Inicializando...</p>
+                         <!-- El JS poblará esto INSTANTÁNEAMENTE al iniciar -->
                     </div>
                 </div>
                 
@@ -704,11 +696,11 @@
             totalGanado: 0,
             
             // Almacenamiento de items comprados
-            generadores: {}, // {puesto_limonada: 5, ...}
-            mejoras: {},     // {mejora_ipc_1: true, ...}
-            propiedades: {}, // Activos Binarios: {auto_deportivo: true, fondo_riesgo: true, ...}
-            acciones: {},    // {acciones_bluechip: 10, ...}
-            empresas: {},    // {stand_comida: 3, ...}
+            generadores: {}, 
+            mejoras: {},     
+            propiedades: {}, 
+            acciones: {},    
+            empresas: {},    
         };
 
         const formatMoneda = new Intl.NumberFormat('es-US', {
@@ -1260,7 +1252,7 @@
                 generadores: {}, mejoras: {}, propiedades: {}, acciones: {}, empresas: {},
             };
             
-            dibujarTodasLasTiendas();
+            dibujarTodasLasTiendas(); // Redibujar la UI con el estado inicial
             actualizarDisplay();
             actualizarBotones();
             cambiarVista('clicker');
@@ -1293,8 +1285,7 @@
         async function cargarJuego() {
             // Cargar solo si Firebase está inicializado y tenemos un ID de usuario
             if (!db || !userId || !auth.currentUser) {
-                console.warn("CargarJuego: Firebase no inicializado. Iniciando sin persistencia.");
-                dibujarTodasLasTiendas();
+                console.warn("CargarJuego: Firebase no inicializado. Jugando sin persistencia.");
                 actualizarDisplay();
                 return;
             }
@@ -1317,15 +1308,15 @@
                 
                 document.getElementById('user-id-display').textContent = userId;
 
-                dibujarTodasLasTiendas(); 
+                // Actualizar la interfaz con los datos cargados
+                dibujarTodasLasTiendas(); // Redibuja con las cantidades/costos correctos
                 actualizarDisplay();
                 actualizarBotones();
                 
             } catch (e) {
                 console.error("Error cargando el juego: ", e);
-                // Fallback para dibujar UI incluso si la carga falla
-                dibujarTodasLasTiendas();
-                actualizarDisplay();
+                // Si falla la carga, al menos nos aseguramos de que el display se actualice (con el estado base)
+                actualizarDisplay(); 
             }
         }
 
@@ -1369,9 +1360,13 @@
             // Usar el UID si estamos autenticados, si no, usar un ID temporal para modo local
             userId = auth.currentUser?.uid || crypto.randomUUID(); 
 
-            // 1. Iniciar la carga de datos (que a su vez llama a dibujarTodasLasTiendas)
+            // 1. DIBUJAR INMEDIATAMENTE: Esto garantiza que todos los botones aparecen al instante.
+            dibujarTodasLasTiendas(); 
+            
+            // 2. Iniciar la carga de datos (asíncrona)
             cargarJuego();
-            // 2. Iniciar el bucle del juego (IPS)
+            
+            // 3. Iniciar el bucle del juego (IPS)
             gameLoop();
         }
 
