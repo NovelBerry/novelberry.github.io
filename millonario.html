@@ -88,7 +88,8 @@
             ips: 0, // Ingreso por Segundo
             tiendas: {}, // Mejoras IPC / Generadores IPS
             activos: {}, // Lujos/Compra única
-            empresas: {}, // Empresas
+            empresas: {}, // Empresas predefinidas
+            empresasPersonalizadas: [], // [MODIFICACIÓN: ESTRUCTURA PARA EMPRESAS CREADAS POR EL USUARIO]
             inversiones: {}, // Inversiones de retorno
             crypto: {
                 bitcoin: { cantidad: 0, valorActual: 20000, costoPromedio: 0 },
@@ -147,13 +148,30 @@
              'cadena-hoteles': { nombre: 'Cadena de Hoteles 🏨', costo: 100000000, ipsGenerado: 100000, vecesComprado: 0, icono: '🏨' },
              'aerolinea-lowcost': { nombre: 'Aerolínea Low Cost ✈️', costo: 1000000000, ipsGenerado: 1000000, vecesComprado: 0, icono: '✈️' }
         };
+
+        // [MODIFICACIÓN: NUEVA FUNCIÓN] Opciones para Crear Mi Empresa
+        const opcionesCrearEmpresa = [
+            { id: 0, nombre: 'Red Social Innovadora', ips: 15000, costo: 15000000, icono: '📱' },
+            { id: 1, nombre: 'Plataforma de E-Learning', ips: 12000, costo: 12000000, icono: '🎓' },
+            { id: 2, nombre: 'Consultora de Ciberseguridad', ips: 18000, costo: 20000000, icono: '🛡️' },
+            { id: 3, nombre: 'Fábrica de Robots de Limpieza', ips: 10000, costo: 10000000, icono: '🤖' },
+            { id: 4, nombre: 'Cadena de Cafeterías Temáticas', ips: 8000, costo: 8000000, icono: '☕' },
+            { id: 5, nombre: 'Servicio de Suscripción Gourmet', ips: 9000, costo: 9000000, icono: '📦' },
+            { id: 6, nombre: 'Estudio de Videojuegos Indie', ips: 11000, costo: 11000000, icono: '🕹️' },
+            { id: 7, nombre: 'Agencia de Viajes Espaciales', ips: 25000, costo: 30000000, icono: '🚀' }
+        ];
         
-        // [MODIFICACIÓN: FUNCIONES NUEVAS] Inversiones (Generan IPS basado en Valor Total)
+        // [MODIFICACIÓN: AÑADIDO MÁS OPCIONES] Inversiones (Generan IPS basado en Valor Total)
         const inversionesVista = {
              'bonos-gobierno': { nombre: 'Bonos Gobierno 🏛️', costo: 100000, retorno: 0.05, vecesComprado: 0, tipo: 'retorno', icono: '🏛️' }, // 5% de retorno
-             'crypto-mining': { nombre: 'Crypto Mining ⛏️', costo: 2000000, retorno: 0.1, vecesComprado: 0, tipo: 'retorno', icono: '⛏️' }, // 10% de retorno
-             'fondo-indexado': { nombre: 'Fondo Indexado S&P 📈', costo: 5000000, retorno: 0.12, vecesComprado: 0, tipo: 'retorno', icono: '📊' }, // 12% de retorno
-             'venture-capital': { nombre: 'Venture Capital 💸', costo: 50000000, retorno: 0.2, vecesComprado: 0, tipo: 'retorno', icono: '💰' } // 20% de retorno
+             'fondo-indexado': { nombre: 'Fondo Indexado S&P 📈', costo: 500000, retorno: 0.08, vecesComprado: 0, tipo: 'retorno', icono: '📊' }, // 8% de retorno
+             'inmo-comercial': { nombre: 'Inmuebles Comerciales 🏢', costo: 1500000, retorno: 0.1, vecesComprado: 0, tipo: 'retorno', icono: '🏢' }, // 10% de retorno
+             'crypto-mining': { nombre: 'Crypto Mining ⛏️', costo: 2000000, retorno: 0.12, vecesComprado: 0, tipo: 'retorno', icono: '⛏️' }, // 12% de retorno
+             // --- NUEVAS INVERSIONES ---
+             'commodities': { nombre: 'Commodities (Oro/Petróleo) 🛢️', costo: 5000000, retorno: 0.15, vecesComprado: 0, tipo: 'retorno', icono: '💎' }, // 15% de retorno
+             'private-equity': { nombre: 'Private Equity 🔒', costo: 15000000, retorno: 0.18, vecesComprado: 0, tipo: 'retorno', icono: '💼' }, // 18% de retorno
+             'venture-capital': { nombre: 'Venture Capital 💸', costo: 50000000, retorno: 0.22, vecesComprado: 0, tipo: 'retorno', icono: '💰' }, // 22% de retorno
+             'fondos-hedge': { nombre: 'Hedge Funds Globales 🌍', costo: 100000000, retorno: 0.25, vecesComprado: 0, tipo: 'retorno', icono: '🧭' } // 25% de retorno
         };
 
 
@@ -234,6 +252,7 @@
                     estadoJuego.tiendas = data.tiendas || estadoJuego.tiendas;
                     estadoJuego.activos = data.activos || estadoJuego.activos;
                     estadoJuego.empresas = data.empresas || estadoJuego.empresas;
+                    estadoJuego.empresasPersonalizadas = data.empresasPersonalizadas || estadoJuego.empresasPersonalizadas; // [MODIFICACIÓN: AÑADIDO]
                     estadoJuego.inversiones = data.inversiones || estadoJuego.inversiones;
                     estadoJuego.crypto = data.crypto || estadoJuego.crypto;
                     estadoJuego.estadisticas = data.estadisticas || estadoJuego.estadisticas;
@@ -261,6 +280,7 @@
                     tiendas: estadoJuego.tiendas,
                     activos: estadoJuego.activos,
                     empresas: estadoJuego.empresas,
+                    empresasPersonalizadas: estadoJuego.empresasPersonalizadas, // [MODIFICACIÓN: AÑADIDO]
                     inversiones: estadoJuego.inversiones,
                     crypto: estadoJuego.crypto,
                     estadisticas: estadoJuego.estadisticas,
@@ -470,7 +490,43 @@
              const contenedor = document.getElementById('empresas-tienda');
              if (!contenedor) return;
              contenedor.innerHTML = '';
+             
+             // --- 1. BOTÓN DE CREAR MI EMPRESA [MODIFICACIÓN: AÑADIDO] ---
+             const crearBtn = document.createElement('div');
+             crearBtn.className = 'tienda-item create-company-item';
+             crearBtn.style.borderLeft = '5px solid var(--color-secundario)';
+             crearBtn.innerHTML = `
+                 <h3><i class="fas fa-plus-circle"></i> Crear Mi Empresa</h3>
+                 <p>¡Define tu propio imperio! Nombre, tipo y comienza a generar ingresos pasivos.</p>
+                 <button onclick="mostrarModalCrearEmpresa()">
+                     Elegir Concepto y Fundar
+                 </button>
+             `;
+             contenedor.appendChild(crearBtn);
 
+             // --- 2. EMPRESAS PERSONALIZADAS [MODIFICACIÓN: AÑADIDO] ---
+             estadoJuego.empresasPersonalizadas.forEach((empresa, index) => {
+                 const costoReinversion = empresa.ips * 5; 
+                 const puedeReinvertir = estadoJuego.dinero >= costoReinversion;
+                 
+                 const elemento = document.createElement('div');
+                 elemento.className = `tienda-item personal-company-item`;
+                 elemento.style.borderLeft = '5px solid var(--color-exito)';
+                 
+                 elemento.innerHTML = `
+                     <h3>${empresa.icono || '🏢'} ${empresa.nombrePersonalizado}</h3>
+                     <p>Concepto: ${empresa.nombreBase}</p>
+                     <p>IPS Generado: <span style="font-weight: 700; color: var(--color-exito);">${formatDinero(empresa.ips)} / s</span></p>
+                     <p>
+                         <button onclick="reinvertirEmpresaPersonalizada(${index})" ${!puedeReinvertir ? 'disabled' : ''} style="width: 100%; padding: 5px; margin-top: 5px; background-color: var(--color-empresa); color: var(--color-fondo-oscuro); border: none; border-radius: 4px; cursor: pointer;">
+                             Reinvertir (+25% IPS) - ${formatDinero(costoReinversion)}
+                         </button>
+                     </p>
+                 `;
+                 contenedor.appendChild(elemento);
+             });
+             
+             // --- 3. EMPRESAS PREDEFINIDAS ---
              for (const id in empresasVistas) {
                  const item = empresasVistas[id];
                  const estado = estadoJuego.empresas[id] || { vecesComprado: 0 };
@@ -524,7 +580,7 @@
                  elemento.innerHTML = `
                      <h3>${item.icono || '📈'} ${item.nombre}</h3>
                      <p>Valor Total: <span style="color: var(--color-acento-celeste);">${formatDinero(estado.valorTotal)}</span></p>
-                     <p>Retorno IPS: <span style="font-weight: 700;">${formatDinero(retornoIPS)} / s</span></p>
+                     <p>Retorno IPS: <span style="font-weight: 700; color: var(--color-inversion);">${formatDinero(retornoIPS)} / s</span></p>
                      <p>Pérdida/Ganancia: 
                         <span class="${perdidaGanancia >= 0 ? 'text-success' : 'text-danger'}">
                              ${formatDinero(perdidaGanancia, 2)}
@@ -665,7 +721,7 @@
         }
         
         /**
-         * Función pública para comprar Empresas.
+         * Función pública para comprar Empresas predefinidas.
          */
         window.comprarEmpresa = function(id) {
             const item = empresasVistas[id];
@@ -756,6 +812,100 @@
                 showModal(`Vendiste 1 unidad de ${id.toUpperCase()} a ${formatDinero(valor, 2)}`, 'Venta Exitosa', false);
             }
         }
+        
+        // --- LÓGICA DE CREACIÓN DE EMPRESA PERSONALIZADA [MODIFICACIÓN: AÑADIDO] ---
+        window.mostrarModalCrearEmpresa = function() {
+            const modalContent = document.getElementById('company-create-content');
+            modalContent.innerHTML = ''; // Limpiar contenido anterior
+            
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.id = 'company-name-input';
+            nameInput.placeholder = 'Ej: Mi Empresa de Cohetes S.A.';
+            nameInput.maxLength = 30;
+            nameInput.style.cssText = 'width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #555; background-color: #333; color: white;';
+            
+            const conceptSelect = document.createElement('select');
+            conceptSelect.id = 'company-concept-select';
+            conceptSelect.style.cssText = 'width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #555; background-color: #333; color: white;';
+            
+            opcionesCrearEmpresa.forEach((opcion, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${opcion.nombre} (IPS: ${formatDinero(opcion.ips)}, Costo: ${formatDinero(opcion.costo)})`;
+                conceptSelect.appendChild(option);
+            });
+
+            const fundarButton = document.createElement('button');
+            fundarButton.textContent = '¡Fundar Mi Empresa!';
+            fundarButton.onclick = () => crearMiEmpresa(nameInput.value, parseInt(conceptSelect.value));
+            fundarButton.style.cssText = 'padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: 700; background-color: var(--color-empresa); color: var(--color-fondo-oscuro);';
+            
+            modalContent.appendChild(nameInput);
+            modalContent.appendChild(conceptSelect);
+            modalContent.appendChild(fundarButton);
+
+            showModal('Define el nombre y el concepto de tu empresa', 'Crear Empresa', false, true); 
+        }
+
+        window.crearMiEmpresa = function(nombre, conceptoIndex) {
+            const opcion = opcionesCrearEmpresa[conceptoIndex];
+            if (!opcion) return;
+
+            if (!nombre || nombre.trim() === '') {
+                // Reutilizar el modal para mensaje de error
+                showModal('Debes darle un nombre a tu empresa. Intenta de nuevo.', 'Error', false); 
+                return;
+            }
+            
+            if (estadoJuego.dinero >= opcion.costo) {
+                estadoJuego.dinero -= opcion.costo;
+                
+                const nuevaEmpresa = {
+                    id: Date.now(),
+                    nombrePersonalizado: nombre.substring(0, 30),
+                    nombreBase: opcion.nombre,
+                    ips: opcion.ips,
+                    costoBase: opcion.costo,
+                    icono: opcion.icono
+                };
+                
+                estadoJuego.empresasPersonalizadas.push(nuevaEmpresa);
+                
+                // Cerrar el modal personalizado y mostrar el de éxito
+                document.getElementById('custom-modal').style.display = 'none';
+                
+                recalcularIPS();
+                actualizarUI();
+                guardarEstado();
+                showModal(`¡Felicidades! Has fundado "${nuevaEmpresa.nombrePersonalizado}".`, 'Éxito de Fundación', false);
+            } else {
+                showModal(`Necesitas ${formatDinero(opcion.costo)} para fundar esta empresa.`, 'Dinero Insuficiente', false);
+            }
+        }
+        
+        window.reinvertirEmpresaPersonalizada = function(index) {
+            const empresa = estadoJuego.empresasPersonalizadas[index];
+            if (!empresa) return;
+
+            // Costo de Reinversión: 5 veces el IPS actual
+            const costoReinversion = empresa.ips * 5; 
+            
+            if (estadoJuego.dinero >= costoReinversion) {
+                estadoJuego.dinero -= costoReinversion;
+                // Aumentar IPS en 25%
+                empresa.ips *= 1.25; 
+                
+                recalcularIPS();
+                actualizarUI();
+                guardarEstado();
+                showModal(`¡Reinversión exitosa! El IPS de "${empresa.nombrePersonalizado}" aumentó un 25%.`, 'Reinversión', false);
+            } else {
+                showModal(`Necesitas ${formatDinero(costoReinversion)} para reinvertir en "${empresa.nombrePersonalizado}".`, 'Dinero Insuficiente', false);
+            }
+        }
+        // --- FIN LÓGICA DE CREACIÓN DE EMPRESA PERSONALIZADA ---
+
 
         
         /** Recalcula el IPC total base + multiplicadores. (Incluye Activos) */
@@ -811,11 +961,17 @@
                 }
             }
 
-            // 3. IPS de Empresas
+            // 3. IPS de Empresas PREDEFINIDAS
             for (const id in empresasVistas) {
                  const vecesComprado = estadoJuego.empresas[id]?.vecesComprado || 0;
                  totalIPS += vecesComprado * empresasVistas[id].ipsGenerado;
             }
+            
+            // 3b. IPS de Empresas PERSONALIZADAS [MODIFICACIÓN: AÑADIDO]
+            estadoJuego.empresasPersonalizadas.forEach(empresa => {
+                totalIPS += empresa.ips;
+            });
+
             
             // 4. IPS de Inversiones (porcentaje de valor total)
             for (const id in inversionesVista) {
@@ -905,6 +1061,7 @@
                 tiendas: {},
                 activos: {},
                 empresas: {},
+                empresasPersonalizadas: [], // [MODIFICACIÓN: AÑADIDO]
                 inversiones: {},
                 crypto: {
                     bitcoin: { cantidad: 0, valorActual: 20000, costoPromedio: 0 },
@@ -939,25 +1096,40 @@
 
         // --- UTILIDAD: Modal Custom para Reemplazar Alert/Confirm ---
         let modalResolve;
-        /** Muestra un modal personalizado para confirmación o mensaje. */
-        function showModal(message, title = 'Confirmación', isConfirm = true) {
+        /** Muestra un modal personalizado para confirmación, mensaje o modal de empresa. */
+        function showModal(message, title = 'Confirmación', isConfirm = true, isCompanyModal = false) {
             return new Promise(resolve => {
                 const modal = document.getElementById('custom-modal');
+                const content = document.getElementById('modal-message-container');
                 document.getElementById('modal-title').textContent = title;
-                document.getElementById('modal-message').textContent = message;
+                
+                if (isCompanyModal) {
+                    // Contenido para el modal de la empresa (ya se llenó antes)
+                } else {
+                    // Contenido para el modal genérico
+                    content.innerHTML = `<p id="modal-message">${message}</p>`;
+                }
+                
                 const confirmBtn = document.getElementById('modal-confirm');
                 const cancelBtn = document.getElementById('modal-cancel');
+                const companyActions = document.getElementById('modal-company-actions'); 
 
-                if (isConfirm) {
-                    confirmBtn.style.display = 'inline-block';
-                    cancelBtn.style.display = 'inline-block';
-                    confirmBtn.textContent = 'Sí, Reiniciar';
-                    cancelBtn.textContent = 'Cancelar';
-                } else { 
-                    // Para mensajes de éxito o info (solo botón de cerrar)
-                    confirmBtn.style.display = 'inline-block';
-                    cancelBtn.style.display = 'none';
-                    confirmBtn.textContent = 'Aceptar';
+                if (isCompanyModal) {
+                     confirmBtn.style.display = 'none'; 
+                     cancelBtn.style.display = 'none';
+                     companyActions.style.display = 'block';
+                } else {
+                     companyActions.style.display = 'none';
+                     if (isConfirm) {
+                         confirmBtn.style.display = 'inline-block';
+                         cancelBtn.style.display = 'inline-block';
+                         confirmBtn.textContent = 'Sí, Reiniciar';
+                         cancelBtn.textContent = 'Cancelar';
+                     } else { 
+                         confirmBtn.style.display = 'inline-block';
+                         cancelBtn.style.display = 'none';
+                         confirmBtn.textContent = 'Aceptar';
+                     }
                 }
                 modal.style.display = 'flex';
                 modalResolve = resolve;
@@ -966,8 +1138,7 @@
         window.handleModalClick = function(action) {
             document.getElementById('custom-modal').style.display = 'none';
             if (modalResolve) {
-                if (action === 'confirm' || !document.getElementById('modal-cancel').style.display || document.getElementById('modal-cancel').style.display === 'none') {
-                    // Si es confirmación, resuelve true. Si es solo un mensaje (sin cancelar), también.
+                if (action === 'confirm' || (action === 'accept' && !document.getElementById('modal-cancel').style.display)) {
                     modalResolve(true);
                 } else {
                     modalResolve(false);
@@ -1019,6 +1190,24 @@
             border-bottom: 2px solid var(--color-acento-celeste);
         }
 
+        /* [MODIFICACIÓN: ESTILO DE TÍTULO Y SUBTÍTULO] */
+        #main-title-header {
+            font-size: 1.5em;
+            color: var(--color-acento-celeste);
+            font-weight: 900;
+            display: flex; 
+            flex-direction: column;
+            line-height: 1; /* Asegurar que no haya espacio extra */
+        }
+
+        #studio-tag {
+            font-size: 0.5em; 
+            font-weight: 400;
+            color: #999; 
+            margin-top: 2px;
+        }
+        /* FIN MODIFICACIÓN */
+
         #status-panel {
             display: flex;
             gap: 30px;
@@ -1049,12 +1238,6 @@
 
         #ips-actual-container span {
             color: var(--color-empresa);
-        }
-        
-        h1 {
-            font-size: 1.5em;
-            color: var(--color-acento-celeste);
-            font-weight: 900;
         }
 
         /* --- NAVEGACIÓN --- */
@@ -1181,6 +1364,17 @@
             border-radius: 6px;
             border-left: 5px solid var(--color-acento-celeste);
         }
+        
+        /* Estilos para Empresas Personalizadas */
+        .personal-company-item {
+             border-left: 5px solid var(--color-empresa) !important;
+        }
+        
+        /* Estilos para Inversiones */
+        .investment-item {
+             border-left: 5px solid var(--color-inversion) !important;
+        }
+
 
         .tienda-item h3 {
             font-size: 1.1em;
@@ -1413,7 +1607,8 @@
             font-size: 1.5em;
         }
 
-        #modal-message {
+        /* Contenedor para manejar mensaje simple o contenido complejo de empresa */
+        #modal-message-container {
             margin-bottom: 20px;
             color: #ccc;
         }
@@ -1452,16 +1647,26 @@
     <div id="custom-modal">
         <div class="modal-content">
             <h3 id="modal-title"></h3>
-            <p id="modal-message"></p>
+            <div id="modal-message-container">
+                <p id="modal-message"></p>
+            </div>
+            
             <div class="modal-actions">
                 <button id="modal-confirm" onclick="handleModalClick('confirm')">Confirmar</button>
                 <button id="modal-cancel" onclick="handleModalClick('cancel')">Cancelar</button>
+                
+                <div id="modal-company-actions" style="display: none;">
+                    <button id="modal-company-close" onclick="handleModalClick('cancel')" style="background-color: #444; color: white;">Cerrar</button>
+                </div>
             </div>
         </div>
     </div>
     
     <div id="header-bar">
-        <h1>Millonario Clicker 💰</h1>
+        <h1 id="main-title-header">
+            Millonario Clicker 💰
+            <small id="studio-tag">By Winted Studios</small>
+        </h1>
         <div id="status-panel">
             <div id="dinero-actual-container">
                 <p>Dinero Actual</p>
@@ -1518,13 +1723,13 @@
         </div>
 
         <div id="view-companies" class="game-view">
-            <h2 style="text-align: center; padding: 15px; color: var(--color-empresa);">Empresas (Generación Pasiva Escalable)</h2>
+            <h2 style="text-align: center; padding: 15px; color: var(--color-empresa);">Empresas (Fundación y Generación Pasiva)</h2>
             <div id="empresas-tienda" class="shop-view">
                 </div>
         </div>
         
         <div id="view-investments" class="game-view">
-            <h2 style="text-align: center; padding: 15px; color: var(--color-inversion);">Inversiones (Sujetas a Volatilidad)</h2>
+            <h2 style="text-align: center; padding: 15px; color: var(--color-inversion);">Inversiones (Sujetas a Volatilidad y Retorno)</h2>
             <div id="inversiones-tienda" class="shop-view">
                 </div>
         </div>
