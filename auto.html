@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏎️ Carrera a la Playa 2.0</title>
+    <title>🏎️ Carrera a la Playa 3.0 (Corregido)</title>
     <style>
         body {
             margin: 0;
@@ -12,7 +12,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            font-family: 'Press Start 2P', cursive; /* Fuente retro */
+            font-family: Arial, sans-serif;
             user-select: none;
         }
         canvas {
@@ -33,8 +33,7 @@
             border-radius: 10px;
             font-weight: bold;
             font-size: 16px;
-            text-shadow: 2px 2px #000;
-            font-family: Arial, sans-serif;
+            text-shadow: 1px 1px #000;
         }
         #message {
             position: absolute;
@@ -49,7 +48,6 @@
             display: none;
             text-align: center;
             box-shadow: 0 0 30px rgba(255, 235, 59, 0.7);
-            font-family: Arial, sans-serif;
         }
         #message h2 {
             margin-top: 0;
@@ -69,8 +67,6 @@
         #message button:hover {
             background-color: #45a049;
         }
-        /* Para usar una fuente retro, puedes agregar un link aquí */
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
     </style>
 </head>
 <body>
@@ -106,8 +102,7 @@
             y: canvas.height - 100, 
             width: playerSize.width, 
             height: playerSize.height, 
-            color: 'yellow', 
-            shieldHits: 0 // Nuevo: Golpes restantes de escudo
+            shieldHits: 0
         };
 
         let obstacles = [];
@@ -115,26 +110,25 @@
         let keys = {};
         let km = 0;
         let level = 1;
-        let baseSpeed = 4; // Velocidad base ligeramente aumentada
+        let baseSpeed = 4;
         let speed = baseSpeed;
         let gameOver = false;
-        let turboTimer = 0; // Temporizador para el Turbo
+        let turboTimer = 0;
 
         // --- Carga de imágenes (Pixel Art) ---
-        // ¡REEMPLAZA ESTAS URLs con tus imágenes de pixel art!
+        // URLs ACTUALIZADAS para autos más "reales" y potenciadores
         const playerImg = new Image();
-        playerImg.src = 'https://i.imgur.com/rN9eS4M.png'; // Coche Amarillo
+        playerImg.src = 'https://i.imgur.com/rN9eS4M.png'; // Coche Jugador (Amarillo)
 
         const obstacleImg = new Image();
-        obstacleImg.src = 'https://i.imgur.com/f9O2f8V.png'; // Coche Rojo/Enemigo
+        obstacleImg.src = 'https://i.imgur.com/vH9iVjL.png'; // Coche Enemigo (Rojo/Azul, mejor aspecto de auto)
 
         const shieldImg = new Image();
-        shieldImg.src = 'https://i.imgur.com/7b2z5Wb.png'; // Potenciador Escudo (Azul)
+        shieldImg.src = 'https://i.imgur.com/c1h5N8X.png'; // Potenciador Escudo (Símbolo de Escudo)
 
         const turboImg = new Image();
-        turboImg.src = 'https://i.imgur.com/C3k3Uu8.png'; // Potenciador Turbo (Naranja)
+        turboImg.src = 'https://i.imgur.com/Qh15O2C.png'; // Potenciador Turbo (Rayo/Fuego)
 
-        // Función para esperar que las imágenes carguen antes de iniciar el juego (opcional, pero buena práctica)
         let imagesLoaded = false;
         let loadedCount = 0;
         const totalImages = 4;
@@ -151,22 +145,19 @@
         turboImg.onload = imageLoaded;
 
 
-        // --- Funciones de Dibujo ---
+        // --- Funciones de Dibujo (Se mantienen igual) ---
 
         function drawRoad(offset){
-            // Asfalto
             ctx.fillStyle = '#555';
             ctx.fillRect(canvas.width/2 - roadWidth/2, 0, roadWidth, canvas.height);
             
-            // Líneas de la carretera
             ctx.strokeStyle = '#fff';
             ctx.lineWidth = 5;
-            ctx.setLineDash([40, 25]); // Raya de 40px, Espacio de 25px
+            ctx.setLineDash([40, 25]);
             
             for(let i = 1; i < lanes; i++){
                 ctx.beginPath();
-                // Calcula la posición y la repite para simular el desplazamiento infinito
-                const dashY = (offset % 65) - 65; // El patrón es 40+25=65
+                const dashY = (offset % 65) - 65;
                 ctx.moveTo(canvas.width/2 - roadWidth/2 + i * laneWidth, dashY);
                 ctx.lineTo(canvas.width/2 - roadWidth/2 + i * laneWidth, canvas.height + dashY);
                 ctx.stroke();
@@ -176,7 +167,6 @@
 
         function drawCar(car){
             let img = playerImg;
-            // Si tiene turbo, podemos cambiarle el color o ponerle un efecto visual
             if (turboTimer > 0) {
                  ctx.shadowColor = 'orange';
                  ctx.shadowBlur = 15;
@@ -184,19 +174,16 @@
             
             ctx.drawImage(img, car.x, car.y, car.width, car.height);
             
-            // Si tiene escudo, dibujamos un borde azul alrededor (simulando inmunidad)
             if (player.shieldHits > 0) {
                 ctx.strokeStyle = `rgba(0, 191, 255, ${0.5 + Math.sin(Date.now() / 100) * 0.3})`;
                 ctx.lineWidth = 5;
                 ctx.strokeRect(car.x, car.y, car.width, car.height);
-                // Mostrar contador de golpes de escudo
                 ctx.fillStyle = 'white';
                 ctx.font = '20px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText(player.shieldHits, car.x + car.width / 2, car.y + car.height + 20);
             }
 
-            // Resetear sombra después de dibujar
             ctx.shadowColor = 'transparent';
             ctx.shadowBlur = 0;
         }
@@ -210,49 +197,49 @@
         function drawObjects(){
             objects.forEach(obj => {
                 let img;
-                if(obj.type === 1) img = shieldImg; // Escudo
-                if(obj.type === 3) img = turboImg; // Turbo (Tipo 2 Lento lo quitamos)
+                if(obj.type === 1) img = shieldImg;
+                if(obj.type === 3) img = turboImg;
                 
-                ctx.drawImage(img, obj.x, obj.y, 40, 40);
+                // Los objetos son un poco más pequeños para no chocar con ellos tan fácil
+                const objSize = 35;
+                ctx.drawImage(img, obj.x + (40 - objSize)/2, obj.y + (40 - objSize)/2, objSize, objSize);
             });
         }
 
 
-        // --- Lógica del Juego ---
+        // --- Lógica del Juego (Modificada para más frecuencia) ---
 
         function updateObstacles(){
-            // La velocidad del juego se ajusta si tienes un potenciador
             const currentSpeed = speed + (turboTimer > 0 ? 3 : 0);
 
             obstacles.forEach(o => o.y += currentSpeed);
             obstacles = obstacles.filter(o => o.y < canvas.height + 100);
             
-            // Generación de obstáculos: Menos autos a la vez
-            const obstacleSpawnChance = 0.015; // Ajustar la probabilidad
+            // Generación de obstáculos
+            const obstacleSpawnChance = 0.015;
             if (Math.random() < obstacleSpawnChance) {
                 const lane = Math.floor(Math.random() * lanes);
+                
+                // Evitar generar si hay un auto muy cerca verticalmente
                 const isLaneOccupied = obstacles.some(o => 
-                    o.y < 200 && // Solo verifica los autos que están cerca de la parte superior
-                    Math.abs(o.x - (canvas.width/2 - roadWidth/2 + lane*laneWidth + laneWidth/2 - 20)) < laneWidth
+                    o.y > -200 && o.y < 0 && 
+                    Math.floor((o.x - (canvas.width/2 - roadWidth/2)) / laneWidth) === lane
                 );
-
-                // Evitar generar en la misma posición (verticalmente)
-                if (!isLaneOccupied) {
-                    // Evitar que aparezcan autos en carriles adyacentes a la vez (simple, no perfecto)
-                    const adjacentConflict = obstacles.some(o => 
-                        o.y > -250 && o.y < 0 && 
-                        (Math.floor((o.x - (canvas.width/2 - roadWidth/2)) / laneWidth) === lane + 1 || 
-                         Math.floor((o.x - (canvas.width/2 - roadWidth/2)) / laneWidth) === lane - 1)
-                    );
-                    
-                    if (!adjacentConflict || Math.random() < 0.2) { // Permitir colisión adyacente ocasionalmente
-                        obstacles.push({
-                            x: canvas.width/2 - roadWidth/2 + lane*laneWidth + laneWidth/2 - 20,
-                            y: -100,
-                            width: 40,
-                            height: 80
-                        });
-                    }
+                
+                // Evitar colisión adyacente (a menos que ya haya muchos km)
+                const adjacentConflict = obstacles.some(o => 
+                    o.y > -250 && o.y < 0 && 
+                    (Math.floor((o.x - (canvas.width/2 - roadWidth/2)) / laneWidth) === lane + 1 || 
+                     Math.floor((o.x - (canvas.width/2 - roadWidth/2)) / laneWidth) === lane - 1)
+                );
+                
+                if (!isLaneOccupied && (!adjacentConflict || Math.random() < 0.2 + (level * 0.002))) {
+                    obstacles.push({
+                        x: canvas.width/2 - roadWidth/2 + lane*laneWidth + laneWidth/2 - 20,
+                        y: -100,
+                        width: 40,
+                        height: 80
+                    });
                 }
             }
         }
@@ -262,17 +249,24 @@
             objects.forEach(o => o.y += currentSpeed);
             objects = objects.filter(o => o.y < canvas.height + 50);
             
-            const objectSpawnChance = 0.005; 
+            // PROBABILIDAD DE APARICIÓN AUMENTADA
+            const objectSpawnChance = 0.01; // Antes 0.005. Ahora el doble de probable.
             if (Math.random() < objectSpawnChance){
                 const lane = Math.floor(Math.random() * lanes);
                 const type = Math.random() < 0.5 ? 1 : 3; // 1: Escudo, 3: Turbo
-                objects.push({
-                    x: canvas.width/2 - roadWidth/2 + lane*laneWidth + laneWidth/2 - 20,
-                    y: -50,
-                    type,
-                    width: 40,
-                    height: 40 // Los objetos son cuadrados
-                });
+                
+                // Evitar generar sobre un obstáculo que aparece al mismo tiempo
+                const isLaneOccupied = obstacles.some(o => o.y > -100 && o.y < 0 && Math.floor((o.x - (canvas.width/2 - roadWidth/2)) / laneWidth) === lane);
+                
+                if (!isLaneOccupied) {
+                    objects.push({
+                        x: canvas.width/2 - roadWidth/2 + lane*laneWidth + laneWidth/2 - 20,
+                        y: -50,
+                        type,
+                        width: 40,
+                        height: 40
+                    });
+                }
             }
         }
 
@@ -282,15 +276,13 @@
                 let o = obstacles[i];
                 if(player.x < o.x + o.width && player.x + player.width > o.x && player.y < o.y + o.height && player.y + player.height > o.y){
                     if(player.shieldHits > 0){
-                        // Nuevo: El escudo absorbe el golpe
                         player.shieldHits--;
                         hudShield.textContent = player.shieldHits;
-                        levelSound.currentTime = 0; // Usamos el sonido de nivel como sonido de "golpe absorbido"
+                        levelSound.currentTime = 0;
                         levelSound.play();
-                        obstacles.splice(i, 1); // Elimina el obstáculo chocado
+                        obstacles.splice(i, 1);
                         i--;
                     } else {
-                        // Colisión sin escudo
                         crashSound.play();
                         endGame();
                         return;
@@ -301,15 +293,16 @@
             // Colisión con Objetos (Power-ups)
             for(let i = 0; i < objects.length; i++){
                 let obj = objects[i];
+                // Chequeo de colisión más preciso para los objetos (40x40)
                 if(player.x < obj.x + 40 && player.x + player.width > obj.x && player.y < obj.y + 40 && player.y + player.height > obj.y){
                     powerSound.play();
                     
                     if(obj.type === 1){ // Escudo (Hits)
-                        player.shieldHits += 4; // Te da 4 golpes de escudo
+                        player.shieldHits = Math.min(player.shieldHits + 4, 10); // Máximo 10 golpes
                         hudShield.textContent = player.shieldHits;
                     }
                     if(obj.type === 3){ // Turbo (Velocidad)
-                        turboTimer = 300; // 5 segundos de turbo (300 frames * 1/60 fps)
+                        turboTimer = 300; // 5 segundos de turbo
                     }
                     
                     objects.splice(i, 1);
@@ -322,10 +315,9 @@
             const moveSpeed = 7;
             if(keys['ArrowLeft'] || keys['a']) player.x -= moveSpeed;
             if(keys['ArrowRight'] || keys['d']) player.x += moveSpeed;
-            if(keys['ArrowUp'] || keys['w']) player.y -= moveSpeed * 0.5; // Movimiento vertical más lento
+            if(keys['ArrowUp'] || keys['w']) player.y -= moveSpeed * 0.5;
             if(keys['ArrowDown'] || keys['s']) player.y += moveSpeed * 0.5;
             
-            // Limitar movimiento al área de la carretera
             const roadLeft = canvas.width / 2 - roadWidth / 2;
             const roadRight = canvas.width / 2 + roadWidth / 2;
             
@@ -338,7 +330,6 @@
         let roadOffset = 0;
         function updateGame(){
             if(gameOver || !imagesLoaded) {
-                // Si el juego ha terminado o las imágenes no han cargado, no hacer nada más
                 if (!imagesLoaded) {
                      ctx.fillStyle = 'white';
                      ctx.font = '20px Arial';
@@ -350,9 +341,8 @@
             
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Lógica de velocidad y desplazamiento
             const currentSpeed = speed + (turboTimer > 0 ? 3 : 0);
-            roadOffset = (roadOffset + currentSpeed) % 65; // El patrón de guiones es 65
+            roadOffset = (roadOffset + currentSpeed) % 65;
             
             drawRoad(roadOffset);
             drawObstacles();
@@ -364,16 +354,14 @@
             updateObjects();
             checkCollision();
 
-            // Lógica de Power-ups
             if (turboTimer > 0) turboTimer--;
             
-            // Lógica de Distancia y Nivel
             km += currentSpeed * 0.05;
             hudKm.textContent = Math.floor(km);
             
             if(Math.floor(km) >= level * 100){
                 level++;
-                speed += 0.3; // Incremento de dificultad
+                speed += 0.3;
                 hudLevel.textContent = level;
                 levelSound.play();
                 
@@ -407,7 +395,7 @@
             level = 1;
             speed = baseSpeed;
             gameOver = false;
-            player.shieldHits = 0; // Resetear escudo
+            player.shieldHits = 0;
             turboTimer = 0;
             hudLevel.textContent = 1;
             hudKm.textContent = 0;
@@ -423,11 +411,7 @@
         document.addEventListener('keydown', e => keys[e.key] = true);
         document.addEventListener('keyup', e => keys[e.key] = false);
 
-        // Iniciar el juego (solo si las imágenes ya han cargado)
-        if (imagesLoaded) {
-             updateGame();
-        } else {
-            // Muestra mensaje de carga mientras espera las imágenes
+        if (!imagesLoaded) {
             ctx.fillStyle = 'white';
             ctx.font = '20px Arial';
             ctx.textAlign = 'center';
