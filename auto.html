@@ -1,235 +1,438 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🏎️ Carrera a la Playa</title>
-  <style>
-    body {
-      margin: 0;
-      background: #222;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      font-family: Arial, sans-serif;
-    }
-    canvas {
-      border: 5px solid #000;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.7);
-      display: block;
-    }
-    #hud {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: white;
-      background: rgba(0,0,0,0.6);
-      padding: 6px 15px;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 18px;
-    }
-    #message {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      display: none;
-      text-align: center;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏎️ Carrera a la Playa 2.0</title>
+    <style>
+        body {
+            margin: 0;
+            background: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Press Start 2P', cursive; /* Fuente retro */
+            user-select: none;
+        }
+        canvas {
+            border: 5px solid #000;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.9);
+            display: block;
+            background: #4CAF50; /* Color de fondo fuera de la carretera */
+        }
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #FFEB3B;
+            background: rgba(0,0,0,0.8);
+            padding: 8px 18px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 16px;
+            text-shadow: 2px 2px #000;
+            font-family: Arial, sans-serif;
+        }
+        #message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #222;
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            border: 5px solid #FFEB3B;
+            display: none;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255, 235, 59, 0.7);
+            font-family: Arial, sans-serif;
+        }
+        #message h2 {
+            margin-top: 0;
+            color: #FFEB3B;
+        }
+        #message button {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+        }
+        #message button:hover {
+            background-color: #45a049;
+        }
+        /* Para usar una fuente retro, puedes agregar un link aquí */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+    </style>
 </head>
 <body>
-  <canvas id="game" width="480" height="640"></canvas>
-  <div id="hud">Nivel: <span id="level">1</span> | Km: <span id="km">0</span></div>
-  <div id="message">
-    <h2 id="msg-title"></h2>
-    <button onclick="restartGame()">Reiniciar</button>
-  </div>
-  <audio id="level-sound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3" preload="auto"></audio>
-  <audio id="crash-sound" src="https://www.soundjay.com/transportation/sounds/car-crash-1.mp3" preload="auto"></audio>
-  <audio id="powerup-sound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3" preload="auto"></audio>
-  <script>
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
-    const hudLevel = document.getElementById('level');
-    const hudKm = document.getElementById('km');
-    const message = document.getElementById('message');
-    const levelSound = document.getElementById('level-sound');
-    const crashSound = document.getElementById('crash-sound');
-    const powerSound = document.getElementById('powerup-sound');
+    <canvas id="game" width="480" height="640"></canvas>
+    <div id="hud">Nivel: <span id="level">1</span> | Km: <span id="km">0</span> | Escudo: <span id="shield-hits">0</span></div>
+    <div id="message">
+        <h2 id="msg-title"></h2>
+        <button onclick="restartGame()">Reiniciar</button>
+    </div>
+    <audio id="level-sound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3" preload="auto"></audio>
+    <audio id="crash-sound" src="https://www.soundjay.com/transportation/sounds/car-crash-1.mp3" preload="auto"></audio>
+    <audio id="powerup-sound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3" preload="auto"></audio>
 
-    const lanes = 6;
-    const roadWidth = 360;
-    const laneWidth = roadWidth / lanes;
-    let player = {x: canvas.width/2-20, y: canvas.height-100, width: 40, height: 80, color: 'yellow', immune: false};
-    let obstacles = [];
-    let objects = [];
-    let keys = {};
-    let km = 0;
-    let level = 1;
-    let speed = 3;
-    let gameOver = false;
-    let immuneTimer = 0;
-    let slowTimer = 0;
-    let boostTimer = 0;
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const hudLevel = document.getElementById('level');
+        const hudKm = document.getElementById('km');
+        const hudShield = document.getElementById('shield-hits');
+        const message = document.getElementById('message');
+        const levelSound = document.getElementById('level-sound');
+        const crashSound = document.getElementById('crash-sound');
+        const powerSound = document.getElementById('powerup-sound');
 
-    function drawRoad(offset){
-      ctx.fillStyle = '#555';
-      ctx.fillRect(canvas.width/2-roadWidth/2, 0, roadWidth, canvas.height);
-      ctx.strokeStyle = 'white';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([20,20]);
-      for(let i=1;i<lanes;i++){
-        ctx.beginPath();
-        ctx.moveTo(canvas.width/2-roadWidth/2 + i*laneWidth, -canvas.height+offset);
-        ctx.lineTo(canvas.width/2-roadWidth/2 + i*laneWidth, canvas.height+offset);
-        ctx.stroke();
-      }
-      ctx.setLineDash([]);
-    }
+        // --- Configuración del juego ---
+        const lanes = 6;
+        const roadWidth = 360;
+        const laneWidth = roadWidth / lanes;
+        const playerSize = {width: 40, height: 80};
+        
+        let player = {
+            x: canvas.width/2 - playerSize.width/2, 
+            y: canvas.height - 100, 
+            width: playerSize.width, 
+            height: playerSize.height, 
+            color: 'yellow', 
+            shieldHits: 0 // Nuevo: Golpes restantes de escudo
+        };
 
-    function drawCar(car){
-      ctx.fillStyle = car.color;
-      ctx.fillRect(car.x, car.y, car.width, car.height);
-    }
+        let obstacles = [];
+        let objects = [];
+        let keys = {};
+        let km = 0;
+        let level = 1;
+        let baseSpeed = 4; // Velocidad base ligeramente aumentada
+        let speed = baseSpeed;
+        let gameOver = false;
+        let turboTimer = 0; // Temporizador para el Turbo
 
-    function drawObstacles(){
-      obstacles.forEach(o=>{
-        ctx.fillStyle = 'red';
-        ctx.fillRect(o.x,o.y,o.width,o.height);
-      });
-    }
+        // --- Carga de imágenes (Pixel Art) ---
+        // ¡REEMPLAZA ESTAS URLs con tus imágenes de pixel art!
+        const playerImg = new Image();
+        playerImg.src = 'https://i.imgur.com/rN9eS4M.png'; // Coche Amarillo
 
-    function drawObjects(){
-      objects.forEach(obj=>{
-        if(obj.type===1) ctx.fillStyle = 'cyan'; // Inmunidad
-        if(obj.type===2) ctx.fillStyle = 'blue'; // Lento
-        if(obj.type===3) ctx.fillStyle = 'orange'; // Boost
-        ctx.beginPath();
-        ctx.arc(obj.x+20,obj.y+20,15,0,Math.PI*2);
-        ctx.fill();
-      });
-    }
+        const obstacleImg = new Image();
+        obstacleImg.src = 'https://i.imgur.com/f9O2f8V.png'; // Coche Rojo/Enemigo
 
-    function updateObstacles(){
-      obstacles.forEach(o=>o.y+=speed);
-      obstacles=obstacles.filter(o=>o.y<canvas.height+100);
-      if(Math.random()<0.02){
-        const lane = Math.floor(Math.random()*lanes);
-        obstacles.push({x:canvas.width/2-roadWidth/2+lane*laneWidth+laneWidth/2-20,y:-100,width:40,height:80});
-      }
-    }
+        const shieldImg = new Image();
+        shieldImg.src = 'https://i.imgur.com/7b2z5Wb.png'; // Potenciador Escudo (Azul)
 
-    function updateObjects(){
-      objects.forEach(o=>o.y+=speed);
-      objects=objects.filter(o=>o.y<canvas.height+50);
-      if(Math.random()<0.005){
-        const lane=Math.floor(Math.random()*lanes);
-        const type=Math.floor(Math.random()*3)+1;
-        objects.push({x:canvas.width/2-roadWidth/2+lane*laneWidth+laneWidth/2-20,y:-50,type});
-      }
-    }
+        const turboImg = new Image();
+        turboImg.src = 'https://i.imgur.com/C3k3Uu8.png'; // Potenciador Turbo (Naranja)
 
-    function checkCollision(){
-      for(let o of obstacles){
-        if(player.x<o.x+o.width && player.x+player.width>o.x && player.y<o.y+o.height && player.y+player.height>o.y){
-          if(!player.immune){
-            crashSound.play();
-            endGame();
-          }
+        // Función para esperar que las imágenes carguen antes de iniciar el juego (opcional, pero buena práctica)
+        let imagesLoaded = false;
+        let loadedCount = 0;
+        const totalImages = 4;
+        function imageLoaded() {
+            loadedCount++;
+            if (loadedCount === totalImages) {
+                imagesLoaded = true;
+                updateGame();
+            }
         }
-      }
-      for(let i=0;i<objects.length;i++){
-        let obj=objects[i];
-        if(player.x<obj.x+40 && player.x+player.width>obj.x && player.y<obj.y+40 && player.y+player.height>obj.y){
-          powerSound.play();
-          if(obj.type===1){player.immune=true;immuneTimer=600;}
-          if(obj.type===2){slowTimer=600;}
-          if(obj.type===3){boostTimer=600;}
-          objects.splice(i,1);
-          i--;
+        playerImg.onload = imageLoaded;
+        obstacleImg.onload = imageLoaded;
+        shieldImg.onload = imageLoaded;
+        turboImg.onload = imageLoaded;
+
+
+        // --- Funciones de Dibujo ---
+
+        function drawRoad(offset){
+            // Asfalto
+            ctx.fillStyle = '#555';
+            ctx.fillRect(canvas.width/2 - roadWidth/2, 0, roadWidth, canvas.height);
+            
+            // Líneas de la carretera
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 5;
+            ctx.setLineDash([40, 25]); // Raya de 40px, Espacio de 25px
+            
+            for(let i = 1; i < lanes; i++){
+                ctx.beginPath();
+                // Calcula la posición y la repite para simular el desplazamiento infinito
+                const dashY = (offset % 65) - 65; // El patrón es 40+25=65
+                ctx.moveTo(canvas.width/2 - roadWidth/2 + i * laneWidth, dashY);
+                ctx.lineTo(canvas.width/2 - roadWidth/2 + i * laneWidth, canvas.height + dashY);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
         }
-      }
-    }
 
-    function movePlayer(){
-      if(keys['ArrowLeft']||keys['a']) player.x-=5;
-      if(keys['ArrowRight']||keys['d']) player.x+=5;
-      if(keys['ArrowUp']||keys['w']) player.y-=5;
-      if(keys['ArrowDown']||keys['s']) player.y+=5;
-      if(player.x<canvas.width/2-roadWidth/2) player.x=canvas.width/2-roadWidth/2;
-      if(player.x+player.width>canvas.width/2+roadWidth/2) player.x=canvas.width/2+roadWidth/2-player.width;
-      if(player.y<0) player.y=0;
-      if(player.y+player.height>canvas.height) player.y=canvas.height-player.height;
-    }
+        function drawCar(car){
+            let img = playerImg;
+            // Si tiene turbo, podemos cambiarle el color o ponerle un efecto visual
+            if (turboTimer > 0) {
+                 ctx.shadowColor = 'orange';
+                 ctx.shadowBlur = 15;
+            }
+            
+            ctx.drawImage(img, car.x, car.y, car.width, car.height);
+            
+            // Si tiene escudo, dibujamos un borde azul alrededor (simulando inmunidad)
+            if (player.shieldHits > 0) {
+                ctx.strokeStyle = `rgba(0, 191, 255, ${0.5 + Math.sin(Date.now() / 100) * 0.3})`;
+                ctx.lineWidth = 5;
+                ctx.strokeRect(car.x, car.y, car.width, car.height);
+                // Mostrar contador de golpes de escudo
+                ctx.fillStyle = 'white';
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(player.shieldHits, car.x + car.width / 2, car.y + car.height + 20);
+            }
 
-    let roadOffset=0;
-    function updateGame(){
-      if(gameOver) return;
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      roadOffset=(roadOffset+speed)%40;
-      drawRoad(roadOffset);
-      drawCar(player);
-      drawObstacles();
-      drawObjects();
-      movePlayer();
-      updateObstacles();
-      updateObjects();
-      checkCollision();
-
-      if(immuneTimer>0){immuneTimer--; if(immuneTimer===0) player.immune=false;}
-      if(slowTimer>0) slowTimer--; if(boostTimer>0) boostTimer--;
-
-      let currentSpeed=speed;
-      if(slowTimer>0) currentSpeed=speed*0.5;
-      if(boostTimer>0) currentSpeed=speed*1.5;
-
-      km+=currentSpeed*0.05;
-      hudKm.textContent=Math.floor(km);
-      if(Math.floor(km)>=level*100){
-        level++;
-        speed+=0.3;
-        hudLevel.textContent=level;
-        levelSound.play();
-        if(level>100){
-          winGame();
-          return;
+            // Resetear sombra después de dibujar
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
         }
-      }
-      requestAnimationFrame(updateGame);
-    }
 
-    function endGame(){
-      gameOver=true;
-      document.getElementById('msg-title').textContent="💥 ¡Choque!";
-      message.style.display='block';
-    }
+        function drawObstacles(){
+            obstacles.forEach(o => {
+                ctx.drawImage(obstacleImg, o.x, o.y, o.width, o.height);
+            });
+        }
 
-    function winGame(){
-      gameOver=true;
-      document.getElementById('msg-title').textContent="🏖️ ¡Llegaste a la Playa!";
-      message.style.display='block';
-    }
+        function drawObjects(){
+            objects.forEach(obj => {
+                let img;
+                if(obj.type === 1) img = shieldImg; // Escudo
+                if(obj.type === 3) img = turboImg; // Turbo (Tipo 2 Lento lo quitamos)
+                
+                ctx.drawImage(img, obj.x, obj.y, 40, 40);
+            });
+        }
 
-    function restartGame(){
-      player.x=canvas.width/2-20;
-      player.y=canvas.height-100;
-      obstacles=[];objects=[];km=0;level=1;speed=3;gameOver=false;player.immune=false;
-      hudLevel.textContent=1;hudKm.textContent=0;message.style.display='none';
-      updateGame();
-    }
 
-    document.addEventListener('keydown',e=>keys[e.key]=true);
-    document.addEventListener('keyup',e=>keys[e.key]=false);
+        // --- Lógica del Juego ---
 
-    updateGame();
-  </script>
+        function updateObstacles(){
+            // La velocidad del juego se ajusta si tienes un potenciador
+            const currentSpeed = speed + (turboTimer > 0 ? 3 : 0);
+
+            obstacles.forEach(o => o.y += currentSpeed);
+            obstacles = obstacles.filter(o => o.y < canvas.height + 100);
+            
+            // Generación de obstáculos: Menos autos a la vez
+            const obstacleSpawnChance = 0.015; // Ajustar la probabilidad
+            if (Math.random() < obstacleSpawnChance) {
+                const lane = Math.floor(Math.random() * lanes);
+                const isLaneOccupied = obstacles.some(o => 
+                    o.y < 200 && // Solo verifica los autos que están cerca de la parte superior
+                    Math.abs(o.x - (canvas.width/2 - roadWidth/2 + lane*laneWidth + laneWidth/2 - 20)) < laneWidth
+                );
+
+                // Evitar generar en la misma posición (verticalmente)
+                if (!isLaneOccupied) {
+                    // Evitar que aparezcan autos en carriles adyacentes a la vez (simple, no perfecto)
+                    const adjacentConflict = obstacles.some(o => 
+                        o.y > -250 && o.y < 0 && 
+                        (Math.floor((o.x - (canvas.width/2 - roadWidth/2)) / laneWidth) === lane + 1 || 
+                         Math.floor((o.x - (canvas.width/2 - roadWidth/2)) / laneWidth) === lane - 1)
+                    );
+                    
+                    if (!adjacentConflict || Math.random() < 0.2) { // Permitir colisión adyacente ocasionalmente
+                        obstacles.push({
+                            x: canvas.width/2 - roadWidth/2 + lane*laneWidth + laneWidth/2 - 20,
+                            y: -100,
+                            width: 40,
+                            height: 80
+                        });
+                    }
+                }
+            }
+        }
+
+        function updateObjects(){
+            const currentSpeed = speed + (turboTimer > 0 ? 3 : 0);
+            objects.forEach(o => o.y += currentSpeed);
+            objects = objects.filter(o => o.y < canvas.height + 50);
+            
+            const objectSpawnChance = 0.005; 
+            if (Math.random() < objectSpawnChance){
+                const lane = Math.floor(Math.random() * lanes);
+                const type = Math.random() < 0.5 ? 1 : 3; // 1: Escudo, 3: Turbo
+                objects.push({
+                    x: canvas.width/2 - roadWidth/2 + lane*laneWidth + laneWidth/2 - 20,
+                    y: -50,
+                    type,
+                    width: 40,
+                    height: 40 // Los objetos son cuadrados
+                });
+            }
+        }
+
+        function checkCollision(){
+            // Colisión con Obstáculos
+            for(let i = 0; i < obstacles.length; i++){
+                let o = obstacles[i];
+                if(player.x < o.x + o.width && player.x + player.width > o.x && player.y < o.y + o.height && player.y + player.height > o.y){
+                    if(player.shieldHits > 0){
+                        // Nuevo: El escudo absorbe el golpe
+                        player.shieldHits--;
+                        hudShield.textContent = player.shieldHits;
+                        levelSound.currentTime = 0; // Usamos el sonido de nivel como sonido de "golpe absorbido"
+                        levelSound.play();
+                        obstacles.splice(i, 1); // Elimina el obstáculo chocado
+                        i--;
+                    } else {
+                        // Colisión sin escudo
+                        crashSound.play();
+                        endGame();
+                        return;
+                    }
+                }
+            }
+            
+            // Colisión con Objetos (Power-ups)
+            for(let i = 0; i < objects.length; i++){
+                let obj = objects[i];
+                if(player.x < obj.x + 40 && player.x + player.width > obj.x && player.y < obj.y + 40 && player.y + player.height > obj.y){
+                    powerSound.play();
+                    
+                    if(obj.type === 1){ // Escudo (Hits)
+                        player.shieldHits += 4; // Te da 4 golpes de escudo
+                        hudShield.textContent = player.shieldHits;
+                    }
+                    if(obj.type === 3){ // Turbo (Velocidad)
+                        turboTimer = 300; // 5 segundos de turbo (300 frames * 1/60 fps)
+                    }
+                    
+                    objects.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+
+        function movePlayer(){
+            const moveSpeed = 7;
+            if(keys['ArrowLeft'] || keys['a']) player.x -= moveSpeed;
+            if(keys['ArrowRight'] || keys['d']) player.x += moveSpeed;
+            if(keys['ArrowUp'] || keys['w']) player.y -= moveSpeed * 0.5; // Movimiento vertical más lento
+            if(keys['ArrowDown'] || keys['s']) player.y += moveSpeed * 0.5;
+            
+            // Limitar movimiento al área de la carretera
+            const roadLeft = canvas.width / 2 - roadWidth / 2;
+            const roadRight = canvas.width / 2 + roadWidth / 2;
+            
+            if(player.x < roadLeft) player.x = roadLeft;
+            if(player.x + player.width > roadRight) player.x = roadRight - player.width;
+            if(player.y < 0) player.y = 0;
+            if(player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+        }
+
+        let roadOffset = 0;
+        function updateGame(){
+            if(gameOver || !imagesLoaded) {
+                // Si el juego ha terminado o las imágenes no han cargado, no hacer nada más
+                if (!imagesLoaded) {
+                     ctx.fillStyle = 'white';
+                     ctx.font = '20px Arial';
+                     ctx.textAlign = 'center';
+                     ctx.fillText("Cargando Pixel Art...", canvas.width/2, canvas.height/2);
+                }
+                return;
+            }
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Lógica de velocidad y desplazamiento
+            const currentSpeed = speed + (turboTimer > 0 ? 3 : 0);
+            roadOffset = (roadOffset + currentSpeed) % 65; // El patrón de guiones es 65
+            
+            drawRoad(roadOffset);
+            drawObstacles();
+            drawObjects();
+            drawCar(player);
+            
+            movePlayer();
+            updateObstacles();
+            updateObjects();
+            checkCollision();
+
+            // Lógica de Power-ups
+            if (turboTimer > 0) turboTimer--;
+            
+            // Lógica de Distancia y Nivel
+            km += currentSpeed * 0.05;
+            hudKm.textContent = Math.floor(km);
+            
+            if(Math.floor(km) >= level * 100){
+                level++;
+                speed += 0.3; // Incremento de dificultad
+                hudLevel.textContent = level;
+                levelSound.play();
+                
+                if(level > 100){
+                    winGame();
+                    return;
+                }
+            }
+            
+            requestAnimationFrame(updateGame);
+        }
+
+        function endGame(){
+            gameOver = true;
+            document.getElementById('msg-title').innerHTML = "💥 ¡Choque! Kilómetros: " + Math.floor(km);
+            message.style.display = 'block';
+        }
+
+        function winGame(){
+            gameOver = true;
+            document.getElementById('msg-title').innerHTML = "🏖️ ¡Llegaste a la Playa en Nivel 100!";
+            message.style.display = 'block';
+        }
+
+        window.restartGame = function(){
+            player.x = canvas.width / 2 - playerSize.width / 2;
+            player.y = canvas.height - 100;
+            obstacles = [];
+            objects = [];
+            km = 0;
+            level = 1;
+            speed = baseSpeed;
+            gameOver = false;
+            player.shieldHits = 0; // Resetear escudo
+            turboTimer = 0;
+            hudLevel.textContent = 1;
+            hudKm.textContent = 0;
+            hudShield.textContent = 0;
+            message.style.display = 'none';
+            
+            if (imagesLoaded) {
+                updateGame();
+            }
+        }
+
+        // --- Eventos de teclado ---
+        document.addEventListener('keydown', e => keys[e.key] = true);
+        document.addEventListener('keyup', e => keys[e.key] = false);
+
+        // Iniciar el juego (solo si las imágenes ya han cargado)
+        if (imagesLoaded) {
+             updateGame();
+        } else {
+            // Muestra mensaje de carga mientras espera las imágenes
+            ctx.fillStyle = 'white';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText("Cargando Pixel Art...", canvas.width/2, canvas.height/2);
+        }
+    </script>
 </body>
 </html>
