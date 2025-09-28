@@ -3,236 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portafolio: Asistente DEV IA - MÁS DE 110,000 LÍNEAS DE CONOCIMIENTO</title>
+    <title>En Progreso, para asistencia contacta a novelberryyt@gmail.com ...</title>
     <style>
-        /* ... (Estilos CSS de la V.17.0 se mantienen) ... */
-        body { 
-            background-color: #1e1e1e; 
-            color: #d4d4d4; 
-            font-family: 'Consolas', 'Courier New', monospace;
+        
+        body {
+           
+            background-color: #000000;
+            
+            height: 100vh;
+            margin: 0;
+            
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
+            
+            font-family: 'Arial', sans-serif;
+            font-size: 5em; 
         }
 
-        .ia-console {
-            width: 90%;
-            max-width: 900px;
-            background-color: #282c34; 
-            border: 1px solid #61afef;
-            box-shadow: 0 0 15px rgba(97, 175, 239, 0.4);
-            border-radius: 8px;
-            padding: 25px;
-            color: #ffffff; 
-        }
-
-        h1 { 
-            color: #e5c07b; 
-            text-shadow: 0 0 5px #e5c07b;
-            font-size: 2em;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #5c6370;
-            padding-bottom: 10px;
-        }
-
-        #chat-history {
-            height: 400px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #3e4451;
-            background-color: #1e1e1e;
-            border-radius: 4px;
-        }
-
-        .message {
-            padding: 7px 0;
-            line-height: 1.6;
-            font-size: 1.1em;
-        }
-        .user-prompt { color: #ffffff; }
-        .ai-response { color: #98c379; }
-        .ai-status { color: #c678dd; }
         
-        pre {
-            background-color: #1e1e1e; 
-            color: #abb2bf; 
-            padding: 10px;
-            border-radius: 4px;
-            overflow-x: auto;
-            font-size: 0.95em;
+        .neon-text {
+            color: #00ffff; 
+           
+            text-shadow:
+                0 0 5px #00ffff,
+                0 0 10px #00ffff,
+                0 0 20px #00ffff,
+                0 0 40px #0000ff,
+                0 0 80px #0000ff;
         }
 
-        #input-form { display: flex; gap: 15px; }
-
-        #user-input {
-            flex-grow: 1;
-            padding: 12px;
-            background-color: #1e1e1e;
-            color: #fff;
-            border: 1px solid #61afef;
-            border-radius: 4px;
-            font-size: 1.1em;
-            font-family: 'Consolas', monospace;
-            outline: none;
-            box-shadow: inset 0 0 5px rgba(97, 175, 239, 0.3);
+        
+        @keyframes blink {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                opacity: 1;
+            }
+            20%, 24%, 55% {
+                opacity: 0.5;
+            }
         }
 
-        #send-button {
-            padding: 10px 25px;
-            background-color: #61afef;
-            color: #1e1e1e;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1.1em;
-            transition: background-color 0.2s, color 0.2s;
-        }
-
-        #send-button:hover {
-            background-color: #98c379;
-            color: #1e1e1e;
+        .animado {
+            animation: blink 2.5s infinite;
         }
     </style>
 </head>
 <body>
 
-    <div class="ia-console">
-        <h1>ASISTENTE DEV IA</h1>
-        
-        <div id="chat-history">
-            <div class="message ai-response">
-                &gt; **Asistente DEV:** **Sistema Operacional**. Base de conocimiento ampliada al máximo nivel técnico. Pregunte por cualquier función de **Pandas**, **Java Streams**, **WebAssembly** o **gRPC**.
-            </div>
-        </div>
-
-        <form id="input-form">
-            <input type="text" id="user-input" placeholder="Ingrese su consulta técnica o solicitud de código..." autofocus>
-            <button type="submit" id="send-button">ANALIZAR</button>
-        </form>
-    </div>
-    
-    <div style="margin-top: 25px;">
-        <a href="index.html" style="color: #61afef; text-decoration: none; font-size: 1.1em;">&lt;-- Volver al Portal de Acceso</a>
+    <div class="neon-text animado">
+        EN PROGRESO...
+        para asistencia contacta a novelberryyt@gmail.com ....
     </div>
 
-    <script>
-        const chatHistory = document.getElementById('chat-history');
-        const inputForm = document.getElementById('input-form');
-        const userInput = document.getElementById('user-input');
-
-        // --- OBJETO DE CONOCIMIENTO MÁXIMO (110,000+ líneas) ---
-        const RESPONSES = {
-            
-            // --- NUEVAS ENTRADAS DE CONVERSACIÓN DE BAJO NIVEL ---
-            "RESPUESTA_CORTA": "Mi función es asistirle con temas de desarrollo y programación avanzada. Por favor, introduzca un término o pregunta técnica para iniciar el análisis.",
-            "RESPUESTA_QUE_QUIERES": "Soy un asistente DEV con una base de conocimiento especializada en más de 110,000 líneas de código y teoría. Deseo ayudarle a resolver su problema técnico. ¿En qué lenguaje o framework puedo enfocarme?",
-            "RESPUESTA_HABLA": "Mi modo de comunicación se activa mediante términos técnicos. Le invito a probar con 'React VDOM', 'Pandas Groupby' o 'Spring Boot REST'.",
-            "RESPUESTA_SALUDO_CORTO": "Saludo detectado. Por favor, dirija su consulta hacia temas de Python, Java, JavaScript, o arquitectura de sistemas.",
-            "RESPUESTA_DIME_WE": "Término detectado. Mi análisis indica que mi objetivo principal es el soporte técnico. Por favor, use términos específicos para obtener una respuesta detallada.",
-
-            // ... (Se mantienen todas las 110,000+ líneas de conocimiento de las entradas masivas para garantizar la longitud total del archivo) ...
-            "PYTHON_PANDAS_GROUPBY": `**Pandas API Detallada: DataFrame.groupby()** ... (contenido masivo)`,
-            "JS_EXPRESS_MIDDLEWARE": `**Express.js: Middleware y Flujo de Peticiones** ... (contenido masivo)`,
-            "DISCORD_GENERAL": `**Discord: La Plataforma y su Uso en el Desarrollo** ... (contenido masivo)`,
-            // ... (El resto de las entradas gigantes se mantienen) ...
-
-            "HOLA": "Saludos. Mi conocimiento es ahora superior a las 110,000 líneas. Pregunte por cualquier tema, desde rendimiento de Pandas hasta WebAssembly.",
-            "DEFECTO": "Consulta no reconocida. La base de datos es ahora gigantesca, por favor, use términos técnicos específicos para obtener una respuesta detallada.",
-            "CODIGO_GENERICO": "He detectado una solicitud de código/ejemplo. Por favor, especifique el lenguaje deseado: **PYTHON**, **JAVASCRIPT** o **JAVA**. (Ej: 'Genera código Python').",
-            "PYTHON_WEB": `**Ejemplo Python (Web - Flask):** ...`,
-            "JS_EXAMPLE": `**Ejemplo JavaScript (Node.js Server):** ...`,
-            "JAVA_EXAMPLE": `**Ejemplo Java (Clase Básica):** ...`,
-        };
-
-
-        // --- Lógica de Búsqueda Interna (findInternalResponse) - V.21.0 ---
-        function findInternalResponse(question) {
-            const q = question.toUpperCase();
-            const q_trim = question.trim(); // Consulta sin espacios al inicio/fin
-            const isCodeRequest = q.includes("CODIGO") || q.includes("EJEMPLO") || q.includes("MUESTRA") || q.includes("ALGO") || q.includes("DAME") || q.includes("GENER");
-            
-            // 0. CAPA DE TOLERANCIA CONVERSACIONAL (ALTA PRIORIDAD)
-            
-            // Manejo de entradas muy cortas (1-2 letras)
-            if (q_trim.length <= 2) {
-                if (q_trim === 'Q' || q_trim === 'A' || q_trim === 'WE') {
-                    return RESPONSES["RESPUESTA_CORTA"];
-                }
-            }
-            
-            // Manejo de frases conversacionales comunes
-            if (q.includes("HABLA")) return RESPONSES["RESPUESTA_HABLA"];
-            if (q.includes("QUE QUIERES") || q.includes("QUÉ QUIERES")) return RESPONSES["RESPUESTA_QUE_QUIERES"];
-            if (q.includes("DIME WE")) return RESPONSES["RESPUESTA_DIME_WE"];
-            if (q.includes("HOLA") || q.includes("SALUDOS")) return RESPONSES["RESPUESTA_SALUDO_CORTO"];
-            
-            // 1. Manejo de Solicitudes de Código
-            if (isCodeRequest) {
-                if (q.includes("PYTHON")) return RESPONSES["PYTHON_WEB"];
-                if (q.includes("JAVASCRIPT") || q.includes("JS")) return RESPONSES["JS_EXAMPLE"];
-                if (q.includes("JAVA")) return RESPONSES["JAVA_EXAMPLE"];
-                return RESPONSES["CODIGO_GENERICO"]; 
-            }
-
-            // 2. Temas Específicos GIGANTES (110,000+ LÍNEAS)
-            if (q.includes("PANDAS") && q.includes("GROUPBY")) return RESPONSES["PYTHON_PANDAS_GROUPBY"];
-            if (q.includes("EXPRESS") && q.includes("MIDDLEWARE")) return RESPONSES["JS_EXPRESS_MIDDLEWARE"];
-            // ... (Se mantienen todas las demás condiciones de búsqueda específicas) ...
-
-            // 3. Condición Discord (Genérica y Específica)
-            if (q.includes("DISCORD") && (q.includes("BOT") || q.includes("PYTHON") || q.includes("JS"))) return RESPONSES["DISCORD_PYTHON_BOT"];
-            if (q.includes("DISCORD")) return RESPONSES["DISCORD_GENERAL"]; 
-
-            // 4. Fallback por Lenguajes
-            if (q.includes("PYTHON")) return RESPONSES["PYTHON"];
-            if (q.includes("JAVASCRIPT") || q.includes("JS")) return RESPONSES["JAVASCRIPT"];
-            if (q.includes("JAVA")) return RESPONSES["JAVA"];
-            
-            // 5. Fallback Final (El mensaje que el usuario estaba recibiendo)
-            return RESPONSES["DEFECTO"];
-        }
-        // ------------------------------------------------------------------
-
-        // ... (El resto del código JavaScript para `inputForm`, `appendMessage`, etc., se mantiene igual) ...
-        inputForm.addEventListener('submit', function(e) {
-            e.preventDefault(); 
-            const question = userInput.value.trim();
-            if (question === "") return;
-
-            appendMessage(`&gt; Usuario@DevHost: ${question}`, 'user-prompt');
-            let responseText = findInternalResponse(question);
-            
-            setTimeout(() => {
-                appendMessage(`&gt; **Asistente DEV:** ${responseText}`, 'ai-response');
-                chatHistory.scrollTop = chatHistory.scrollHeight;
-            }, 500); 
-
-            userInput.value = '';
-        });
-
-        function appendMessage(text, className) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${className}`;
-            let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            
-            formattedText = formattedText.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
-                const escapedCode = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                return `<pre>${escapedCode.trim()}</pre>`;
-            });
-
-            messageDiv.innerHTML = formattedText; 
-            chatHistory.appendChild(messageDiv);
-        }
-
-        window.onload = () => {
-             chatHistory.scrollTop = chatHistory.scrollHeight;
-        };
-    </script>
 </body>
 </html>
