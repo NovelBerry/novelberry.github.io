@@ -3,69 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Infinity 2D Runner</title>
+    <title>Infinity 2D Pixel Runner</title>
     <style>
         body {
             margin: 0;
-            overflow: hidden; /* Oculta barras de desplazamiento */
+            overflow: hidden;
             background-color: #87CEEB; /* Color de cielo */
-            font-family: Arial, sans-serif;
+            font-family: 'Pixelify Sans', Arial, sans-serif; /* Fuente de estilo pixel */
             color: #333;
         }
+        @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap');
         canvas {
-            display: block; /* Elimina espacio extra debajo del canvas */
+            display: block;
             background-color: #ADD8E6; /* Un azul más claro para el fondo */
-            border: 1px solid #666;
+            image-rendering: pixelated; /* Asegura que se vea como pixel art en el navegador */
         }
         #game-info {
             position: absolute;
             top: 10px;
             left: 10px;
-            background-color: rgba(255, 255, 255, 0.7);
+            background-color: rgba(255, 255, 255, 0.8);
             padding: 5px 10px;
             border-radius: 5px;
-            font-size: 1.1em;
+            font-size: 1.5em;
             font-weight: bold;
+            font-family: 'Pixelify Sans', monospace;
         }
         #instructions {
             position: absolute;
             top: 10px;
             right: 10px;
-            background-color: rgba(255, 255, 255, 0.7);
+            background-color: rgba(255, 255, 255, 0.8);
             padding: 5px 10px;
             border-radius: 5px;
-            font-size: 0.9em;
+            font-size: 1em;
+            font-family: 'Pixelify Sans', monospace;
         }
         #game-over-screen {
-            display: none; /* Inicialmente oculto */
+            display: none;
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 0, 0, 0.8);
             color: white;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-size: 2em;
+            font-size: 2.5em;
             text-align: center;
             z-index: 100;
+            font-family: 'Pixelify Sans', monospace;
         }
         #game-over-screen button {
             padding: 15px 30px;
-            font-size: 1em;
+            font-size: 0.8em;
             cursor: pointer;
             margin-top: 20px;
-            background-color: #4CAF50;
+            background-color: #FF5733; /* Naranja Pixel */
             color: white;
-            border: none;
-            border-radius: 8px;
+            border: 4px solid #F00000;
+            border-radius: 0; /* Estilo retro sin bordes curvos */
             transition: background-color 0.3s ease;
+            font-family: 'Pixelify Sans', monospace;
         }
         #game-over-screen button:hover {
-            background-color: #45a049;
+            background-color: #C73E00;
         }
     </style>
 </head>
@@ -74,12 +79,12 @@
     <div id="game-info">Score: <span id="scoreDisplay">0</span></div>
     <div id="instructions">
         <h3>Controles:</h3>
-        <p><strong>Espacio / Clic izquierdo:</strong> Saltar</p>
-        <p><strong>'R' (después de Game Over):</strong> Reiniciar</p>
+        <p><strong>Espacio / Clic:</strong> Saltar</p>
+        <p><strong>'R':</strong> Reiniciar</p>
     </div>
 
     <div id="game-over-screen">
-        <h1>¡Game Over!</h1>
+        <h1>¡GAME OVER!</h1>
         <p>Puntuación final: <span id="finalScoreDisplay">0</span></p>
         <button id="restartButton">Volver a Jugar</button>
     </div>
@@ -98,22 +103,50 @@
         canvas.width = GAME_WIDTH;
         canvas.height = GAME_HEIGHT;
 
-        const GRAVITY = 0.5;
-        const JUMP_POWER = -12;
-        const PLAYER_SIZE = 40;
-        const PLAYER_COLOR = '#FF5733'; // Naranja
-        const GROUND_HEIGHT = 50;
-        const GROUND_COLOR = '#4CAF50'; // Verde
-        const OBSTACLE_COLOR = '#36454F'; // Gris oscuro
-        const SCROLL_SPEED = 5; // Velocidad de desplazamiento del escenario
-        const OBSTACLE_MIN_GAP = 250;
-        const OBSTACLE_MAX_GAP = 500;
-        const OBSTACLE_MIN_WIDTH = 20;
-        const OBSTACLE_MAX_WIDTH = 80;
-        const OBSTACLE_MIN_HEIGHT = 30;
-        const OBSTACLE_MAX_HEIGHT = 100;
+        // Tamaño base para el pixel art. Todos los elementos serán múltiplos de este valor.
+        const PIXEL_SCALE = 4;
 
-        // Estado del juego
+        const GRAVITY = 0.5 * PIXEL_SCALE / 4; // Ajustamos la gravedad
+        const JUMP_POWER = -12 * PIXEL_SCALE / 4; // Ajustamos la fuerza de salto
+        const PLAYER_SIZE = 10 * PIXEL_SCALE; // Tamaño base del jugador: 10x10 pixeles grandes
+        const GROUND_HEIGHT = 10 * PIXEL_SCALE;
+        const SCROLL_SPEED = 2 * PIXEL_SCALE; // Velocidad de desplazamiento
+
+        // Colores de Pixel Art
+        const COLORS = {
+            groundDark: '#568203',
+            groundLight: '#7CB9E8',
+            playerSkin: '#FF5733',
+            playerDetail: '#F00000',
+            obstacleBrick: '#A0522D',
+            obstacleDetail: '#8B4513'
+        };
+        
+        // --- Estructuras de PIXEL ART (como arrays de colores) ---
+        // Patrón simple de ladrillo para el suelo
+        const GROUND_TILE_PATTERN = [
+            [COLORS.groundDark, COLORS.groundDark, COLORS.groundDark, COLORS.groundLight],
+            [COLORS.groundDark, COLORS.groundLight, COLORS.groundDark, COLORS.groundDark],
+            [COLORS.groundLight, COLORS.groundDark, COLORS.groundDark, COLORS.groundDark],
+            [COLORS.groundDark, COLORS.groundDark, COLORS.groundLight, COLORS.groundDark]
+        ];
+
+        // Diseño del jugador (10x10 pixeles base)
+        const PLAYER_PIXELS = [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], // 0 = Transparente
+            [0, 0, COLORS.playerDetail, COLORS.playerDetail, COLORS.playerDetail, 0, 0, 0, 0, 0], // Cabeza
+            [0, COLORS.playerSkin, COLORS.playerSkin, COLORS.playerSkin, COLORS.playerSkin, COLORS.playerSkin, 0, 0, 0, 0],
+            [COLORS.playerDetail, COLORS.playerDetail, COLORS.playerDetail, COLORS.playerDetail, COLORS.playerDetail, COLORS.playerDetail, 0, 0, 0, 0],
+            [0, COLORS.playerDetail, COLORS.playerDetail, COLORS.playerDetail, COLORS.playerDetail, COLORS.playerDetail, 0, 0, 0, 0],
+            [0, 0, COLORS.playerDetail, COLORS.playerDetail, COLORS.playerDetail, COLORS.playerDetail, 0, 0, 0, 0],
+            [0, 0, COLORS.playerSkin, COLORS.playerSkin, COLORS.playerSkin, COLORS.playerSkin, 0, 0, 0, 0],
+            [0, COLORS.playerDetail, 0, COLORS.playerDetail, 0, COLORS.playerDetail, 0, 0, 0, 0],
+            [COLORS.playerDetail, COLORS.playerDetail, 0, COLORS.playerDetail, COLORS.playerDetail, COLORS.playerDetail, 0, 0, 0, 0],
+            [0, 0, 0, 0, COLORS.playerDetail, 0, 0, 0, 0, 0]
+        ];
+
+        // --- LÓGICA DEL JUEGO (similar, pero con nuevos dibujos) ---
+
         let player = {
             x: 50,
             y: GAME_HEIGHT - GROUND_HEIGHT - PLAYER_SIZE,
@@ -123,10 +156,10 @@
         let obstacles = [];
         let score = 0;
         let gameOver = false;
-        let lastObstacleX = GAME_WIDTH; // Posición donde se generó el último obstáculo
+        let lastObstacleX = GAME_WIDTH;
 
-        // Funciones del juego
         function resetGame() {
+            // ... (resto de la función de reinicio)
             player = {
                 x: 50,
                 y: GAME_HEIGHT - GROUND_HEIGHT - PLAYER_SIZE,
@@ -137,34 +170,62 @@
             score = 0;
             gameOver = false;
             lastObstacleX = GAME_WIDTH;
-            scoreDisplay.textContent = score;
+            scoreDisplay.textContent = 0;
             gameOverScreen.style.display = 'none';
-            gameLoop(); // Inicia el bucle del juego de nuevo
+            gameLoop();
+        }
+
+        // Función genérica para dibujar pixel art desde un array
+        function drawPixelArt(x, y, pattern, widthBase, heightBase) {
+            const rows = pattern.length;
+            const cols = pattern[0].length;
+            const pxSizeX = widthBase / cols;
+            const pxSizeY = heightBase / rows;
+
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const color = pattern[i][j];
+                    if (color !== 0) { // El '0' indica transparencia
+                        ctx.fillStyle = color;
+                        ctx.fillRect(x + j * pxSizeX, y + i * pxSizeY, pxSizeX, pxSizeY);
+                    }
+                }
+            }
         }
 
         function drawPlayer() {
-            ctx.fillStyle = PLAYER_COLOR;
-            ctx.fillRect(player.x, player.y, PLAYER_SIZE, PLAYER_SIZE);
+            drawPixelArt(player.x, player.y, PLAYER_PIXELS, PLAYER_SIZE, PLAYER_SIZE);
         }
 
         function drawGround() {
-            ctx.fillStyle = GROUND_COLOR;
-            ctx.fillRect(0, GAME_HEIGHT - GROUND_HEIGHT, GAME_WIDTH, GROUND_HEIGHT);
+            const numTiles = Math.ceil(GAME_WIDTH / (PIXEL_SCALE * 4)); // Número de patrones
+            const tileWidth = PIXEL_SCALE * 4;
+            const tileHeight = GROUND_HEIGHT;
+
+            // Dibujar el patrón del suelo
+            for (let i = 0; i < numTiles; i++) {
+                drawPixelArt(i * tileWidth, GAME_HEIGHT - GROUND_HEIGHT, GROUND_TILE_PATTERN, tileWidth, tileHeight);
+            }
         }
 
         function drawObstacles() {
-            ctx.fillStyle = OBSTACLE_COLOR;
             obstacles.forEach(obstacle => {
+                // Dibujar el obstáculo como un simple bloque de ladrillo
+                ctx.fillStyle = COLORS.obstacleBrick;
                 ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+
+                // Añadir un detalle de sombra para el look pixel art
+                ctx.fillStyle = COLORS.obstacleDetail;
+                ctx.fillRect(obstacle.x + obstacle.width - PIXEL_SCALE, obstacle.y, PIXEL_SCALE, obstacle.height);
             });
         }
 
         function updatePlayer() {
+            // ... (la lógica de movimiento y colisión es la misma)
             if (player.isJumping) {
                 player.velocityY += GRAVITY;
                 player.y += player.velocityY;
 
-                // Si el jugador aterriza
                 if (player.y >= GAME_HEIGHT - GROUND_HEIGHT - PLAYER_SIZE) {
                     player.y = GAME_HEIGHT - GROUND_HEIGHT - PLAYER_SIZE;
                     player.velocityY = 0;
@@ -172,10 +233,23 @@
                 }
             }
         }
+        
+        // El resto de las funciones son las mismas (updateObstacles, checkCollisions, updateScore, gameLoop, etc.)
+        // Las reescribo solo para tener todo el código junto y funcional:
+        
+        // Configuración de Obstáculos (ajustada para el nuevo PIXEL_SCALE)
+        const OBSTACLE_MIN_GAP = 70 * PIXEL_SCALE;
+        const OBSTACLE_MAX_GAP = 120 * PIXEL_SCALE;
+        const OBSTACLE_MIN_WIDTH = 4 * PIXEL_SCALE;
+        const OBSTACLE_MAX_WIDTH = 12 * PIXEL_SCALE;
+        const OBSTACLE_MIN_HEIGHT = 6 * PIXEL_SCALE;
+        const OBSTACLE_MAX_HEIGHT = 18 * PIXEL_SCALE;
 
         function generateObstacle() {
-            const width = OBSTACLE_MIN_WIDTH + Math.random() * (OBSTACLE_MAX_WIDTH - OBSTACLE_MIN_WIDTH);
-            const height = OBSTACLE_MIN_HEIGHT + Math.random() * (OBSTACLE_MAX_HEIGHT - OBSTACLE_MIN_HEIGHT);
+            // Aseguramos que los anchos y altos sean múltiplos de PIXEL_SCALE
+            const width = Math.round((OBSTACLE_MIN_WIDTH + Math.random() * (OBSTACLE_MAX_WIDTH - OBSTACLE_MIN_WIDTH)) / PIXEL_SCALE) * PIXEL_SCALE;
+            const height = Math.round((OBSTACLE_MIN_HEIGHT + Math.random() * (OBSTACLE_MAX_HEIGHT - OBSTACLE_MIN_HEIGHT)) / PIXEL_SCALE) * PIXEL_SCALE;
+            
             const x = lastObstacleX + OBSTACLE_MIN_GAP + Math.random() * (OBSTACLE_MAX_GAP - OBSTACLE_MIN_GAP);
             const y = GAME_HEIGHT - GROUND_HEIGHT - height;
 
@@ -184,13 +258,11 @@
         }
 
         function updateObstacles() {
-            // Mueve obstáculos y elimina los que están fuera de la pantalla
             obstacles = obstacles.filter(obstacle => {
                 obstacle.x -= SCROLL_SPEED;
                 return obstacle.x + obstacle.width > 0;
             });
 
-            // Genera nuevos obstáculos si el último está lo suficientemente lejos
             if (obstacles.length === 0 || lastObstacleX < GAME_WIDTH - OBSTACLE_MIN_GAP) {
                  generateObstacle();
             }
@@ -211,14 +283,14 @@
 
         function updateScore() {
             score += 1;
-            scoreDisplay.textContent = Math.floor(score / 10); // Ajusta la puntuación para que no suba tan rápido
+            scoreDisplay.textContent = Math.floor(score / 10);
         }
 
         function gameLoop() {
             if (gameOver) {
                 cancelAnimationFrame(gameLoop);
                 finalScoreDisplay.textContent = Math.floor(score / 10);
-                gameOverScreen.style.display = 'flex'; // Muestra la pantalla de Game Over
+                gameOverScreen.style.display = 'flex';
                 return;
             }
 
