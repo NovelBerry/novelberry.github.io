@@ -5,455 +5,276 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Goku World by Winted Studios</title>
 <style>
-  html,body{height:100%;margin:0;background:#87ceeb;font-family:Segoe UI,Arial,sans-serif}
-  #container{width:960px;margin:12px auto;text-align:center}
-  canvas{display:block;margin:6px auto;border-radius:6px;box-shadow:0 10px 40px rgba(0,0,0,0.25);background:linear-gradient(#9be6ff,#6ec6ff)}
-  #ui{color:#012;display:flex;justify-content:space-between;align-items:center}
-  button{padding:8px 12px;border-radius:6px;border:none;background:#0b84ff;color:white;cursor:pointer}
-  .small{font-size:12px;color:#034}
+  html,body{height:100%;margin:0;background:#87ceeb;font-family:Segoe UI,Arial,sans-serif;display:flex;align-items:center;justify-content:center}
+  canvas{display:block;border-radius:10px;box-shadow:0 12px 50px rgba(0,0,0,0.35);background:linear-gradient(#9be6ff,#6ec6ff)}
 </style>
 </head>
 <body>
-<div id="container">
-  <h1 style="margin:6px 0">Goku World <small class="small">by Winted Studios</small></h1>
-  <div id="ui">
-    <div>Vidas: <span id="lives">8</span> &nbsp; Nivel: <span id="level">1</span> &nbsp; Estado: <span id="state">Normal</span></div>
-    <div><button id="startBtn">Iniciar / Reiniciar</button></div>
-  </div>
-  <canvas id="game" width="960" height="540"></canvas>
-</div>
+<canvas id="game" width="1280" height="720"></canvas>
 <script>
-/* Goku World - single file
-   Mejoras aplicadas en esta versión:
-   - Piso sólido y plataformas alcanzables (altura limitada a salto del jugador)
-   - Corrección de colisiones (toque con flag sube de nivel)
-   - Nuevos tipos de enemigos (grunt, flyer) y miniboss en niveles 10 y 15
-   - Pixel-art style (dibujado con rects y sin smoothing)
-   - Flor azul evidente en posiciones obvias (plataformas centrales)
-   - Flor cambia pelo a azul, agranda personaje; kamehameha azul
-   - Toca enemigo por el costado = pierdes vida; saltar sobre cabeza = enemigo muere (miniboss necesita 3 stomp)
-   - Controles: W/A/S/D, flechas; salto con Space; disparo con X
+/* Goku World - FINAL in-canvas UI
+   - All UI (HUD, controls, start button) drawn inside canvas
+   - Canvas size: 1280 x 720 (bigger)
+   - Retains: 15 levels, minibosses, flower powerup, blocks, coins, kamehameha, audio via WebAudio
 */
-
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-ctx.imageSmoothingEnabled = false; // pixel-art look
-const W = canvas.width, H = canvas.height;
+ctx.imageSmoothingEnabled = false;
+const W = canvas.width, H = canvas.height, TILE = 48;
 
-// Game vars
-let maps = [], levelIndex = 0, lives = 8, gameRunning = false;
+// Game state
+let maps = [], levelIndex = 0, lives = 8, coins = 0, gameRunning = false;
 let keys = {};
-const TILE = 48; // tile size
 
 // Player
 let player = {
-  x:80, y: H-3*TILE, w:28, h:36, dx:0, dy:0, speed:3.2, jumpPow:-13, onGround:false,
-  facing:1, powered:false, big:false, hitBuffer:0, invuln:0, lastShot:0
+  x: 100, y: H - 4*TILE, w: 32, h:40, dx:0, dy:0, speed:3.4, jumpPow:-14, onGround:false,
+  facing:1, powered:false, big:false, hitBuffer:0, invuln:0, lastShot:0, powerStart:0
 };
 
 let camX = 0;
-let enemies = [];
-let projectiles = [];
-let powerups = [];
+let enemies = [], projectiles = [], powerups = [], animations = [];
 
-// Utility: correct rectangle overlap
-function rectsOverlap(a,b){
-  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-}
+// Audio (simple synths using WebAudio)
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+function ensureAudio(){ if(!audioCtx) audioCtx = new AudioCtx(); }
+function beep(freq, dur, type='sine', vol=0.18){ try{ ensureAudio(); let o = audioCtx.createOscillator(); let g = audioCtx.createGain(); o.type = type; o.frequency.value = freq; g.gain.value = vol; o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + dur/1000); }catch(e){} }
+function coinSound(){ beep(960,80,'square',0.25); beep(1400,80,'square',0.18); }
+function blockSound(){ beep(440,120,'triangle',0.2); }
+function powerupSound(){ beep(660,220,'sawtooth',0.28); }
+function hitSound(){ beep(220,160,'sawtooth',0.28); }
+function kameSound(){ beep(1100,120,'square',0.28); }
 
-// Generate 15 levels with reachable platforms
-function makeEmptyMap(cols){
-  cols = cols || Math.floor(W/TILE) + 20;
-  const rows = Math.floor(H/TILE);
-  let map = Array.from({length:rows},()=>Array(cols).fill(0));
-  return map;
-}
+// Helper
+function rectsOverlap(a,b){ return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+
+// Map generation
+function makeEmptyMap(cols){ cols = cols || Math.floor(W/TILE) + 40; const rows = Math.floor(H/TILE); return Array.from({length:rows},()=>Array(cols).fill(0)); }
 
 function createLevels(){
   for(let i=0;i<15;i++){
-    let cols = Math.floor(W/TILE) + 24 + i*2;
+    let cols = Math.floor(W/TILE) + 40 + i*2;
     let map = makeEmptyMap(cols);
-    // base floor: last row = ground
+    // ground
     for(let c=0;c<cols;c++) map[map.length-1][c] = 1;
-
-    // place reachable platforms: max height = player jump (approx 3 tiles)
-    let platforms = 5 + Math.floor(i/2);
+    // platforms reachable: max 3 tiles above ground
+    let platforms = 6 + Math.floor(i/2);
     for(let p=0;p<platforms;p++){
       let col = 8 + p*6 + (i%3);
-      // row chosen so it's at most 3 tiles above ground
       let row = map.length-2 - (1 + Math.floor(Math.random()*3));
-      for(let k=0;k<4;k++) if(col+k < cols-6) map[row][col+k]=1;
+      for(let k=0;k<4;k++) if(col+k < cols-6) map[row][col+k] = 1;
     }
-
-    // place flag near end
+    // add some yellow blocks and coin blocks in mid area
+    let coinRow = map.length-5;
+    map[coinRow][10] = 3; // coin block
+    map[coinRow][12] = 3;
+    map[coinRow][14] = 4; // special block with flower
+    // hole to jump
+    let holeStart = Math.floor(cols/2)-1; map[map.length-1][holeStart]=0; map[map.length-1][holeStart+1]=0;
+    // flag
     map[map.length-2][cols-4] = 9;
-
     maps.push(map);
   }
 }
 
-// Spawn enemies and powerups for a level
-function populateLevel(idx){
-  enemies = [];
-  projectiles = [];
-  powerups = [];
-  const map = maps[idx];
-  const cols = map[0].length;
-
-  // Grunts on ground and platforms
+// Populate enemies & powerups
+function populateLevel(idx){ enemies=[]; projectiles=[]; powerups=[]; animations=[]; const map = maps[idx]; const cols = map[0].length;
+  // grunts
   let gruntCount = 3 + Math.floor(idx/3);
   for(let g=0; g<gruntCount; g++){
-    // choose spawn x on ground or platform
-    let spawnX = 220 + g*180 + (idx*10);
-    if(spawnX > cols*TILE - 400) spawnX = 220 + (g*120);
+    let spawnX = 300 + g*200 + idx*12;
+    if(spawnX > cols*TILE - 500) spawnX = 280 + g*140;
     let spawnY = findGroundYForX(spawnX) - 36;
-    enemies.push({x:spawnX,y:spawnY,w:30,h:34,dx:(Math.random()>0.5?1.2:-1.2),hp:1,type:'grunt'});
+    enemies.push({x:spawnX, y:spawnY, w:32, h:36, dx: (Math.random()>0.5?1.2:-1.2), hp:1, type:'grunt'});
   }
-
-  // Flyers that move vertically/horizontally
-  let flyerCount = (idx>=2)? Math.min(2, Math.floor(idx/5)+1):0;
+  // flyers
+  let flyerCount = (idx>=2)? Math.min(2, Math.floor(idx/5)+1) : 0;
   for(let f=0; f<flyerCount; f++){
-    let fx = 400 + f*240 + (idx*8);
-    enemies.push({x:fx,y:120 + f*60,w:28,h:28,dx: (Math.random()>0.5?1.4:-1.4),hp:1,type:'flyer',phase:Math.random()*1000});
+    let fx = 520 + f*260 + idx*6;
+    enemies.push({x:fx, y:120 + f*60, w:30, h:30, dx: (Math.random()>0.5?1.4:-1.4), hp:1, type:'flyer', phase: Math.random()*1000});
   }
-
-  // miniboss on levels 10 (index 9) and 15 (index 14)
-  if(idx===9 || idx===14){
-    enemies.push({x: (cols*TILE)-340, y: H - 1.6*TILE - 70, w:84, h:84, dx:0, hp:3, type:'miniboss', hitsRequired:3, hitCount:0});
-  }
-
-  // Place the blue flower in an obvious spot: on a central platform or near mid-screen
-  let fx = Math.min(cols*TILE - 500, 420 + idx*60);
-  let fy = findGroundYForX(fx) - TILE - 8; // on a platform above ground
-  powerups.push({x:fx,y:fy,type:'blueflower',picked:false});
-
+  // miniboss
+  if(idx===9 || idx===14){ enemies.push({x: (cols*TILE)-420, y: H - 2.5*TILE, w:96, h:96, dx:0, hp:3, type:'miniboss', hitsRequired:3, hitCount:0}); }
 }
 
-// Find nearest ground Y (top of tile) for given world X
-function findGroundYForX(worldX){
-  const map = maps[levelIndex];
-  const c = Math.floor(worldX / TILE);
-  for(let r=0;r<map.length;r++){
-    if(map[r][c] && map[r][c]!==0){
-      return r*TILE; // tile top
-    }
-  }
-  // default ground
-  return (map.length-1)*TILE;
-}
+function findGroundYForX(worldX){ const map = maps[levelIndex]; const c = Math.floor(worldX / TILE); for(let r=0;r<map.length;r++){ if(map[r][c] && map[r][c] !== 0) return r*TILE; } return (map.length-1)*TILE; }
 
-function loadLevel(idx){
-  levelIndex = idx;
-  // reset player
-  player.x = 80; player.y = H - 3*TILE; player.dx = 0; player.dy = 0; player.onGround = false;
-  player.powered=false; player.big=false; player.hitBuffer=0; player.invuln=0;
-  populateLevel(idx);
-  updateUI();
-}
-
-function updateUI(){
-  document.getElementById('lives').textContent = lives;
-  document.getElementById('level').textContent = levelIndex+1;
-  document.getElementById('state').textContent = player.powered? 'Poder (Kamehameha)' : 'Normal';
-}
+function loadLevel(idx){ levelIndex = idx; player.x = 100; player.y = H - 4*TILE; player.dx=0; player.dy=0; player.onGround=false; player.powered=false; player.big=false; player.hitBuffer=0; player.invuln=0; coins=0; populateLevel(idx); }
 
 // Controls
-window.addEventListener('keydown', e=>{ keys[e.key.toLowerCase()] = true; if(e.code==='Space') e.preventDefault(); });
+window.addEventListener('keydown', e=>{ keys[e.key.toLowerCase()] = true; if(e.code==='Space') e.preventDefault(); // prevent page scroll
+  // start game on Enter
+  if(e.code === 'Enter'){ gameRunning = true; ensureAudio(); }
+});
 window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()] = false; });
+canvas.addEventListener('click', e=>{ // click canvas to start and to focus audio on some browsers
+  const rect = canvas.getBoundingClientRect(); const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  // if click on top-right 'Start' button area, start the game
+  if(mx > W-220 && mx < W-80 && my > 20 && my < 68){ gameRunning = true; ensureAudio(); }
+});
 
-// Physics & game rules
-function step(){
-  if(!gameRunning) return;
-
-  // input
-  let left = keys['a'] || keys['arrowleft'];
-  let right = keys['d'] || keys['arrowright'];
-  let jump = keys[' '] || keys['w'] || keys['arrowup'];
-
-  if(left){ player.dx = -player.speed; player.facing = -1; }
-  else if(right){ player.dx = player.speed; player.facing = 1; }
-  else player.dx = 0;
-
+// Game loop
+function step(){ if(!gameRunning) return; // paused until start
+  let left = keys['a'] || keys['arrowleft']; let right = keys['d'] || keys['arrowright']; let up = keys['w'] || keys['arrowup']; let jump = keys[' '] || up;
+  if(left){ player.dx = -player.speed; player.facing = -1; } else if(right){ player.dx = player.speed; player.facing = 1; } else { player.dx = 0; }
   if(jump && player.onGround){ player.dy = player.jumpPow; player.onGround = false; }
-
-  // shooting
-  if((keys['x'] || keys['X']) && player.powered){
-    if(Date.now() - player.lastShot > 280){
-      let px = player.x + (player.facing>0? player.w : -12);
-      let color = player.powered? 'blue' : 'white';
-      projectiles.push({x:px, y:player.y + player.h/2, dx: player.facing*9, w:18, h:8, color: color});
-      player.lastShot = Date.now();
-    }
-  }
-
-  // apply gravity
-  player.dy += 0.7; if(player.dy > 18) player.dy = 18;
-  player.x += player.dx; player.y += player.dy;
-
-  // map collisions - simple tile collision
+  // fire
+  if((keys['x']||keys['X']) && player.powered){ if(Date.now() - player.lastShot > 260){ let px = player.x + (player.facing>0? player.w : -14); projectiles.push({x:px, y: player.y + player.h/2, dx: player.facing*10, w:20, h:8, color: 'blue'}); player.lastShot = Date.now(); kameSound(); } }
+  // gravity & integration
+  player.dy += 0.8; if(player.dy > 20) player.dy = 20; player.x += player.dx; player.y += player.dy;
+  // collisions with map
   handleMapCollisions();
-
   // camera
-  camX = Math.max(0, player.x - 220);
-
+  camX = Math.max(0, player.x - 360);
   // enemies update
   for(let en of enemies){
-    if(en.type === 'grunt'){
-      en.x += en.dx;
-      // basic turning behaviour on map edges
-      if(en.x < 60) en.dx = Math.abs(en.dx);
-      if(en.x > maps[levelIndex][0].length*TILE - 200) en.dx = -Math.abs(en.dx);
-    } else if(en.type === 'flyer'){
-      en.phase += 0.02;
-      en.x += Math.sin(en.phase)*1.2 + en.dx*0.3;
-      en.y += Math.sin(en.phase*1.3)*1.6;
-    } else if(en.type === 'miniboss'){
-      // slow movement or idle
-      en.x += Math.sin(Date.now()/600)*1.0;
-    }
+    if(en.type === 'grunt'){ en.x += en.dx; if(en.x < 60) en.dx = Math.abs(en.dx); if(en.x > maps[levelIndex][0].length*TILE - 220) en.dx = -Math.abs(en.dx); }
+    else if(en.type === 'flyer'){ en.phase += 0.02; en.x += Math.sin(en.phase)*1.2 + en.dx*0.25; en.y += Math.sin(en.phase*1.3)*1.4; }
+    else if(en.type === 'miniboss'){ en.x += Math.sin(Date.now()/700)*0.9; }
   }
-
-  // projectile collisions
-  for(let i=projectiles.length-1;i>=0;i--){
-    let p = projectiles[i]; p.x += p.dx;
-    // check out of bounds
-    if(p.x < camX - 80 || p.x > camX + W + 80){ projectiles.splice(i,1); continue; }
-    // hit enemies
-    for(let j=enemies.length-1;j>=0;j--){
-      if(rectsOverlap(p, enemies[j])){
-        enemies[j].hp -= 1;
-        projectiles.splice(i,1);
-        if(enemies[j].hp <= 0) enemies.splice(j,1);
-        break;
-      }
-    }
-  }
-
-  // enemy collisions with player
-  for(let ei = enemies.length-1; ei>=0; ei--){
-    let en = enemies[ei];
-    if(rectsOverlap(player, en)){
-      // stomp?
-      if(player.dy > 0 && (player.y + player.h - en.y) < 20){
-        // successful stomp
-        if(en.type === 'miniboss'){
-          en.hitCount = (en.hitCount||0) + 1; player.dy = -9; player.onGround=false;
-          if(en.hitCount >= en.hitsRequired) enemies.splice(ei,1);
-        } else if(en.type === 'flyer'){
-          // flyers die by stomp too
-          enemies.splice(ei,1); player.dy = -8; player.onGround=false;
-        } else {
-          enemies.splice(ei,1); player.dy = -8; player.onGround=false;
-        }
+  // projectiles collision
+  for(let i=projectiles.length-1;i>=0;i--){ let p = projectiles[i]; p.x += p.dx; if(p.x < camX - 100 || p.x > camX + W + 100){ projectiles.splice(i,1); continue; } for(let j=enemies.length-1;j>=0;j--){ if(rectsOverlap(p, enemies[j])){ enemies[j].hp -= 1; projectiles.splice(i,1); if(enemies[j].hp <= 0) enemies.splice(j,1); break; } } }
+  // enemy collisions
+  for(let ei = enemies.length-1; ei>=0; ei--){ let en = enemies[ei]; if(rectsOverlap(player, en)){
+      if(player.dy > 0 && (player.y + player.h - en.y) < 20){ // stomp
+        if(en.type === 'miniboss'){ en.hitCount = (en.hitCount||0) + 1; player.dy = -10; player.onGround = false; if(en.hitCount >= en.hitsRequired) { enemies.splice(ei,1); } }
+        else { enemies.splice(ei,1); player.dy = -9; player.onGround = false; }
       } else {
-        // side collision -> player takes damage
+        // side hit
         handlePlayerHit();
       }
     }
   }
-
   // powerup pickup
-  for(let i=powerups.length-1;i>=0;i--){
-    let pu = powerups[i];
-    if(rectsOverlap(player, {x:pu.x,y:pu.y,w:32,h:32} )){
-      if(pu.type === 'blueflower'){
-        player.powered = true; player.big = true; player.hitBuffer = 2; player.powerStart = Date.now();
-      }
-      powerups.splice(i,1);
-    }
-  }
-
-  // power lasts 25 seconds
-  if(player.powered && Date.now() - (player.powerStart||0) > 25000){ player.powered = false; player.big = false; }
-
+  for(let i=powerups.length-1;i>=0;i--){ let pu = powerups[i]; if(rectsOverlap(player, {x:pu.x, y:pu.y, w:32, h:32})){ if(pu.type === 'blueflower'){ player.powered = true; player.big = true; player.hitBuffer = 2; player.powerStart = Date.now(); powerupSound(); } powerups.splice(i,1); } }
+  // timed power
+  if(player.powered && Date.now() - player.powerStart > 25000){ player.powered = false; player.big = false; }
   if(player.invuln > 0) player.invuln--;
-
-  // flag check - advance level when player touches flag area
+  // flag check
   const flagX = (maps[levelIndex][0].length - 4) * TILE;
-  const flagRect = {x:flagX, y: (maps[levelIndex].length-3)*TILE - 60, w: 64, h: 140};
+  const flagRect = { x: flagX, y: (maps[levelIndex].length-3)*TILE - 80, w: 64, h: 140 };
   if(rectsOverlap(player, flagRect)){
-    // advance
-    if(levelIndex < maps.length - 1){ loadLevel(levelIndex+1); }
-    else { alert('¡Has completado Goku World! Reiniciando.'); lives = 8; loadLevel(0); }
+    if(levelIndex < maps.length-1){ loadLevel(levelIndex+1); } else { alert('¡Has completado Goku World! Reiniciando.'); lives = 8; coins = 0; loadLevel(0); }
   }
 }
 
-function handlePlayerHit(){
-  if(player.invuln > 0) return;
-  if(player.powered && player.hitBuffer > 1){ player.hitBuffer--; player.invuln = 45; return; }
-  // lose one life
-  lives--; player.invuln = 80; player.powered = false; player.big = false; player.hitBuffer = 0;
-  if(lives <= 0){ alert('Has perdido todas las vidas — reiniciando.'); lives = 8; loadLevel(0); }
-  updateUI();
-}
+function handlePlayerHit(){ if(player.invuln > 0) return; if(player.powered && player.hitBuffer > 1){ player.hitBuffer--; player.invuln = 45; hitSound(); return; } // without power, immediate death
+ lives--; hitSound(); if(lives <= 0){ alert('Has muerto. Reiniciando nivel.'); lives = 8; coins = 0; loadLevel(levelIndex); } }
 
-// Tile collision helper - simple AABB against tile map
-function handleMapCollisions(){
-  const map = maps[levelIndex];
-  const rows = map.length, cols = map[0].length;
-  // calculate which tiles player overlaps
-  let leftCol = Math.floor(player.x / TILE);
-  let rightCol = Math.floor((player.x + player.w) / TILE);
-  let topRow = Math.floor(player.y / TILE);
-  let bottomRow = Math.floor((player.y + player.h) / TILE);
-
-  // vertical collision
-  if(player.dy > 0){
-    // moving down - check tiles below feet
-    let r = bottomRow;
-    for(let c = leftCol; c <= rightCol; c++){
-      if(map[r] && map[r][c] === 1){
-        player.y = r * TILE - player.h; player.dy = 0; player.onGround = true; bottomRow = Math.floor((player.y + player.h) / TILE);
-      }
-    }
-  } else if(player.dy < 0){
-    // moving up - head bump
-    let r = topRow;
-    for(let c = leftCol; c <= rightCol; c++){
-      if(map[r] && map[r][c] === 1){
-        player.y = (r+1)*TILE; player.dy = 0; topRow = Math.floor(player.y / TILE);
+// Map collision & interactions (blocks, coins, special blocks)
+function handleMapCollisions(){ const map = maps[levelIndex]; const rows = map.length;
+  let leftCol = Math.floor(player.x / TILE); let rightCol = Math.floor((player.x + player.w) / TILE);
+  let topRow = Math.floor(player.y / TILE); let bottomRow = Math.floor((player.y + player.h) / TILE);
+  // head bump: check tiles above
+  if(player.dy < 0){ let r = topRow; for(let c = leftCol; c <= rightCol; c++){ if(map[r] && map[r][c] !== 0){ // coin block(3) / flower block(4) / solid(1)
+        if(map[r][c] === 3){ // coin
+          coins++; coinSound(); map[r][c] = 0; animations.push({x:c*TILE, y:r*TILE, type:'coin', t:30});
+        } else if(map[r][c] === 4){ // special flower block
+          map[r][c] = 0; blockSound(); animations.push({x:c*TILE, y:r*TILE, type:'blockhit', t:18}); powerups.push({x:c*TILE, y:r*TILE-40, type:'blueflower', picked:false});
+        } else if(map[r][c] === 1){ // head hits solid
+          player.y = (r+1)*TILE; player.dy = 0;
+        }
       }
     }
   }
-
-  // horizontal collision
-  if(player.dx !== 0){
-    let c = (player.dx > 0) ? rightCol : leftCol;
-    for(let r = topRow; r <= bottomRow; r++){
-      if(map[r] && map[r][c] === 1){
-        if(player.dx > 0) player.x = c * TILE - player.w;
-        else player.x = (c+1) * TILE;
-        player.dx = 0;
-      }
-    }
-  }
-
-  // prevent falling below world
+  // feet collision - ground
+  if(player.dy > 0){ let r = bottomRow; for(let c = leftCol; c <= rightCol; c++){ if(map[r] && map[r][c] === 1){ player.y = r*TILE - player.h; player.dy = 0; player.onGround = true; bottomRow = Math.floor((player.y + player.h) / TILE); } } }
+  // horizontal
+  if(player.dx !== 0){ let c = (player.dx > 0) ? rightCol : leftCol; for(let r = topRow; r <= bottomRow; r++){ if(map[r] && map[r][c] === 1){ if(player.dx > 0) player.x = c*TILE - player.w; else player.x = (c+1)*TILE; player.dx = 0; } } }
+  // world bottom
   if(player.y + player.h > rows * TILE){ player.y = rows*TILE - player.h; player.dy = 0; player.onGround = true; }
 }
 
-// ---- Drawing (pixel-art style) ----
-function draw(){
-  // clear
+// Drawing - entire UI inside canvas
+function draw(){ // background
   ctx.fillStyle = '#87ceeb'; ctx.fillRect(0,0,W,H);
-
-  // parallax background
-  ctx.fillStyle = '#cfefff'; ctx.fillRect(0,0,W,120);
-
-  // draw map
+  // distant sky band
+  ctx.fillStyle = '#cfefff'; ctx.fillRect(0,0,W,140);
+  // draw map and objects
   drawMap(maps[levelIndex]);
-
-  // draw powerups
+  // powerups
   for(let pu of powerups) drawFlower(pu.x - camX, pu.y, pu.type);
-
-  // draw enemies
+  // enemies
   for(let en of enemies) drawEnemy(en.x - camX, en.y, en);
-
-  // draw projectiles
-  for(let p of projectiles){
-    ctx.fillStyle = (p.color==='blue'?'#2ea3ff':'#fff');
-    ctx.fillRect(Math.round(p.x - camX), Math.round(p.y), p.w, p.h);
-  }
-
-  // draw player
+  // projectiles
+  for(let p of projectiles){ ctx.fillStyle = (p.color==='blue'?'#2ea3ff':'#fff'); ctx.fillRect(Math.round(p.x - camX), Math.round(p.y), p.w, p.h); }
+  // player
   drawPlayer(Math.round(player.x - camX), Math.round(player.y), player);
-
-  // draw flag larger
-  const flagX = (maps[levelIndex][0].length - 4) * TILE - camX;
-  drawFlag(flagX, (maps[levelIndex].length-3)*TILE - 60);
-
-  // HUD overlay small: lives
-  ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(8,8,160,36);
-  ctx.fillStyle='#fff'; ctx.font='16px monospace'; ctx.fillText('Vidas: ' + lives + '   Nivel: ' + (levelIndex+1), 16, 32);
+  // animations
+  drawAnimations();
+  // flag
+  const flagX = (maps[levelIndex][0].length - 4) * TILE - camX; drawFlag(flagX, (maps[levelIndex].length-3)*TILE - 80);
+  // HUD (inside canvas top-left)
+  drawHUD();
 }
 
-function drawMap(map){
-  for(let r=0;r<map.length;r++){
-    for(let c=0;c<map[0].length;c++){
-      let t = map[r][c];
-      let x = c*TILE - camX, y = r*TILE;
-      if(x < -TILE || x > W+TILE) continue;
-      if(t === 1){
-        // pixel-styled ground tile
-        ctx.fillStyle = '#7e5a2f'; ctx.fillRect(x,y,TILE,TILE);
-        ctx.fillStyle = '#9b6e3f'; ctx.fillRect(x+4,y+6, TILE-8, TILE-12);
-        // top edge highlight
-        ctx.fillStyle = '#b99266'; ctx.fillRect(x+4,y+2,TILE-8,4);
-      } else if(t === 9){
-        // flag tile placeholder - actual flag drawn separately
-        ctx.fillStyle = '#7e5a2f'; ctx.fillRect(x,y,TILE,TILE);
-      }
-    }
-  }
-}
+function drawMap(map){ for(let r=0;r<map.length;r++){ for(let c=0;c<map[0].length;c++){ let t = map[r][c]; let x = c*TILE - camX, y = r*TILE; if(x < -TILE || x > W + TILE) continue; if(t === 1){ // ground tile
+            ctx.fillStyle = '#6b4322'; ctx.fillRect(x,y,TILE,TILE); ctx.fillStyle = '#8b5e34'; ctx.fillRect(x+6,y+6,TILE-12,TILE-14); ctx.fillStyle='#b99266'; ctx.fillRect(x+6,y+2,TILE-12,4);
+        } else if(t === 3){ // coin block
+            ctx.fillStyle = '#ffd84d'; ctx.fillRect(x,y,TILE,TILE); ctx.strokeStyle='#b58f20'; ctx.strokeRect(x+6,y+6,TILE-12,TILE-12);
+            // question mark pixel
+            ctx.fillStyle='#b58f20'; ctx.fillRect(x+TILE/2-4,y+TILE/2-2,3,3); ctx.fillRect(x+TILE/2+1,y+TILE/2+2,2,2);
+        } else if(t === 4){ // flower block (yellow)
+            ctx.fillStyle = '#ffd000'; ctx.fillRect(x,y,TILE,TILE); ctx.strokeStyle='#b58f20'; ctx.strokeRect(x+6,y+6,TILE-12,TILE-12);
+            ctx.fillStyle='#c33'; ctx.fillRect(x+TILE/2-6,y+TILE/2-6,12,12);
+        } else if(t === 9){ ctx.fillStyle = '#6b4322'; ctx.fillRect(x,y,TILE,TILE); } } } }
 
-function drawFlag(x,y){
-  // pole
-  ctx.fillStyle = '#6a3b1a'; ctx.fillRect(x+12,y,8,120);
-  // cloth big
-  ctx.fillStyle = '#ff3b3b'; ctx.fillRect(x+20,y+8,48,36);
-  // star emblem
-  ctx.fillStyle = '#ffd700'; ctx.fillRect(x+36,y+18,8,8);
-}
+function drawFlag(x,y){ ctx.fillStyle='#6a3b1a'; ctx.fillRect(x+18,y,8,160); ctx.fillStyle='#ff3b3b'; ctx.fillRect(x+28,y+10,64,46); ctx.fillStyle='#ffd700'; ctx.fillRect(x+52,y+28,12,12); }
 
-function drawPlayer(sx, sy, p){
-  ctx.save(); ctx.translate(sx, sy);
+function drawPlayer(sx,sy,p){ ctx.save(); ctx.translate(sx,sy); let scale = p.big?1.2:1.0; ctx.scale(scale,scale);
   // shadow
-  ctx.fillStyle='rgba(0,0,0,0.15)'; ctx.fillRect(4, p.h+6, p.w+10, 6);
-
-  let scale = p.big?1.2:1.0; ctx.scale(scale, scale);
-
+  ctx.fillStyle='rgba(0,0,0,0.18)'; ctx.fillRect(4, p.h+8, p.w+14, 8);
   // head
-  ctx.fillStyle = '#f8d8b0'; ctx.fillRect(4,2,18,18);
-  // hair (color depends on powered: normal orange, powered -> blue)
-  ctx.fillStyle = p.powered? '#2ea3ff' : '#ff7f00';
-  // simple pixel spikes
-  ctx.fillRect(2,2,4,6); ctx.fillRect(8,-2,4,8); ctx.fillRect(14,0,6,6);
-
-  // body (gi)
-  ctx.fillStyle = '#ff8c00'; ctx.fillRect(2,20,22,20);
+  ctx.fillStyle='#f8d8b0'; ctx.fillRect(6,2,20,20);
+  // hair/orb spikes (color changes when powered)
+  ctx.fillStyle = p.powered ? '#2ea3ff' : '#ff7f00'; ctx.fillRect(4,2,4,8); ctx.fillRect(12,-2,6,12); ctx.fillRect(20,0,6,8);
+  // body
+  ctx.fillStyle='#ff8c00'; ctx.fillRect(6,24,20,22);
   // belt
-  ctx.fillStyle = '#002233'; ctx.fillRect(2,36,22,6);
+  ctx.fillStyle='#002233'; ctx.fillRect(6,42,20,6);
   // legs
-  ctx.fillStyle = '#ff8c00'; ctx.fillRect(2,42,8,12); ctx.fillRect(16,42,8,12);
+  ctx.fillStyle='#ff8c00'; ctx.fillRect(6,48,8,14); ctx.fillRect(18,48,8,14);
   // arm
-  ctx.fillStyle = '#f8d8b0'; ctx.fillRect(p.facing>0?20:-8,22,8,8);
+  ctx.fillStyle='#f8d8b0'; ctx.fillRect(p.facing>0?26:-10,28,8,8);
+  // eye
+  ctx.fillStyle='#000'; ctx.fillRect(14,10,3,3);
+ ctx.restore(); }
 
-  // small eye pixel
-  ctx.fillStyle = '#000'; ctx.fillRect(10,8,2,2);
+function drawEnemy(x,y,en){ if(en.type === 'grunt'){ ctx.fillStyle='#2b5'; ctx.fillRect(Math.round(x), Math.round(y), en.w, en.h); ctx.fillStyle='#0a0'; ctx.fillRect(Math.round(x+8), Math.round(y+10), 8,8); } else if(en.type==='flyer'){ ctx.fillStyle='#b23'; ctx.fillRect(Math.round(x), Math.round(y), en.w, en.h); ctx.fillStyle='#d55'; ctx.fillRect(Math.round(x-8), Math.round(y+10), 8,4); ctx.fillRect(Math.round(x+en.w), Math.round(y+10), 8,4); } else if(en.type==='miniboss'){ ctx.fillStyle='#802'; ctx.fillRect(Math.round(x), Math.round(y), en.w, en.h); ctx.fillStyle='#fff'; ctx.fillRect(Math.round(x), Math.round(y-10), Math.round(en.w*(1-((en.hitCount||0)/(en.hitsRequired||3)))),8); } }
 
-  ctx.restore();
+function drawFlower(x,y,type){ ctx.fillStyle='#0ea3ff'; ctx.fillRect(Math.round(x), Math.round(y), 36,36); ctx.fillStyle='#fff'; ctx.fillRect(Math.round(x+14), Math.round(y+14), 8,12); }
+
+function drawAnimations(){ for(let i=animations.length-1;i>=0;i--){ let a = animations[i]; if(a.type === 'coin'){ ctx.fillStyle='#ffd700'; ctx.beginPath(); ctx.arc(a.x + TILE/2 - camX, a.y + (30-a.t), 8, 0, Math.PI*2); ctx.fill(); } a.t--; if(a.t <= 0) animations.splice(i,1); } }
+
+function drawHUD(){ // top-left HUD
+  ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(12,12,380,64);
+  ctx.fillStyle = '#fff'; ctx.font = '20px monospace'; ctx.fillText('Goku World  by Winted Studios', 24, 34);
+  ctx.font = '18px monospace'; ctx.fillText('Vidas: ' + lives + '   Nivel: ' + (levelIndex+1) + '   Monedas: ' + coins, 24, 58);
+  // Start button at top-right inside canvas
+  ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fillRect(W-220, 20, 140, 48); ctx.fillStyle = '#fff'; ctx.font = '18px monospace'; ctx.fillText(gameRunning? 'Reiniciar (Enter)' : 'Iniciar (Enter)', W-200, 50);
+  // controls bottom-left
+  ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(12, H-78, 420, 64);
+  ctx.fillStyle = '#fff'; ctx.font = '16px monospace'; ctx.fillText('Controles: Mover = Flechas / WASD   Saltar = Espacio/W/↑   Disparar = X', 24, H-42);
 }
 
-function drawEnemy(x,y,en){
-  if(en.type === 'grunt'){
-    ctx.fillStyle = '#2b5'; ctx.fillRect(Math.round(x), Math.round(y), en.w, en.h);
-    ctx.fillStyle='#0a0'; ctx.fillRect(Math.round(x+6), Math.round(y+8), 6, 6);
-  } else if(en.type === 'flyer'){
-    ctx.fillStyle = '#b23'; ctx.fillRect(Math.round(x), Math.round(y), en.w, en.h);
-    // wings
-    ctx.fillStyle = '#d55'; ctx.fillRect(Math.round(x-6), Math.round(y+8), 6, 4); ctx.fillRect(Math.round(x+en.w), Math.round(y+8), 6,4);
-  } else if(en.type === 'miniboss'){
-    ctx.fillStyle = '#802'; ctx.fillRect(Math.round(x), Math.round(y), en.w, en.h);
-    // health bars
-    ctx.fillStyle = '#fff'; ctx.fillRect(Math.round(x), Math.round(y-8), Math.round(en.w * (1 - ((en.hitCount||0)/(en.hitsRequired||3)))), 6);
-  }
-}
-
-function drawFlower(x,y,type){
-  // big, obvious flower
-  ctx.fillStyle = '#0ea3ff'; ctx.fillRect(Math.round(x), Math.round(y), 32, 32);
-  ctx.fillStyle = '#fff'; ctx.fillRect(Math.round(x+12), Math.round(y+12), 8, 12);
-}
-
-// main loop
+// game loop
 function loop(){ step(); draw(); requestAnimationFrame(loop); }
 
-// start
+// initialization
 createLevels(); loadLevel(0); loop();
 
-// UI
-document.getElementById('startBtn').addEventListener('click', ()=>{ lives = 8; loadLevel(0); gameRunning = true; updateUI(); });
+// input: start with Enter to allow audio on mobile/Chrome
+window.addEventListener('keydown', e=>{ if(e.code==='Enter'){ gameRunning = true; ensureAudio(); if(e.shiftKey){ // restart
+    lives = 8; coins = 0; loadLevel(0); }
+  } });
+
+// UI click handling for restart
+canvas.addEventListener('dblclick', e=>{ // dblclick to restart level
+  lives = 8; coins = 0; loadLevel(levelIndex); gameRunning = true; ensureAudio(); });
+
+// Start on click of top-right area also handled earlier; add touch
+canvas.addEventListener('touchstart', e=>{ ensureAudio(); gameRunning = true; }, {passive:true});
 
 </script>
 </body>
