@@ -11,7 +11,6 @@
   #title{font-weight:700;font-size:28px;margin-bottom:6px}
   #info{display:flex;justify-content:space-between;align-items:center}
   button{padding:8px 12px;border-radius:6px;border:none;background:#0b84ff;color:white;cursor:pointer}
-  a{color:#016}
 </style>
 </head>
 <body>
@@ -24,376 +23,116 @@
 </div>
 <canvas id="game" width="900" height="500"></canvas>
 <script>
-/* Goku World - single file HTML platformer
-   Features requested:
-   - 15 niveles (1..15)
-   - niveles 10 y 15 con mini jefe que requiere 3 saltos sobre él
-   - flor azul: agranda a Goku, le da 2-hit buffer (necesita ser golpeado 2 veces para perder 1 vida) y permite disparar kamehameha con tecla X
-   - controles: W/A/S/D y flechas; saltar con espacio; disparo X
-   - bandera más grande
-   - personaje similar, but drawn as simple sprite (no external assets)
-   - 8 vidas iniciales
-*/
-
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
 
-// Game state
-let levelIndex = 0; // 0..14
-let lives = 8;
-let keys = {};
-let gameRunning = false;
-let stateLabel = document.getElementById('state');
-let livesLabel = document.getElementById('lives');
-let levelLabel = document.getElementById('level');
+let levelIndex=0,lives=8,keys={},gameRunning=false;
+const TILE=40;
 
-// Tile constants
-const TILE = 40; // tile size
-
-// Player
-let player = {
-  x:80, y: H-150, w:28, h:40, dx:0, dy:0, speed:3.2, jumpPow: -11, onGround:false,
-  facing:1, powered:false, powerTimer:0, hitBuffer:0, big:false, invuln:0
-};
-
-// Projectiles
-let projectiles = [];
-// Enemies
-let enemies = [];
-// Powerups
-let powerups = [];
-// Level maps
+let player={x:80,y:H-150,w:28,h:40,dx:0,dy:0,speed:3.2,jumpPow:-11,onGround:false,facing:1,powered:false,big:false,hitBuffer:0,invuln:0};
+let projectiles=[],enemies=[],powerups=[];let camX=0;
 
 function makeEmptyMap(){
-  // wide map per level
-  const cols = Math.floor(W / TILE) + 20; // allow horizontal scrolling
-  const rows = Math.floor(H / TILE);
-  let map = [];
-  for(let r=0;r<rows;r++){
-    map[r]=Array(cols).fill(0);
-  }
-  return map;
+  const cols=Math.floor(W/TILE)+20;const rows=Math.floor(H/TILE);
+  let map=[];for(let r=0;r<rows;r++){map[r]=Array(cols).fill(0);}return map;
 }
 
-// Create a set of 15 levels with increasing difficulty
-let maps = [];
+let maps=[];
 for(let i=1;i<=15;i++){
-  let map = makeEmptyMap();
-  // ground across width
-  for(let c=0;c<map[0].length;c++) map[map.length-2][c]=1; // ground tiles
-  // create platforms
-  let platCount = 4 + Math.floor(i/2);
+  let map=makeEmptyMap();
+  for(let c=0;c<map[0].length;c++)map[map.length-1][c]=1; // piso base
+  // plataformas simples
+  let platCount=3+Math.floor(i/2);
   for(let p=0;p<platCount;p++){
-    let col = 6 + p*6 + (i%3)*2;
-    let row = map.length-3 - ((p%3)*1 + (i%4));
-    for(let k=0;k<4;k++) map[row][col+k]=1;
+    let row=map.length-3-Math.floor(Math.random()*3);
+    let col=8+p*6;
+    for(let k=0;k<4;k++)map[row][col+k]=1;
   }
-  // spikes pit based on level
-  if(i>=3){
-    map[map.length-3][12]=2; // spike
-    if(i>6) map[map.length-3][18]=2;
-  }
-  // floating islands
-  if(i%2===0){
-    let r=map.length-6 - (i%3);
-    for(let c=20;c<24;c++) map[r][c]=1;
-  }
-  // flag at end
-  map[map.length-3][map[0].length-4]=9; // flag
+  map[map.length-2][map[0].length-4]=9; // bandera
   maps.push(map);
 }
 
-// Level objects generator
 function loadLevel(idx){
-  levelIndex = idx;
-  let map = maps[idx];
-  enemies = [];
-  projectiles = [];
-  powerups = [];
-  // spawn some enemies based on level difficulty
-  let base = 3 + Math.floor(idx/2);
-  for(let e=0;e<base;e++){
-    let ex = 300 + e*160 + (idx*10);
-    let ey = H-120 - (Math.random()*120);
-    enemies.push({x:ex,y:ey,w:30,h:36,dx: (Math.random()>0.5?1:-1)*1.2, hp:1, type:'grunt'});
+  levelIndex=idx;enemies=[];projectiles=[];powerups=[];
+  let map=maps[idx];
+  // enemigos
+  for(let e=0;e<3+Math.floor(idx/2);e++){
+    let ex=300+e*160;let ey=H-80-((e%2)*TILE);
+    enemies.push({x:ex,y:ey,w:30,h:36,dx:Math.random()>0.5?1.2:-1.2,hp:1,type:'grunt'});
   }
-  // spikes that behave as hazards
-  // place powerup for some levels
-  if(Math.random()<0.6){
-    powerups.push({x:220 + idx*40, y:H-160, type:'blueflower', picked:false});
+  // powerup en lugar obvio
+  if(idx%3===0){
+    powerups.push({x:200+idx*60,y:H-150,type:'blueflower',picked:false});
   }
-  // mini bosses for levels 10 (index9) and 15 (index14)
-  if(idx===9 || idx===14){
-    enemies.push({x:maps[idx][0].length*TILE - 300, y:H-200, w:70,h:70, dx:0, hp:3, type:'miniboss', hitsRequired:3, hitCount:0});
+  // miniboss en nivel 10 y 15
+  if(idx===9||idx===14){
+    enemies.push({x:map[0].length*TILE-300,y:H-110,w:70,h:70,dx:0,hp:3,type:'miniboss',hitCount:0});
   }
-  // position player at start
-  player.x = 80;
-  player.y = H-150;
-  player.dx = player.dy = 0;
-  player.onGround = false;
-  player.powered=false;
-  player.big=false;
-  player.powerTimer=0;
-  player.hitBuffer=0;
-  player.invuln=0;
-  updateUI();
+  player.x=80;player.y=H-150;player.dx=player.dy=0;player.onGround=false;player.powered=false;player.big=false;player.hitBuffer=0;player.invuln=0;
+  document.getElementById('lives').textContent=lives;
+  document.getElementById('level').textContent=idx+1;
+  document.getElementById('state').textContent='Normal';
 }
 
-function updateUI(){
-  livesLabel.textContent = lives;
-  levelLabel.textContent = levelIndex+1;
-  stateLabel.textContent = player.powered? 'Poder: Kame Hame Ha' : 'Normal';
+window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.code==='Space')e.preventDefault();});
+window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
+
+function rectsOverlap(a,b){return a.x<a.x+a.w&&a.x+a.w>b.x&&a.y<a.y+a.h&&a.y+a.h>b.y}
+
+function handlePlayerHit(){
+  if(player.invuln>0)return;
+  if(player.powered&&player.hitBuffer>1){player.hitBuffer--;player.invuln=40;return;}
+  lives--;player.invuln=60;player.powered=false;player.big=false;player.hitBuffer=0;
+  if(lives<=0){alert('Game Over');lives=8;loadLevel(0);}document.getElementById('lives').textContent=lives;
 }
 
-// Controls
-window.addEventListener('keydown', e=>{
-  keys[e.key.toLowerCase()] = true;
-  // prevent scroll on space
-  if(e.code==='Space') e.preventDefault();
-});
-window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()] = false; });
-
-// Simple physics and collision helpers
-function rectsOverlap(a,b){return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y}
-
-// Game loop
-let camX=0;
-function step(){
-  if(!gameRunning) return;
-  // input
-  let left = keys['a'] || keys['arrowleft'];
-  let right = keys['d'] || keys['arrowright'];
-  let up = keys['w'] || keys['arrowup'];
-  let down = keys['s'] || keys['arrowdown'];
-  let jump = keys[' '] || false;
-  // movement
-  if(left){ player.dx = -player.speed; player.facing = -1;} 
-  else if(right){ player.dx = player.speed; player.facing=1;} 
-  else player.dx = 0;
-
-  // jump with space or W
-  if((keys[' '] || keys['w'] || keys['arrowup']) && (player.onGround || player.jumpGracetime>0)){
-    if(player.onGround){ player.dy = player.jumpPow; player.onGround=false; }
-  }
-
-  // shooting with x
-  if(keys['x'] && player.powered){
-    // throttle shooting
-    if(!player.lastShot || Date.now() - player.lastShot > 300){
-      projectiles.push({x:player.x + (player.facing>0? player.w: -8), y:player.y+player.h/2, dx:player.facing*8, w:18,h:8});
-      player.lastShot = Date.now();
-    }
-  }
-
-  // physics
-  player.dy += 0.6; if(player.dy>18) player.dy=18;
-  player.x += player.dx; player.y += player.dy;
-
-  // floor collision
-  if(player.y + player.h > H- TILE){ player.y = H- TILE - player.h; player.dy=0; player.onGround=true; }
-
-  // screen bounds
-  if(player.x < 0) player.x=0;
-
-  // camera follow
-  camX = Math.max(0, player.x - 180);
-
-  // update enemies
+function step(){if(!gameRunning)return;
+  let left=keys['a']||keys['arrowleft'];let right=keys['d']||keys['arrowright'];
+  if(left){player.dx=-player.speed;player.facing=-1;}else if(right){player.dx=player.speed;player.facing=1;}else player.dx=0;
+  if((keys[' ']||keys['w']||keys['arrowup'])&&player.onGround){player.dy=player.jumpPow;player.onGround=false;}
+  if(keys['x']&&player.powered){if(!player.lastShot||Date.now()-player.lastShot>300){projectiles.push({x:player.x+(player.facing>0?player.w:-8),y:player.y+player.h/2,dx:player.facing*8,w:18,h:8});player.lastShot=Date.now();}}
+  player.dy+=0.6;if(player.dy>12)player.dy=12;player.x+=player.dx;player.y+=player.dy;
+  // colision piso
+  if(player.y+player.h>H-TILE){player.y=H-TILE-player.h;player.dy=0;player.onGround=true;}
+  camX=Math.max(0,player.x-200);
+  // enemigos
   for(let en of enemies){
-    if(en.type==='grunt'){
-      en.x += en.dx;
-      // simple AI: turn near edges
-      if(en.x < 100) en.dx = Math.abs(en.dx);
-      if(en.x > maps[levelIndex][0].length*TILE - 200) en.dx = -Math.abs(en.dx);
-    } else if(en.type==='miniboss'){
-      // miniboss pacing
-      en.x += Math.sin(Date.now()/600)*1.2;
-    }
-  }
-
-  // projectiles
-  for(let i=projectiles.length-1;i>=0;i--){
-    let p = projectiles[i]; p.x += p.dx;
-    // collision with enemies
-    for(let j=enemies.length-1;j>=0;j--){
-      let en = enemies[j];
-      if(rectsOverlap(p,en)){
-        // damage
-        en.hp -= 1;
-        projectiles.splice(i,1);
-        if(en.hp<=0){ enemies.splice(j,1); }
-        break;
-      }
-    }
-    if(i>=projectiles.length) break;
-    if(projectiles[i] && (projectiles[i].x < camX - 200 || projectiles[i].x > camX + W + 200)) projectiles.splice(i,1);
-  }
-
-  // collisions with enemies
-  for(let ei=enemies.length-1; ei>=0; ei--){
-    let en = enemies[ei];
+    if(en.type==='grunt')en.x+=en.dx;
     if(rectsOverlap(player,en)){
-      // if player is falling and touches top of enemy => considered stomp
-      if(player.dy > 0 && (player.y + player.h - en.y) < 20){
-        // stomp
-        if(en.type==='miniboss'){
-          en.hitCount = (en.hitCount||0) + 1;
-          // bounce
-          player.dy = -8; player.onGround=false;
-          if(en.hitCount >= (en.hitsRequired||3)){
-            enemies.splice(ei,1);
-          }
-        } else {
-          enemies.splice(ei,1); player.dy = -8; player.onGround=false;
-        }
-      } else {
-        // side hit
-        handlePlayerHit();
-      }
+      if(player.dy>0&&player.y+player.h-en.y<20){
+        // salto sobre enemigo
+        if(en.type==='miniboss'){en.hitCount++;if(en.hitCount>=3)en.hp=0;}
+        else en.hp=0;player.dy=-8;player.onGround=false;
+      }else handlePlayerHit();
     }
   }
-
-  // powerup pickup
+  enemies=enemies.filter(e=>e.hp>0);
+  // proyectiles
+  for(let i=projectiles.length-1;i>=0;i--){
+    let p=projectiles[i];p.x+=p.dx;
+    for(let en of enemies){if(p.x<en.x+en.w&&p.x+p.w>en.x&&p.y<en.y+en.h&&p.y+p.h>en.y){en.hp-=1;projectiles.splice(i,1);}}
+    if(p.x<camX-50||p.x>camX+W+50)projectiles.splice(i,1);
+  }
+  // powerups
   for(let i=powerups.length-1;i>=0;i--){
-    let pu = powerups[i];
-    if(rectsOverlap(player, {x:pu.x,y:pu.y,w:24,h:24} ) && !pu.picked){
-      pu.picked = true;
-      if(pu.type==='blueflower'){
-        player.powered = true; player.big=true; player.powerTimer = Date.now(); player.hitBuffer = 2; // needs 2 hits to die while powered
-      }
+    let pu=powerups[i];if(player.x<pu.x+24&&player.x+player.w>pu.x&&player.y<pu.y+24&&player.y+player.h>pu.y){
+      if(pu.type==='blueflower'){player.powered=true;player.big=true;player.hitBuffer=2;}
       powerups.splice(i,1);
     }
   }
-
-  // invuln tick
-  if(player.invuln>0){ player.invuln--; }
-
-  // level completion check (reach flag)
-  let flagX = (maps[levelIndex][0].length-4)*TILE;
-  if(player.x + player.w > flagX){
-    // advance
-    if(levelIndex < 14){ loadLevel(levelIndex+1); }
-    else { // finished game
-      alert('¡Felicidades! Completaste Goku World.'); loadLevel(0); lives = 8; updateUI(); }
-  }
-
-  updateUI();
 }
 
-function handlePlayerHit(){
-  if(player.invuln>0) return;
-  // if powered: require 2 hits to lose one life; we'll decrement hitBuffer first
-  if(player.powered && player.hitBuffer>1){
-    player.hitBuffer -=1; player.invuln = 40; return;
-  }
-  // otherwise lose one life
-  lives -=1; player.invuln = 60; player.powered=false; player.big=false; player.hitBuffer=0;
-  if(lives<=0){
-    alert('Has perdido todas las vidas. Reiniciando.'); lives=8; loadLevel(0);
-  }
-}
+function draw(){ctx.clearRect(0,0,W,H);drawMap(maps[levelIndex]);for(let pu of powerups)drawFlower(pu.x-camX,pu.y);for(let en of enemies)drawEnemy(en.x-camX,en.y,en);for(let p of projectiles){ctx.fillStyle='#0af';ctx.fillRect(p.x-camX,p.y,p.w,p.h);}drawPlayer(player.x-camX,player.y);drawFlag((maps[levelIndex][0].length-4)*TILE-camX,H-120);}
 
-// Drawing
-function draw(){
-  // clear
-  ctx.clearRect(0,0,W,H);
-  // background parallax
-  ctx.fillStyle = '#87d9ff'; ctx.fillRect(0,0,W,H/2);
-  // ground / tiles
-  drawMap(maps[levelIndex]);
-  // draw powerups
-  for(let pu of powerups){ drawFlower(pu.x - camX, pu.y); }
-  // draw enemies
-  for(let en of enemies){ drawEnemy(en.x - camX, en.y, en); }
-  // draw projectiles
-  for(let p of projectiles){ ctx.fillStyle='#ffd'; ctx.fillRect(p.x - camX, p.y, p.w, p.h); }
-  // draw player
-  drawPlayer(player.x - camX, player.y, player);
-  // HUD cross-canvas (flag)
-  drawFlag((maps[levelIndex][0].length-4)*TILE - camX, H- TILE - 80);
-}
+function drawMap(map){for(let r=0;r<map.length;r++){for(let c=0;c<map[0].length;c++){let t=map[r][c];let x=c*TILE-camX,y=r*TILE;if(t===1){ctx.fillStyle='#7e5a2f';ctx.fillRect(x,y,TILE,TILE);}}}}
+function drawFlag(x,y){ctx.fillStyle='#8b4513';ctx.fillRect(x+6,y,8,60);ctx.fillStyle='#ff1a1a';ctx.fillRect(x+14,y,40,20);}
+function drawPlayer(sx,sy){ctx.save();ctx.translate(sx,sy);if(player.big)ctx.scale(1.2,1.2);ctx.fillStyle='#fce0b0';ctx.fillRect(4,2,18,18);ctx.fillStyle=player.powered?'#00f':'#ff7f00';ctx.beginPath();ctx.moveTo(6,6);ctx.lineTo(2,-4);ctx.lineTo(12,8);ctx.lineTo(18,-6);ctx.lineTo(24,10);ctx.closePath();ctx.fill();ctx.fillStyle='#ff8c00';ctx.fillRect(2,20,22,20);ctx.fillStyle='#003';ctx.fillRect(2,34,22,6);ctx.fillStyle='#fce0b0';ctx.fillRect(player.facing>0?20:-8,22,8,8);ctx.restore();}
+function drawEnemy(x,y,en){ctx.fillStyle=en.type==='miniboss'?'#802':'#255';ctx.fillRect(x,y,en.w,en.h);}
+function drawFlower(x,y){ctx.save();ctx.translate(x,y);ctx.fillStyle='#0af';ctx.beginPath();ctx.arc(12,8,8,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.fillRect(10,16,4,8);ctx.restore();}
 
-function drawMap(map){
-  for(let r=0;r<map.length;r++){
-    for(let c=0;c<map[0].length;c++){
-      let t = map[r][c];
-      let x = c*TILE - camX, y = r*TILE;
-      if(x < -TILE || x > W+TILE) continue;
-      if(t===1){
-        ctx.fillStyle='#7e5a2f'; ctx.fillRect(x,y,TILE,TILE);
-        ctx.fillStyle='#5a411f'; ctx.fillRect(x,y+TILE-10,TILE,10);
-      } else if(t===2){
-        ctx.fillStyle='#222'; ctx.beginPath(); ctx.moveTo(x,y+TILE); ctx.lineTo(x+TILE/2,y+TILE-12); ctx.lineTo(x+TILE,y+TILE); ctx.fill();
-      } else if(t===9){
-        // flag (drawn larger at end)
-        drawFlag(x, y-40);
-      }
-    }
-  }
-}
-
-function drawFlag(x,y){
-  ctx.fillStyle='#8b4513'; ctx.fillRect(x+6,y+20,8,60);
-  ctx.fillStyle='#ff1a1a'; ctx.beginPath(); ctx.moveTo(x+14,y+20); ctx.lineTo(x+50,y+40); ctx.lineTo(x+14,y+60); ctx.closePath(); ctx.fill();
-  // bigger flag than usual by design
-}
-
-function drawPlayer(sx, sy, p){
-  // body
-  ctx.save();
-  ctx.translate(sx, sy);
-  // shadow
-  ctx.fillStyle='rgba(0,0,0,0.15)'; ctx.beginPath(); ctx.ellipse(p.w/2, p.h+10, p.w, 6,0,0,Math.PI*2); ctx.fill();
-  // scale if big
-  if(p.big) ctx.scale(1.15,1.15);
-  // head
-  ctx.fillStyle='#fce0b0'; ctx.fillRect(4,2,18,18);
-  // hair - spiky orange to hint Goku
-  ctx.fillStyle='#ff7f00'; ctx.beginPath(); ctx.moveTo(6,6); ctx.lineTo(2,-4); ctx.lineTo(12,8); ctx.lineTo(18,-6); ctx.lineTo(24,10); ctx.closePath(); ctx.fill();
-  // body - orange gi
-  ctx.fillStyle='#ff8c00'; ctx.fillRect(2,20,22,20);
-  // belt
-  ctx.fillStyle='#003'; ctx.fillRect(2,34,22,6);
-  // legs
-  ctx.fillStyle='#ff8c00'; ctx.fillRect(2,40,10,12); ctx.fillRect(14,40,10,12);
-  // arm
-  ctx.fillStyle='#fce0b0'; ctx.fillRect(p.facing>0?20:-8,22,8,8);
-  ctx.restore();
-}
-
-function drawEnemy(x,y,en){
-  ctx.fillStyle = en.type==='miniboss' ? '#802' : '#255';
-  ctx.fillRect(x,y,en.w,en.h);
-  // boss health
-  if(en.type==='miniboss'){
-    ctx.fillStyle='#fff'; ctx.fillRect(x, y-10, en.w * (en.hitCount? (1 - (en.hitCount/(en.hitsRequired||3))) : 1), 6);
-  }
-}
-
-// small icon for powerup
-function drawFlower(x,y){
-  ctx.save(); ctx.translate(x,y);
-  ctx.fillStyle='#0af'; ctx.beginPath(); ctx.arc(12,8,8,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#fff'; ctx.fillRect(10,16,4,8);
-  ctx.restore();
-}
-
-// main loop
-function loop(){ step(); draw(); requestAnimationFrame(loop); }
-
-// start/resume
-document.getElementById('startBtn').addEventListener('click', ()=>{ lives=8; loadLevel(0); gameRunning=true; });
-
-// initialize
-loadLevel(0); gameRunning=false; loop();
-
-// small helpers: allow clicking canvas to focus controls
-canvas.addEventListener('click', ()=>{ canvas.tabIndex=0; canvas.focus(); });
-
-// Extra polish: simple mobile hint
-window.addEventListener('blur', ()=>{ /* pause? */ });
-
+function loop(){step();draw();requestAnimationFrame(loop);}document.getElementById('startBtn').addEventListener('click',()=>{lives=8;loadLevel(0);gameRunning=true;});
+loadLevel(0);loop();
 </script>
 </body>
 </html>
