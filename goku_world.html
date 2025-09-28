@@ -5,134 +5,456 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Goku World by Winted Studios</title>
 <style>
-  html,body{height:100%;margin:0;background:linear-gradient(#87ceeb,#bfe9ff);font-family:Arial,Helvetica,sans-serif}
-  canvas{display:block;margin:0 auto;background:linear-gradient(#9be6ff,#6ec6ff);box-shadow:0 8px 30px rgba(0,0,0,0.25);border-radius:8px}
-  #ui{width:900px;margin:12px auto;text-align:center;color:#012}
-  #title{font-weight:700;font-size:28px;margin-bottom:6px}
-  #info{display:flex;justify-content:space-between;align-items:center}
+  html,body{height:100%;margin:0;background:#87ceeb;font-family:Segoe UI,Arial,sans-serif}
+  #container{width:960px;margin:12px auto;text-align:center}
+  canvas{display:block;margin:6px auto;border-radius:6px;box-shadow:0 10px 40px rgba(0,0,0,0.25);background:linear-gradient(#9be6ff,#6ec6ff)}
+  #ui{color:#012;display:flex;justify-content:space-between;align-items:center}
   button{padding:8px 12px;border-radius:6px;border:none;background:#0b84ff;color:white;cursor:pointer}
+  .small{font-size:12px;color:#034}
 </style>
 </head>
 <body>
-<div id="ui">
-  <div id="title">Goku World <small>by Winted Studios</small></div>
-  <div id="info">
+<div id="container">
+  <h1 style="margin:6px 0">Goku World <small class="small">by Winted Studios</small></h1>
+  <div id="ui">
     <div>Vidas: <span id="lives">8</span> &nbsp; Nivel: <span id="level">1</span> &nbsp; Estado: <span id="state">Normal</span></div>
     <div><button id="startBtn">Iniciar / Reiniciar</button></div>
   </div>
+  <canvas id="game" width="960" height="540"></canvas>
 </div>
-<canvas id="game" width="900" height="500"></canvas>
 <script>
+/* Goku World - single file
+   Mejoras aplicadas en esta versión:
+   - Piso sólido y plataformas alcanzables (altura limitada a salto del jugador)
+   - Corrección de colisiones (toque con flag sube de nivel)
+   - Nuevos tipos de enemigos (grunt, flyer) y miniboss en niveles 10 y 15
+   - Pixel-art style (dibujado con rects y sin smoothing)
+   - Flor azul evidente en posiciones obvias (plataformas centrales)
+   - Flor cambia pelo a azul, agranda personaje; kamehameha azul
+   - Toca enemigo por el costado = pierdes vida; saltar sobre cabeza = enemigo muere (miniboss necesita 3 stomp)
+   - Controles: W/A/S/D, flechas; salto con Space; disparo con X
+*/
+
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false; // pixel-art look
 const W = canvas.width, H = canvas.height;
 
-let levelIndex=0,lives=8,keys={},gameRunning=false;
-const TILE=40;
+// Game vars
+let maps = [], levelIndex = 0, lives = 8, gameRunning = false;
+let keys = {};
+const TILE = 48; // tile size
 
-let player={x:80,y:H-150,w:28,h:40,dx:0,dy:0,speed:3.2,jumpPow:-11,onGround:false,facing:1,powered:false,big:false,hitBuffer:0,invuln:0};
-let projectiles=[],enemies=[],powerups=[];let camX=0;
+// Player
+let player = {
+  x:80, y: H-3*TILE, w:28, h:36, dx:0, dy:0, speed:3.2, jumpPow:-13, onGround:false,
+  facing:1, powered:false, big:false, hitBuffer:0, invuln:0, lastShot:0
+};
 
-function makeEmptyMap(){
-  const cols=Math.floor(W/TILE)+20;const rows=Math.floor(H/TILE);
-  let map=[];for(let r=0;r<rows;r++){map[r]=Array(cols).fill(0);}return map;
+let camX = 0;
+let enemies = [];
+let projectiles = [];
+let powerups = [];
+
+// Utility: correct rectangle overlap
+function rectsOverlap(a,b){
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
 
-let maps=[];
-for(let i=1;i<=15;i++){
-  let map=makeEmptyMap();
-  for(let c=0;c<map[0].length;c++)map[map.length-1][c]=1; // piso base
-  // plataformas simples
-  let platCount=3+Math.floor(i/2);
-  for(let p=0;p<platCount;p++){
-    let row=map.length-3-Math.floor(Math.random()*3);
-    let col=8+p*6;
-    for(let k=0;k<4;k++)map[row][col+k]=1;
+// Generate 15 levels with reachable platforms
+function makeEmptyMap(cols){
+  cols = cols || Math.floor(W/TILE) + 20;
+  const rows = Math.floor(H/TILE);
+  let map = Array.from({length:rows},()=>Array(cols).fill(0));
+  return map;
+}
+
+function createLevels(){
+  for(let i=0;i<15;i++){
+    let cols = Math.floor(W/TILE) + 24 + i*2;
+    let map = makeEmptyMap(cols);
+    // base floor: last row = ground
+    for(let c=0;c<cols;c++) map[map.length-1][c] = 1;
+
+    // place reachable platforms: max height = player jump (approx 3 tiles)
+    let platforms = 5 + Math.floor(i/2);
+    for(let p=0;p<platforms;p++){
+      let col = 8 + p*6 + (i%3);
+      // row chosen so it's at most 3 tiles above ground
+      let row = map.length-2 - (1 + Math.floor(Math.random()*3));
+      for(let k=0;k<4;k++) if(col+k < cols-6) map[row][col+k]=1;
+    }
+
+    // place flag near end
+    map[map.length-2][cols-4] = 9;
+
+    maps.push(map);
   }
-  map[map.length-2][map[0].length-4]=9; // bandera
-  maps.push(map);
+}
+
+// Spawn enemies and powerups for a level
+function populateLevel(idx){
+  enemies = [];
+  projectiles = [];
+  powerups = [];
+  const map = maps[idx];
+  const cols = map[0].length;
+
+  // Grunts on ground and platforms
+  let gruntCount = 3 + Math.floor(idx/3);
+  for(let g=0; g<gruntCount; g++){
+    // choose spawn x on ground or platform
+    let spawnX = 220 + g*180 + (idx*10);
+    if(spawnX > cols*TILE - 400) spawnX = 220 + (g*120);
+    let spawnY = findGroundYForX(spawnX) - 36;
+    enemies.push({x:spawnX,y:spawnY,w:30,h:34,dx:(Math.random()>0.5?1.2:-1.2),hp:1,type:'grunt'});
+  }
+
+  // Flyers that move vertically/horizontally
+  let flyerCount = (idx>=2)? Math.min(2, Math.floor(idx/5)+1):0;
+  for(let f=0; f<flyerCount; f++){
+    let fx = 400 + f*240 + (idx*8);
+    enemies.push({x:fx,y:120 + f*60,w:28,h:28,dx: (Math.random()>0.5?1.4:-1.4),hp:1,type:'flyer',phase:Math.random()*1000});
+  }
+
+  // miniboss on levels 10 (index 9) and 15 (index 14)
+  if(idx===9 || idx===14){
+    enemies.push({x: (cols*TILE)-340, y: H - 1.6*TILE - 70, w:84, h:84, dx:0, hp:3, type:'miniboss', hitsRequired:3, hitCount:0});
+  }
+
+  // Place the blue flower in an obvious spot: on a central platform or near mid-screen
+  let fx = Math.min(cols*TILE - 500, 420 + idx*60);
+  let fy = findGroundYForX(fx) - TILE - 8; // on a platform above ground
+  powerups.push({x:fx,y:fy,type:'blueflower',picked:false});
+
+}
+
+// Find nearest ground Y (top of tile) for given world X
+function findGroundYForX(worldX){
+  const map = maps[levelIndex];
+  const c = Math.floor(worldX / TILE);
+  for(let r=0;r<map.length;r++){
+    if(map[r][c] && map[r][c]!==0){
+      return r*TILE; // tile top
+    }
+  }
+  // default ground
+  return (map.length-1)*TILE;
 }
 
 function loadLevel(idx){
-  levelIndex=idx;enemies=[];projectiles=[];powerups=[];
-  let map=maps[idx];
-  // enemigos
-  for(let e=0;e<3+Math.floor(idx/2);e++){
-    let ex=300+e*160;let ey=H-80-((e%2)*TILE);
-    enemies.push({x:ex,y:ey,w:30,h:36,dx:Math.random()>0.5?1.2:-1.2,hp:1,type:'grunt'});
-  }
-  // powerup en lugar obvio
-  if(idx%3===0){
-    powerups.push({x:200+idx*60,y:H-150,type:'blueflower',picked:false});
-  }
-  // miniboss en nivel 10 y 15
-  if(idx===9||idx===14){
-    enemies.push({x:map[0].length*TILE-300,y:H-110,w:70,h:70,dx:0,hp:3,type:'miniboss',hitCount:0});
-  }
-  player.x=80;player.y=H-150;player.dx=player.dy=0;player.onGround=false;player.powered=false;player.big=false;player.hitBuffer=0;player.invuln=0;
-  document.getElementById('lives').textContent=lives;
-  document.getElementById('level').textContent=idx+1;
-  document.getElementById('state').textContent='Normal';
+  levelIndex = idx;
+  // reset player
+  player.x = 80; player.y = H - 3*TILE; player.dx = 0; player.dy = 0; player.onGround = false;
+  player.powered=false; player.big=false; player.hitBuffer=0; player.invuln=0;
+  populateLevel(idx);
+  updateUI();
 }
 
-window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.code==='Space')e.preventDefault();});
-window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
-
-function rectsOverlap(a,b){return a.x<a.x+a.w&&a.x+a.w>b.x&&a.y<a.y+a.h&&a.y+a.h>b.y}
-
-function handlePlayerHit(){
-  if(player.invuln>0)return;
-  if(player.powered&&player.hitBuffer>1){player.hitBuffer--;player.invuln=40;return;}
-  lives--;player.invuln=60;player.powered=false;player.big=false;player.hitBuffer=0;
-  if(lives<=0){alert('Game Over');lives=8;loadLevel(0);}document.getElementById('lives').textContent=lives;
+function updateUI(){
+  document.getElementById('lives').textContent = lives;
+  document.getElementById('level').textContent = levelIndex+1;
+  document.getElementById('state').textContent = player.powered? 'Poder (Kamehameha)' : 'Normal';
 }
 
-function step(){if(!gameRunning)return;
-  let left=keys['a']||keys['arrowleft'];let right=keys['d']||keys['arrowright'];
-  if(left){player.dx=-player.speed;player.facing=-1;}else if(right){player.dx=player.speed;player.facing=1;}else player.dx=0;
-  if((keys[' ']||keys['w']||keys['arrowup'])&&player.onGround){player.dy=player.jumpPow;player.onGround=false;}
-  if(keys['x']&&player.powered){if(!player.lastShot||Date.now()-player.lastShot>300){projectiles.push({x:player.x+(player.facing>0?player.w:-8),y:player.y+player.h/2,dx:player.facing*8,w:18,h:8});player.lastShot=Date.now();}}
-  player.dy+=0.6;if(player.dy>12)player.dy=12;player.x+=player.dx;player.y+=player.dy;
-  // colision piso
-  if(player.y+player.h>H-TILE){player.y=H-TILE-player.h;player.dy=0;player.onGround=true;}
-  camX=Math.max(0,player.x-200);
-  // enemigos
-  for(let en of enemies){
-    if(en.type==='grunt')en.x+=en.dx;
-    if(rectsOverlap(player,en)){
-      if(player.dy>0&&player.y+player.h-en.y<20){
-        // salto sobre enemigo
-        if(en.type==='miniboss'){en.hitCount++;if(en.hitCount>=3)en.hp=0;}
-        else en.hp=0;player.dy=-8;player.onGround=false;
-      }else handlePlayerHit();
+// Controls
+window.addEventListener('keydown', e=>{ keys[e.key.toLowerCase()] = true; if(e.code==='Space') e.preventDefault(); });
+window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()] = false; });
+
+// Physics & game rules
+function step(){
+  if(!gameRunning) return;
+
+  // input
+  let left = keys['a'] || keys['arrowleft'];
+  let right = keys['d'] || keys['arrowright'];
+  let jump = keys[' '] || keys['w'] || keys['arrowup'];
+
+  if(left){ player.dx = -player.speed; player.facing = -1; }
+  else if(right){ player.dx = player.speed; player.facing = 1; }
+  else player.dx = 0;
+
+  if(jump && player.onGround){ player.dy = player.jumpPow; player.onGround = false; }
+
+  // shooting
+  if((keys['x'] || keys['X']) && player.powered){
+    if(Date.now() - player.lastShot > 280){
+      let px = player.x + (player.facing>0? player.w : -12);
+      let color = player.powered? 'blue' : 'white';
+      projectiles.push({x:px, y:player.y + player.h/2, dx: player.facing*9, w:18, h:8, color: color});
+      player.lastShot = Date.now();
     }
   }
-  enemies=enemies.filter(e=>e.hp>0);
-  // proyectiles
-  for(let i=projectiles.length-1;i>=0;i--){
-    let p=projectiles[i];p.x+=p.dx;
-    for(let en of enemies){if(p.x<en.x+en.w&&p.x+p.w>en.x&&p.y<en.y+en.h&&p.y+p.h>en.y){en.hp-=1;projectiles.splice(i,1);}}
-    if(p.x<camX-50||p.x>camX+W+50)projectiles.splice(i,1);
+
+  // apply gravity
+  player.dy += 0.7; if(player.dy > 18) player.dy = 18;
+  player.x += player.dx; player.y += player.dy;
+
+  // map collisions - simple tile collision
+  handleMapCollisions();
+
+  // camera
+  camX = Math.max(0, player.x - 220);
+
+  // enemies update
+  for(let en of enemies){
+    if(en.type === 'grunt'){
+      en.x += en.dx;
+      // basic turning behaviour on map edges
+      if(en.x < 60) en.dx = Math.abs(en.dx);
+      if(en.x > maps[levelIndex][0].length*TILE - 200) en.dx = -Math.abs(en.dx);
+    } else if(en.type === 'flyer'){
+      en.phase += 0.02;
+      en.x += Math.sin(en.phase)*1.2 + en.dx*0.3;
+      en.y += Math.sin(en.phase*1.3)*1.6;
+    } else if(en.type === 'miniboss'){
+      // slow movement or idle
+      en.x += Math.sin(Date.now()/600)*1.0;
+    }
   }
-  // powerups
+
+  // projectile collisions
+  for(let i=projectiles.length-1;i>=0;i--){
+    let p = projectiles[i]; p.x += p.dx;
+    // check out of bounds
+    if(p.x < camX - 80 || p.x > camX + W + 80){ projectiles.splice(i,1); continue; }
+    // hit enemies
+    for(let j=enemies.length-1;j>=0;j--){
+      if(rectsOverlap(p, enemies[j])){
+        enemies[j].hp -= 1;
+        projectiles.splice(i,1);
+        if(enemies[j].hp <= 0) enemies.splice(j,1);
+        break;
+      }
+    }
+  }
+
+  // enemy collisions with player
+  for(let ei = enemies.length-1; ei>=0; ei--){
+    let en = enemies[ei];
+    if(rectsOverlap(player, en)){
+      // stomp?
+      if(player.dy > 0 && (player.y + player.h - en.y) < 20){
+        // successful stomp
+        if(en.type === 'miniboss'){
+          en.hitCount = (en.hitCount||0) + 1; player.dy = -9; player.onGround=false;
+          if(en.hitCount >= en.hitsRequired) enemies.splice(ei,1);
+        } else if(en.type === 'flyer'){
+          // flyers die by stomp too
+          enemies.splice(ei,1); player.dy = -8; player.onGround=false;
+        } else {
+          enemies.splice(ei,1); player.dy = -8; player.onGround=false;
+        }
+      } else {
+        // side collision -> player takes damage
+        handlePlayerHit();
+      }
+    }
+  }
+
+  // powerup pickup
   for(let i=powerups.length-1;i>=0;i--){
-    let pu=powerups[i];if(player.x<pu.x+24&&player.x+player.w>pu.x&&player.y<pu.y+24&&player.y+player.h>pu.y){
-      if(pu.type==='blueflower'){player.powered=true;player.big=true;player.hitBuffer=2;}
+    let pu = powerups[i];
+    if(rectsOverlap(player, {x:pu.x,y:pu.y,w:32,h:32} )){
+      if(pu.type === 'blueflower'){
+        player.powered = true; player.big = true; player.hitBuffer = 2; player.powerStart = Date.now();
+      }
       powerups.splice(i,1);
     }
   }
+
+  // power lasts 25 seconds
+  if(player.powered && Date.now() - (player.powerStart||0) > 25000){ player.powered = false; player.big = false; }
+
+  if(player.invuln > 0) player.invuln--;
+
+  // flag check - advance level when player touches flag area
+  const flagX = (maps[levelIndex][0].length - 4) * TILE;
+  const flagRect = {x:flagX, y: (maps[levelIndex].length-3)*TILE - 60, w: 64, h: 140};
+  if(rectsOverlap(player, flagRect)){
+    // advance
+    if(levelIndex < maps.length - 1){ loadLevel(levelIndex+1); }
+    else { alert('¡Has completado Goku World! Reiniciando.'); lives = 8; loadLevel(0); }
+  }
 }
 
-function draw(){ctx.clearRect(0,0,W,H);drawMap(maps[levelIndex]);for(let pu of powerups)drawFlower(pu.x-camX,pu.y);for(let en of enemies)drawEnemy(en.x-camX,en.y,en);for(let p of projectiles){ctx.fillStyle='#0af';ctx.fillRect(p.x-camX,p.y,p.w,p.h);}drawPlayer(player.x-camX,player.y);drawFlag((maps[levelIndex][0].length-4)*TILE-camX,H-120);}
+function handlePlayerHit(){
+  if(player.invuln > 0) return;
+  if(player.powered && player.hitBuffer > 1){ player.hitBuffer--; player.invuln = 45; return; }
+  // lose one life
+  lives--; player.invuln = 80; player.powered = false; player.big = false; player.hitBuffer = 0;
+  if(lives <= 0){ alert('Has perdido todas las vidas — reiniciando.'); lives = 8; loadLevel(0); }
+  updateUI();
+}
 
-function drawMap(map){for(let r=0;r<map.length;r++){for(let c=0;c<map[0].length;c++){let t=map[r][c];let x=c*TILE-camX,y=r*TILE;if(t===1){ctx.fillStyle='#7e5a2f';ctx.fillRect(x,y,TILE,TILE);}}}}
-function drawFlag(x,y){ctx.fillStyle='#8b4513';ctx.fillRect(x+6,y,8,60);ctx.fillStyle='#ff1a1a';ctx.fillRect(x+14,y,40,20);}
-function drawPlayer(sx,sy){ctx.save();ctx.translate(sx,sy);if(player.big)ctx.scale(1.2,1.2);ctx.fillStyle='#fce0b0';ctx.fillRect(4,2,18,18);ctx.fillStyle=player.powered?'#00f':'#ff7f00';ctx.beginPath();ctx.moveTo(6,6);ctx.lineTo(2,-4);ctx.lineTo(12,8);ctx.lineTo(18,-6);ctx.lineTo(24,10);ctx.closePath();ctx.fill();ctx.fillStyle='#ff8c00';ctx.fillRect(2,20,22,20);ctx.fillStyle='#003';ctx.fillRect(2,34,22,6);ctx.fillStyle='#fce0b0';ctx.fillRect(player.facing>0?20:-8,22,8,8);ctx.restore();}
-function drawEnemy(x,y,en){ctx.fillStyle=en.type==='miniboss'?'#802':'#255';ctx.fillRect(x,y,en.w,en.h);}
-function drawFlower(x,y){ctx.save();ctx.translate(x,y);ctx.fillStyle='#0af';ctx.beginPath();ctx.arc(12,8,8,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.fillRect(10,16,4,8);ctx.restore();}
+// Tile collision helper - simple AABB against tile map
+function handleMapCollisions(){
+  const map = maps[levelIndex];
+  const rows = map.length, cols = map[0].length;
+  // calculate which tiles player overlaps
+  let leftCol = Math.floor(player.x / TILE);
+  let rightCol = Math.floor((player.x + player.w) / TILE);
+  let topRow = Math.floor(player.y / TILE);
+  let bottomRow = Math.floor((player.y + player.h) / TILE);
 
-function loop(){step();draw();requestAnimationFrame(loop);}document.getElementById('startBtn').addEventListener('click',()=>{lives=8;loadLevel(0);gameRunning=true;});
-loadLevel(0);loop();
+  // vertical collision
+  if(player.dy > 0){
+    // moving down - check tiles below feet
+    let r = bottomRow;
+    for(let c = leftCol; c <= rightCol; c++){
+      if(map[r] && map[r][c] === 1){
+        player.y = r * TILE - player.h; player.dy = 0; player.onGround = true; bottomRow = Math.floor((player.y + player.h) / TILE);
+      }
+    }
+  } else if(player.dy < 0){
+    // moving up - head bump
+    let r = topRow;
+    for(let c = leftCol; c <= rightCol; c++){
+      if(map[r] && map[r][c] === 1){
+        player.y = (r+1)*TILE; player.dy = 0; topRow = Math.floor(player.y / TILE);
+      }
+    }
+  }
+
+  // horizontal collision
+  if(player.dx !== 0){
+    let c = (player.dx > 0) ? rightCol : leftCol;
+    for(let r = topRow; r <= bottomRow; r++){
+      if(map[r] && map[r][c] === 1){
+        if(player.dx > 0) player.x = c * TILE - player.w;
+        else player.x = (c+1) * TILE;
+        player.dx = 0;
+      }
+    }
+  }
+
+  // prevent falling below world
+  if(player.y + player.h > rows * TILE){ player.y = rows*TILE - player.h; player.dy = 0; player.onGround = true; }
+}
+
+// ---- Drawing (pixel-art style) ----
+function draw(){
+  // clear
+  ctx.fillStyle = '#87ceeb'; ctx.fillRect(0,0,W,H);
+
+  // parallax background
+  ctx.fillStyle = '#cfefff'; ctx.fillRect(0,0,W,120);
+
+  // draw map
+  drawMap(maps[levelIndex]);
+
+  // draw powerups
+  for(let pu of powerups) drawFlower(pu.x - camX, pu.y, pu.type);
+
+  // draw enemies
+  for(let en of enemies) drawEnemy(en.x - camX, en.y, en);
+
+  // draw projectiles
+  for(let p of projectiles){
+    ctx.fillStyle = (p.color==='blue'?'#2ea3ff':'#fff');
+    ctx.fillRect(Math.round(p.x - camX), Math.round(p.y), p.w, p.h);
+  }
+
+  // draw player
+  drawPlayer(Math.round(player.x - camX), Math.round(player.y), player);
+
+  // draw flag larger
+  const flagX = (maps[levelIndex][0].length - 4) * TILE - camX;
+  drawFlag(flagX, (maps[levelIndex].length-3)*TILE - 60);
+
+  // HUD overlay small: lives
+  ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(8,8,160,36);
+  ctx.fillStyle='#fff'; ctx.font='16px monospace'; ctx.fillText('Vidas: ' + lives + '   Nivel: ' + (levelIndex+1), 16, 32);
+}
+
+function drawMap(map){
+  for(let r=0;r<map.length;r++){
+    for(let c=0;c<map[0].length;c++){
+      let t = map[r][c];
+      let x = c*TILE - camX, y = r*TILE;
+      if(x < -TILE || x > W+TILE) continue;
+      if(t === 1){
+        // pixel-styled ground tile
+        ctx.fillStyle = '#7e5a2f'; ctx.fillRect(x,y,TILE,TILE);
+        ctx.fillStyle = '#9b6e3f'; ctx.fillRect(x+4,y+6, TILE-8, TILE-12);
+        // top edge highlight
+        ctx.fillStyle = '#b99266'; ctx.fillRect(x+4,y+2,TILE-8,4);
+      } else if(t === 9){
+        // flag tile placeholder - actual flag drawn separately
+        ctx.fillStyle = '#7e5a2f'; ctx.fillRect(x,y,TILE,TILE);
+      }
+    }
+  }
+}
+
+function drawFlag(x,y){
+  // pole
+  ctx.fillStyle = '#6a3b1a'; ctx.fillRect(x+12,y,8,120);
+  // cloth big
+  ctx.fillStyle = '#ff3b3b'; ctx.fillRect(x+20,y+8,48,36);
+  // star emblem
+  ctx.fillStyle = '#ffd700'; ctx.fillRect(x+36,y+18,8,8);
+}
+
+function drawPlayer(sx, sy, p){
+  ctx.save(); ctx.translate(sx, sy);
+  // shadow
+  ctx.fillStyle='rgba(0,0,0,0.15)'; ctx.fillRect(4, p.h+6, p.w+10, 6);
+
+  let scale = p.big?1.2:1.0; ctx.scale(scale, scale);
+
+  // head
+  ctx.fillStyle = '#f8d8b0'; ctx.fillRect(4,2,18,18);
+  // hair (color depends on powered: normal orange, powered -> blue)
+  ctx.fillStyle = p.powered? '#2ea3ff' : '#ff7f00';
+  // simple pixel spikes
+  ctx.fillRect(2,2,4,6); ctx.fillRect(8,-2,4,8); ctx.fillRect(14,0,6,6);
+
+  // body (gi)
+  ctx.fillStyle = '#ff8c00'; ctx.fillRect(2,20,22,20);
+  // belt
+  ctx.fillStyle = '#002233'; ctx.fillRect(2,36,22,6);
+  // legs
+  ctx.fillStyle = '#ff8c00'; ctx.fillRect(2,42,8,12); ctx.fillRect(16,42,8,12);
+  // arm
+  ctx.fillStyle = '#f8d8b0'; ctx.fillRect(p.facing>0?20:-8,22,8,8);
+
+  // small eye pixel
+  ctx.fillStyle = '#000'; ctx.fillRect(10,8,2,2);
+
+  ctx.restore();
+}
+
+function drawEnemy(x,y,en){
+  if(en.type === 'grunt'){
+    ctx.fillStyle = '#2b5'; ctx.fillRect(Math.round(x), Math.round(y), en.w, en.h);
+    ctx.fillStyle='#0a0'; ctx.fillRect(Math.round(x+6), Math.round(y+8), 6, 6);
+  } else if(en.type === 'flyer'){
+    ctx.fillStyle = '#b23'; ctx.fillRect(Math.round(x), Math.round(y), en.w, en.h);
+    // wings
+    ctx.fillStyle = '#d55'; ctx.fillRect(Math.round(x-6), Math.round(y+8), 6, 4); ctx.fillRect(Math.round(x+en.w), Math.round(y+8), 6,4);
+  } else if(en.type === 'miniboss'){
+    ctx.fillStyle = '#802'; ctx.fillRect(Math.round(x), Math.round(y), en.w, en.h);
+    // health bars
+    ctx.fillStyle = '#fff'; ctx.fillRect(Math.round(x), Math.round(y-8), Math.round(en.w * (1 - ((en.hitCount||0)/(en.hitsRequired||3)))), 6);
+  }
+}
+
+function drawFlower(x,y,type){
+  // big, obvious flower
+  ctx.fillStyle = '#0ea3ff'; ctx.fillRect(Math.round(x), Math.round(y), 32, 32);
+  ctx.fillStyle = '#fff'; ctx.fillRect(Math.round(x+12), Math.round(y+12), 8, 12);
+}
+
+// main loop
+function loop(){ step(); draw(); requestAnimationFrame(loop); }
+
+// start
+createLevels(); loadLevel(0); loop();
+
+// UI
+document.getElementById('startBtn').addEventListener('click', ()=>{ lives = 8; loadLevel(0); gameRunning = true; updateUI(); });
+
 </script>
 </body>
 </html>
