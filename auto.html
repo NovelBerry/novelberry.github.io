@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🏎️ Carrera Infinita</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #333;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        canvas {
+            background: #555;
+            display: block;
+            border: 5px solid #222;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.6);
+        }
+
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            background: rgba(0,0,0,0.5);
+            padding: 5px 15px;
+            border-radius: 8px;
+        }
+
+        #message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="game" width="400" height="600"></canvas>
+    <div id="hud">Nivel: <span id="level">1</span> | Km: <span id="km">0</span></div>
+    <div id="message">
+        <h2 id="msg-title">¡Game Over!</h2>
+        <button onclick="restartGame()">Reiniciar</button>
+    </div>
+
+    <!-- 🎵 Sonidos -->
+    <audio id="level-sound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3" preload="auto"></audio>
+    <audio id="crash-sound" src="https://www.soundjay.com/transportation/sounds/car-crash-1.mp3" preload="auto"></audio>
+
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const hudLevel = document.getElementById('level');
+        const hudKm = document.getElementById('km');
+        const message = document.getElementById('message');
+        const levelSound = document.getElementById('level-sound');
+        const crashSound = document.getElementById('crash-sound');
+
+        const roadWidth = 200;
+        let player = { x: canvas.width / 2 - 20, y: canvas.height - 100, width: 40, height: 80, color: 'yellow' };
+        let obstacles = [];
+        let keys = {};
+
+        let km = 0;
+        let level = 1;
+        let speed = 2;
+        let gameOver = false;
+
+        function drawRoad() {
+            ctx.fillStyle = '#333';
+            ctx.fillRect(canvas.width / 2 - roadWidth / 2, 0, roadWidth, canvas.height);
+
+            ctx.strokeStyle = 'white';
+            ctx.setLineDash([20, 20]);
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawCar(car) {
+            ctx.fillStyle = car.color;
+            ctx.fillRect(car.x, car.y, car.width, car.height);
+        }
+
+        function drawObstacles() {
+            ctx.fillStyle = 'red';
+            obstacles.forEach(ob => ctx.fillRect(ob.x, ob.y, ob.width, ob.height));
+        }
+
+        function updateObstacles() {
+            obstacles.forEach(ob => ob.y += speed);
+            obstacles = obstacles.filter(ob => ob.y < canvas.height + 100);
+
+            if (Math.random() < 0.03) {
+                const lane = Math.floor(Math.random() * 3);
+                obstacles.push({ x: canvas.width / 2 - roadWidth / 2 + lane * 65 + 10, y: -80, width: 40, height: 80 });
+            }
+        }
+
+        function checkCollision() {
+            for (let ob of obstacles) {
+                if (player.x < ob.x + ob.width && player.x + player.width > ob.x && player.y < ob.y + ob.height && player.y + player.height > ob.y) {
+                    crashSound.play();
+                    endGame();
+                    break;
+                }
+            }
+        }
+
+        function movePlayer() {
+            if (keys['ArrowLeft'] || keys['a']) player.x -= 5;
+            if (keys['ArrowRight'] || keys['d']) player.x += 5;
+            if (keys['ArrowUp'] || keys['w']) player.y -= 5;
+            if (keys['ArrowDown'] || keys['s']) player.y += 5;
+
+            // Limites de la carretera
+            if (player.x < canvas.width / 2 - roadWidth / 2) player.x = canvas.width / 2 - roadWidth / 2;
+            if (player.x + player.width > canvas.width / 2 + roadWidth / 2) player.x = canvas.width / 2 + roadWidth / 2 - player.width;
+            if (player.y < 0) player.y = 0;
+            if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+        }
+
+        function updateGame() {
+            if (gameOver) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawRoad();
+            drawCar(player);
+            drawObstacles();
+
+            movePlayer();
+            updateObstacles();
+            checkCollision();
+
+            km += speed * 0.05;
+            hudKm.textContent = Math.floor(km);
+
+            if (Math.floor(km) >= level * 100) {
+                level++;
+                speed += 0.5;
+                hudLevel.textContent = level;
+                levelSound.play();
+            }
+
+            requestAnimationFrame(updateGame);
+        }
+
+        function endGame() {
+            gameOver = true;
+            message.style.display = 'block';
+        }
+
+        function restartGame() {
+            player.x = canvas.width / 2 - 20;
+            player.y = canvas.height - 100;
+            obstacles = [];
+            km = 0;
+            level = 1;
+            speed = 2;
+            hudLevel.textContent = level;
+            hudKm.textContent = km;
+            message.style.display = 'none';
+            gameOver = false;
+            updateGame();
+        }
+
+        document.addEventListener('keydown', e => keys[e.key] = true);
+        document.addEventListener('keyup', e => keys[e.key] = false);
+
+        updateGame();
+    </script>
+</body>
+</html>
