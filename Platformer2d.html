@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Platformer 2D — 5 Niveles</title>
+  <style>
+    :root{--bg:#87CEEB;--ground:#6B8E23;--accent:#ffcc00;--text:#111}
+    html,body{height:100%;margin:0;font-family:Inter, Arial, sans-serif;background:var(--bg);}
+    #game-wrap{display:flex;flex-direction:column;align-items:center;padding:12px}
+    canvas{background:linear-gradient(#87CEEB 60%, #a0d468 100%);border:6px solid #3e3e3e;border-radius:8px;display:block}
+    #hud{width:800px;max-width:95vw;display:flex;justify-content:space-between;color:var(--text);margin:10px 0}
+    #title{font-weight:700}
+    button{padding:6px 10px;border-radius:6px;border:1px solid #333;background:#fff;cursor:pointer}
+    .muted{opacity:.6}
+    /* simple responsive */
+    @media (max-width:600px){#hud{flex-direction:column;gap:6px;align-items:flex-start}}
+  </style>
+</head>
+<body>
+  <div id="game-wrap">
+    <div id="hud">
+      <div id="title">Platformer 2D — 5 Niveles</div>
+      <div>
+        Nivel: <span id="levelDisplay">1</span> • Puntos: <span id="scoreDisplay">0</span> • Vidas: <span id="livesDisplay">3</span>
+        <button id="restartBtn">Reiniciar</button>
+      </div>
+    </div>
+    <canvas id="game" width="800" height="450"></canvas>
+    <div style="width:800px;max-width:95vw;display:flex;justify-content:space-between;margin-top:8px;">
+      <div>Controles: ← → = mover, ↑ o Espacio = saltar, R = reiniciar nivel, M = silenciar</div>
+      <div class="muted">Hecho para GitHub — archivo: <strong>platformer2d.html</strong></div>
+    </div>
+  </div>
+
+  <audio id="coinSound" src="https://www.soundjay.com/button/sounds/button-16.mp3" preload="auto"></audio>
+  <audio id="hurtSound" src="https://www.soundjay.com/human/sounds/human-death-1.mp3" preload="auto"></audio>
+  <audio id="levelSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" preload="auto"></audio>
+
+  <script>
+  // ===== Platformer 2D — Single-file, 5 levels =====
+  // Author: Winted Studios (adaptable)
+  // Controls: Left/Right (Arrow or A/D), Up or Space to jump, R to restart level, M to mute/unmute
+  // Features: 5 levels, platforms, coins, enemies, goal flag, HUD, simple physics, keyboard input.
+
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // HUD elements
+  const levelDisplay = document.getElementById('levelDisplay');
+  const scoreDisplay = document.getElementById('scoreDisplay');
+  const livesDisplay = document.getElementById('livesDisplay');
+  const restartBtn = document.getElementById('restartBtn');
+
+  // Sounds
+  const coinSound = document.getElementById('coinSound');
+  const hurtSound = document.getElementById('hurtSound');
+  const levelSound = document.getElementById('levelSound');
+  let muted = false;
+
+  // Game state
+  const TOTAL_LEVELS = 5;
+  let currentLevel = 1;
+  let score = 0;
+  let lives = 3;
+
+  // Physics
+  const GRAVITY = 0.7;
+  const FRICTION = 0.85;
+
+  // Player
+  const player = {
+    x:50, y:300, w:34, h:48,
+    vx:0, vy:0, speed:2.6, jumpPower:13, onGround:false
+  };
+
+  // Input
+  const keys = {};
+  window.addEventListener('keydown', (e)=>{
+    keys[e.key.toLowerCase()] = true;
+    if(e.key === ' '){ e.preventDefault(); } // prevent page scroll
+    if(e.key.toLowerCase() === 'r') restartLevel();
+    if(e.key.toLowerCase() === 'm') { muted = !muted; }
+  });
+  window.addEventListener('keyup', (e)=>{ keys[e.key.toLowerCase()] = false; });
+
+  // Utilities
+  function rectsOverlap(a,b){
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  // Level definitions: platforms (x,y,w,h), coins, enemies, flag
+  // Each level fits roughly in width W * 2 (longer horizontal world), we implement camera
+  const levels = [
+    // Level 1 — tutorial
+    {
+      w: W * 1.5,
+      platforms: [ {x:0,y:400,w:1200,h:50}, {x:220,y:320,w:140,h:20}, {x:420,y:260,w:120,h:20}, {x:600,y:200,w:120,h:20} ],
+      coins: [ {x:260,y:280}, {x:460,y:220}, {x:640,y:160} ],
+      enemies: [],
+      start:{x:40,y:350},
+      flag:{x:1100,y:350}
+    },
+    // Level 2 — city
+    {
+      w: W * 2,
+      platforms: [ {x:0,y:400,w:1600,h:50}, {x:260,y:340,w:120,h:18}, {x:480,y:300,w:120,h:18}, {x:760,y:260,w:180,h:18}, {x:1100,y:320,w:140,h:18} ],
+      coins: [ {x:300,y:300},{x:520,y:260},{x:820,y:220},{x:1140,y:280} ],
+      enemies: [ {x:700,y:380,dir:-1}, {x:950,y:380,dir:1} ],
+      start:{x:30,y:350},
+      flag:{x:1500,y:350}
+    },
+    // Level 3 — caves (more gaps)
+    {
+      w: W * 2.2,
+      platforms: [ {x:0,y:400,w:1400,h:50}, {x:200,y:330,w:100,h:20}, {x:380,y:290,w:100,h:20}, {x:560,y:250,w:100,h:20}, {x:860,y:320,w:100,h:20}, {x:1200,y:280,w:140,h:20} ],
+      coins: [ {x:220,y:300},{x:400,y:260},{x:580,y:220},{x:880,y:290},{x:1220,y:250} ],
+      enemies: [ {x:500,y:380,dir:1},{x:1300,y:260,dir:-1} ],
+      start:{x:20,y:350},
+      flag:{x:1350,y:240}
+    },
+    // Level 4 — forest (moving enemy patrols)
+    {
+      w: W * 2.3,
+      platforms: [ {x:0,y:400,w:1600,h:50}, {x:340,y:330,w:120,h:18}, {x:620,y:300,w:140,h:18}, {x:920,y:260,w:120,h:18}, {x:1240,y:320,w:160,h:18} ],
+      coins: [ {x:380,y:300},{x:660,y:270},{x:960,y:230},{x:1280,y:290} ],
+      enemies: [ {x:680,y:380,dir:1,range:[600,760]},{x:980,y:380,dir:-1,range:[920,1040]} ],
+      start:{x:40,y:350},
+      flag:{x:1480,y:280}
+    },
+    // Level 5 — final (denser obstacles)
+    {
+      w: W * 2.5,
+      platforms: [ {x:0,y:400,w:1600,h:50}, {x:200,y:340,w:100,h:18},{x:380,y:300,w:100,h:18},{x:560,y:260,w:100,h:18},{x:740,y:220,w:100,h:18},{x:920,y:260,w:140,h:18},{x:1160,y:300,w:160,h:18},{x:1400,y:340,w:120,h:18} ],
+      coins: [ {x:240,y:300},{x:420,y:260},{x:600,y:220},{x:780,y:180},{x:980,y:240},{x:1220,y:280},{x:1440,y:320} ],
+      enemies: [ {x:450,y:380,dir:1},{x:850,y:380,dir:-1},{x:1300,y:380,dir:1} ],
+      start:{x:30,y:350},
+      flag:{x:1800,y:300}
+    }
+  ];
+
+  // Dynamic state for enemies and coins
+  let world = {platforms:[],coins:[],enemies:[],flag:{},w:W};
+  let cameraX = 0;
+
+  function loadLevel(n){
+    const lv = levels[n-1];
+    world.w = lv.w;
+    world.platforms = lv.platforms.map(p=>Object.assign({},p));
+    world.coins = lv.coins.map(c=>({x:c.x,y:c.y,w:18,h:18,collected:false}));
+    world.enemies = lv.enemies.map(e=>({x:e.x,y:e.y,w:30,h:30,dir:e.dir,range:e.range?e.range:[e.x-80,e.x+80]}));
+    world.flag = {x:lv.flag.x,y:lv.flag.y,w:28,h:48};
+    player.x = lv.start.x; player.y = lv.start.y; player.vx=0; player.vy=0; player.onGround=false;
+    cameraX = 0;
+    levelDisplay.textContent = currentLevel;
+    goalFlash = 0;
+  }
+
+  // Collision with platforms (AABB) and simple resolution
+  function resolvePlatformCollisions(){
+    player.onGround = false;
+    for(const p of world.platforms){
+      const plat = {x:p.x,y:p.y,w:p.w,h:p.h};
+      if(rectsOverlap(player,plat)){
+        // only correct vertical overlap when falling
+        const prevBottom = player.y + player.h - player.vy; // approximate previous
+        if(prevBottom <= plat.y){
+          player.y = plat.y - player.h; player.vy = 0; player.onGround = true;
+        } else {
+          // bump from sides: simple push
+          if(player.x < plat.x) player.x = plat.x - player.w - 0.1; else player.x = plat.x + plat.w + 0.1;
+          player.vx = 0;
+        }
+      }
+    }
+  }
+
+  // Enemy update
+  function updateEnemies(){
+    for(const e of world.enemies){
+      e.x += (e.dir||1) * 1.2; // base patrol speed
+      if(e.range){ if(e.x < e.range[0]) e.dir = 1; if(e.x > e.range[1]) e.dir = -1; }
+      // collision with player
+      if(rectsOverlap(player, e)){
+        // hurt player
+        if(!muted) hurtSound.play();
+        lives--; livesDisplay.textContent = lives;
+        if(lives <= 0){ gameOver(); return; }
+        // respawn to start
+        const lv = levels[currentLevel-1];
+        player.x = lv.start.x; player.y = lv.start.y; player.vx=0; player.vy=0;
+      }
+    }
+  }
+
+  // Coin pickup
+  function updateCoins(){
+    for(const c of world.coins){
+      if(!c.collected && rectsOverlap(player, {x:c.x,y:c.y,w:c.w,h:c.h})){
+        c.collected = true; score += 10; scoreDisplay.textContent = score;
+        if(!muted) coinSound.play();
+      }
+    }
+  }
+
+  // Check flag
+  let goalFlash = 0;
+  function checkFlag(){
+    if(rectsOverlap(player, world.flag)){
+      // level complete
+      if(!muted) levelSound.play();
+      goalFlash = 60;
+      setTimeout(()=>{ nextLevel(); }, 600); // short delay to show chime
+    }
+  }
+
+  function nextLevel(){
+    if(currentLevel < TOTAL_LEVELS){ currentLevel++; loadLevel(currentLevel); }
+    else { // finished all levels
+      // show win screen (simple)
+      setTimeout(()=>{ alert('¡Felicidades! Has completado los ' + TOTAL_LEVELS + ' niveles. Puntuación: ' + score); initNewGame(); }, 100);
+    }
+  }
+
+  function restartLevel(){ loadLevel(currentLevel); }
+  function initNewGame(){ currentLevel = 1; score = 0; lives = 3; scoreDisplay.textContent = score; livesDisplay.textContent = lives; loadLevel(1); }
+
+  function gameOver(){
+    alert('Juego terminado. Puntuación: ' + score);
+    initNewGame();
+  }
+
+  // Camera follows player but clamps to world bounds
+  function updateCamera(){
+    const centerX = player.x + player.w/2;
+    cameraX = centerX - W/2;
+    cameraX = Math.max(0, Math.min(cameraX, world.w - W));
+  }
+
+  // Main update
+  function update(){
+    // input
+    const left = keys['arrowleft'] || keys['a'];
+    const right = keys['arrowright'] || keys['d'];
+    const up = keys['arrowup'] || keys['w'] || keys[' '];
+
+    if(left) player.vx = Math.max(player.vx - 0.6, -player.speed*6);
+    if(right) player.vx = Math.min(player.vx + 0.6, player.speed*6);
+    if(!left && !right) player.vx *= FRICTION;
+
+    // Jumping (only if on ground)
+    if(up && player.onGround){ player.vy = -player.jumpPower; player.onGround = false; }
+
+    // Apply gravity
+    player.vy += GRAVITY;
+    player.x += player.vx;
+    player.y += player.vy;
+
+    // basic world bounds
+    if(player.x < 0) player.x = 0;
+    if(player.x + player.w > world.w) player.x = world.w - player.w;
+    if(player.y > H + 200){ // fell off
+      lives--; livesDisplay.textContent = lives;
+      if(lives <= 0) return gameOver();
+      const lv = levels[currentLevel-1]; player.x = lv.start.x; player.y = lv.start.y; player.vx=0; player.vy=0;
+    }
+
+    resolvePlatformCollisions();
+    updateEnemies();
+    updateCoins();
+    checkFlag();
+    updateCamera();
+  }
+
+  // Drawing
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // background sky gradient (simple)
+    const g = ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,'#87CEEB'); g.addColorStop(0.6,'#a0d468'); ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+
+    // translate by -cameraX
+    ctx.save(); ctx.translate(-cameraX,0);
+
+    // draw platforms
+    for(const p of world.platforms){ ctx.fillStyle = '#5d4037'; ctx.fillRect(p.x,p.y,p.w,p.h); ctx.strokeStyle='#3e2f2a'; ctx.strokeRect(p.x,p.y,p.w,p.h); }
+
+    // draw coins
+    for(const c of world.coins){ if(c.collected) continue; ctx.beginPath(); ctx.fillStyle='#FFD700'; ctx.arc(c.x+9,c.y+9,9,0,Math.PI*2); ctx.fill(); ctx.closePath(); ctx.strokeStyle='#b8860b'; ctx.stroke(); }
+
+    // draw enemies
+    for(const e of world.enemies){ ctx.fillStyle='#b22222'; ctx.fillRect(e.x,e.y- e.h + e.h/4, e.w, e.h); ctx.fillStyle='#000'; ctx.fillRect(e.x+6,e.y- e.h + e.h/4 + 6,8,8); }
+
+    // draw flag
+    ctx.fillStyle = goalFlash>0? '#ff8c00':'#00aaff'; ctx.fillRect(world.flag.x, world.flag.y - world.flag.h + 10, world.flag.w, world.flag.h);
+
+    // draw player (simple)
+    ctx.fillStyle = '#ffcc00'; ctx.fillRect(player.x, player.y, player.w, player.h);
+    ctx.fillStyle = '#000'; ctx.fillRect(player.x+6, player.y+10, 6, 6); // eye
+
+    ctx.restore();
+
+    // HUD extras: small minimap bar
+    ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.fillRect(10,10,120,8); ctx.fillStyle = '#00aaff'; ctx.fillRect(10,10,Math.max(2, (cameraX/(world.w-W))*120),8);
+  }
+
+  // Loop
+  let last = performance.now();
+  function loop(t){ const dt = t-last; last = t; update(); draw(); if(goalFlash>0) goalFlash--; requestAnimationFrame(loop); }
+
+  // init
+  restartBtn.addEventListener('click', ()=>{ restartLevel(); });
+  initNewGame();
+  requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
