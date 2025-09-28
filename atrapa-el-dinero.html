@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Atrapa el dinero! - 15 Escenarios</title>
+    <title>Atrapa el dinero! - 30 Escenarios</title>
     <style>
         :root {
             --player-color: #FFD700;
@@ -50,6 +50,7 @@
         }
 
         #subtitle { margin-top: 5px; font-size: 1em; color: #455A64; }
+        #credit { font-size: 0.9em; color: #555; font-style: italic; margin-top: 3px; }
 
         #game-info {
             display: flex;
@@ -155,11 +156,12 @@
 
         <div id="title-area">
             <h1>💰 Atrapa el dinero! 💵</h1>
+            <p id="credit">by Winted Studios</p>
             <p id="subtitle">Escenario: <span id="scenario-name"></span></p>
         </div>
 
         <div id="game-info">
-            <span>Nivel: <span id="level">1</span> / 15</span>
+            <span>Nivel: <span id="level">1</span> / 30</span>
             <span>Objetivo: $<span id="level-goal">100</span></span>
             <span>Puntuación: $<span id="score">0</span></span>
         </div>
@@ -172,6 +174,11 @@
             <button id="next-level-button">Continuar</button>
         </div>
     </div>
+
+    <!-- 🎵 SONIDOS -->
+    <audio id="money-sound" src="https://www.soundjay.com/misc/sounds/cash-register-01.mp3" preload="auto"></audio>
+    <audio id="bomb-sound" src="https://www.soundjay.com/explosion/sounds/explosion-01.mp3" preload="auto"></audio>
+    <audio id="level-sound" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" preload="auto"></audio>
 
     <script>
         const gameContainer = document.getElementById('game-container');
@@ -187,6 +194,10 @@
         const scenarioNameDisplay = document.getElementById('scenario-name');
         const clouds = document.querySelectorAll('.cloud');
 
+        const moneySound = document.getElementById('money-sound');
+        const bombSound = document.getElementById('bomb-sound');
+        const levelSound = document.getElementById('level-sound');
+
         let score = 0;
         let currentLevel = 1;
         let gameInterval = null;
@@ -197,7 +208,10 @@
         const levels = [
             100, 250, 450, 700, 1000,
             1400, 1900, 2500, 3200, 4000,
-            5000, 6500, 8500, 11000, 15000
+            5000, 6500, 8500, 11000, 15000,
+            18000, 21000, 25000, 30000, 36000,
+            42000, 48000, 56000, 65000, 75000,
+            90000, 105000, 120000, 140000, 160000
         ];
 
         const scenarios = [
@@ -206,16 +220,32 @@
             ["Luna", "#000033", "#B0C4DE", "#A9A9A9", false, 90],
             ["Júpiter", "#FFC300", "#C70039", "#800000", false, 100],
             ["Anillo de Saturno", "#ADD8E6", "#191970", "#D2B48C", false, 95],
-            ["Ciudad de Santiago (Chile)", "#00BFFF", "#3CB371", "#1E90FF", true, 65],
+            ["Santiago (Chile)", "#00BFFF", "#3CB371", "#1E90FF", true, 65],
             ["Madrid (España)", "#FFDAB9", "#8B0000", "#DC143C", true, 60],
             ["Tokio (Japón)", "#C0C0C0", "#2F4F4F", "#708090", false, 85],
-            ["Nueva York (EE. UU.)", "#4682B4", "#778899", "#A9A9A9", false, 75],
+            ["Nueva York (EE.UU.)", "#4682B4", "#778899", "#A9A9A9", false, 75],
             ["Machu Picchu (Perú)", "#87CEFA", "#483C32", "#CD853F", true, 55],
             ["Siberia (Rusia)", "#F0FFFF", "#4682B4", "#708090", true, 68],
             ["Monte Fuji (Japón)", "#FFEBCD", "#008000", "#3CB371", true, 72],
-            ["Gran Cañón (EE. UU.)", "#FF7F50", "#8B4513", "#A0522D", false, 77],
+            ["Gran Cañón (EE.UU.)", "#FF7F50", "#8B4513", "#A0522D", false, 77],
             ["Aurora Boreal", "#008080", "#4B0082", "#00CED1", false, 100],
-            ["Universo Profundo", "#000000", "#000000", "#FFFFFF", false, 100]
+            ["Universo Profundo", "#000000", "#000000", "#FFFFFF", false, 100],
+            // 👇 Nuevos 15 escenarios
+            ["París (Francia)", "#FFE4E1", "#FFB6C1", "#E91E63", true, 70],
+            ["Roma (Italia)", "#FFFACD", "#008000", "#006400", true, 70],
+            ["Berlín (Alemania)", "#B0C4DE", "#2F4F4F", "#000000", true, 70],
+            ["Río de Janeiro (Brasil)", "#00FA9A", "#006400", "#008000", true, 70],
+            ["El Cairo (Egipto)", "#FFF8DC", "#DEB887", "#8B4513", true, 70],
+            ["Sídney (Australia)", "#87CEEB", "#1E90FF", "#006994", true, 70],
+            ["Londres (Reino Unido)", "#D3D3D3", "#696969", "#000000", true, 70],
+            ["Dubái (EAU)", "#FFD700", "#DAA520", "#8B7500", false, 70],
+            ["Bombay (India)", "#FF8C00", "#FFD700", "#FF4500", true, 70],
+            ["Ciudad del Cabo (Sudáfrica)", "#87CEFA", "#228B22", "#006400", true, 70],
+            ["Toronto (Canadá)", "#F0FFFF", "#DC143C", "#8B0000", true, 70],
+            ["Beijing (China)", "#FFDEAD", "#B22222", "#8B0000", true, 70],
+            ["Seúl (Corea del Sur)", "#F5F5F5", "#708090", "#2F4F4F", true, 70],
+            ["Buenos Aires (Argentina)", "#B0E0E6", "#FFFFFF", "#4682B4", true, 70],
+            ["Reykjavík (Islandia)", "#E0FFFF", "#20B2AA", "#008B8B", true, 70]
         ];
 
         const itemTypes = [
@@ -230,15 +260,12 @@
             body.style.background = `linear-gradient(to bottom, ${skyColor} 0%, ${skyColor} ${skyPercentage}%, ${groundColor} ${skyPercentage}%, ${groundColor} 100%)`;
             gameContainer.style.borderColor = borderColor;
             scenarioNameDisplay.textContent = name;
-            clouds.forEach(cloud => {
-                cloud.style.opacity = showClouds ? '0.7' : '0';
-            });
+            clouds.forEach(cloud => cloud.style.opacity = showClouds ? '0.7' : '0');
         }
 
         function createItem() {
             const item = document.createElement('div');
             item.classList.add('falling-item');
-
             let itemData;
             const randomNum = Math.random();
             const bombProbability = Math.min(0.95, (currentLevel * 4) / 100);
@@ -247,27 +274,25 @@
                 itemData = itemTypes[6];
             } else {
                 let moneyIndex = Math.floor(Math.random() * 6);
-                if (currentLevel > 5 && Math.random() < (currentLevel / 15)) {
+                if (currentLevel > 5 && Math.random() < (currentLevel / levels.length)) {
                     moneyIndex = Math.floor(Math.random() * 3) + 3;
                 }
                 itemData = itemTypes[moneyIndex];
             }
 
             const [value, text, className, isBad] = itemData;
-
             item.textContent = text;
             item.classList.add(className);
             item.setAttribute('data-value', value);
             item.setAttribute('data-bad', isBad.toString());
 
-            // Agregamos al DOM primero para poder medir el ancho real
             gameContainer.appendChild(item);
 
             const itemWidth = item.offsetWidth || 40;
             const containerWidth = gameContainer.clientWidth;
             const randomX = Math.floor(Math.random() * Math.max(1, (containerWidth - itemWidth)));
             item.style.left = `${randomX}px`;
-            item.style.top = `-${Math.floor(Math.random() * 30)}px`; // pequeño offset inicial
+            item.style.top = `-${Math.floor(Math.random() * 30)}px`;
         }
 
         gameContainer.addEventListener('mousemove', (e) => {
@@ -281,14 +306,10 @@
 
         function updateGame() {
             if (isPaused) return;
-
             const items = Array.from(document.querySelectorAll('.falling-item'));
             const containerHeight = gameContainer.clientHeight;
-
-            // Cálculo de la posición superior del jugador (bottom:10%)
             const playerOffsetFromBottom = (containerHeight * 0.10);
             const playerTopRel = containerHeight - playerOffsetFromBottom - player.offsetHeight;
-
             const playerLeft = parseFloat(player.style.left) || 0;
             const playerWidth = player.offsetWidth;
 
@@ -299,8 +320,6 @@
                 item.style.top = `${currentTop}px`;
 
                 const itemBottomRel = currentTop + item.offsetHeight;
-
-                // Colisión vertical con la parte superior del jugador
                 if (itemBottomRel >= playerTopRel && currentTop <= (playerTopRel + player.offsetHeight)) {
                     const itemLeft = parseFloat(item.style.left) || 0;
                     const itemRight = itemLeft + item.offsetWidth;
@@ -310,13 +329,16 @@
                         score += value;
                         score = Math.max(0, score);
                         scoreDisplay.textContent = score;
+
+                        if (value > 0) moneySound.play();
+                        else bombSound.play();
+
                         item.remove();
                         checkLevelCompletion();
                         return;
                     }
                 }
 
-                // Si el item pasó el fondo del contenedor
                 if (currentTop > containerHeight) {
                     const isBad = item.getAttribute('data-bad') === 'true';
                     if (!isBad) {
@@ -332,23 +354,14 @@
 
         function pauseGame() {
             isPaused = true;
-            if (gameInterval) clearInterval(gameInterval);
-            if (itemDropInterval) clearInterval(itemDropInterval);
-            gameInterval = null;
-            itemDropInterval = null;
-            document.querySelectorAll('.falling-item').forEach(item => item.remove());
+            clearInterval(gameInterval);
+            clearInterval(itemDropInterval);
         }
 
         function resumeGame() {
-            if (!isPaused) return;
             isPaused = false;
-            // 60 FPS
-            gameInterval = setInterval(updateGame, 1000 / 60);
-
-            let dropDelay = Math.max(350, 1500 - (currentLevel * 66));
-            // aseguramos limpiar antes de crear
-            if (itemDropInterval) clearInterval(itemDropInterval);
-            itemDropInterval = setInterval(createItem, dropDelay);
+            gameInterval = setInterval(updateGame, 50);
+            itemDropInterval = setInterval(createItem, Math.max(300 - currentLevel * 5, 50));
         }
 
         function checkLevelCompletion() {
@@ -356,41 +369,32 @@
             if (score >= goal) {
                 pauseGame();
 
+                levelSound.play();
+
                 if (currentLevel < levels.length) {
                     messageText.textContent = "¡Nivel Superado! 🎉";
                     const nextScenarioName = scenarios[currentLevel][0];
-                    messageDetail.innerHTML = `Has acumulado $${score}. Siguiente destino: <strong>${nextScenarioName}</strong>.<br>El objetivo para el Nivel ${currentLevel + 1} es $${levels[currentLevel]}.`;
+                    messageDetail.innerHTML = `Has acumulado $${score}.<br>Próximo destino: <strong>${nextScenarioName}</strong>.<br>Objetivo Nivel ${currentLevel + 1}: $${levels[currentLevel]}.`;
                     nextLevelButton.textContent = "Continuar al Nivel " + (currentLevel + 1);
                     nextLevelButton.onclick = nextLevel;
                 } else {
-                    messageText.textContent = "¡Felicidades, HAS GANADO! 🏆";
-                    messageDetail.innerHTML = `¡Has completado los <strong>${levels.length} niveles</strong> con un total de <strong>$${score}</strong>!`;
-                    nextLevelButton.textContent = "Volver a Jugar (Nivel 1)";
-                    nextLevelButton.onclick = () => { initGame(); };
+                    messageText.textContent = "🏆 ¡HAS GANADO EL JUEGO! 🏆";
+                    messageDetail.innerHTML = `¡Has completado los <strong>${levels.length}</strong> niveles con un total de <strong>$${score}</strong>!`;
+                    nextLevelButton.textContent = "Volver a Jugar";
+                    nextLevelButton.onclick = () => initGame();
                 }
                 gameMessage.style.display = 'block';
             }
         }
 
         function nextLevel() {
-            // Avanza al siguiente nivel (si hay)
-            if (currentLevel < levels.length) {
-                currentLevel++;
-            } else {
-                return;
-            }
-
-            itemFallSpeed = 3 + (currentLevel * 0.25);
-
-            setScenarioStyle(scenarios[currentLevel - 1]);
+            gameMessage.style.display = 'none';
+            currentLevel++;
+            score = 0;
+            scoreDisplay.textContent = score;
             levelDisplay.textContent = currentLevel;
             goalDisplay.textContent = levels[currentLevel - 1];
-            scoreDisplay.textContent = score;
-
-            // restaurar comportamiento del boton al avance de nivel en caso de que estuviera cambiado
-            nextLevelButton.onclick = nextLevel;
-
-            gameMessage.style.display = 'none';
+            setScenarioStyle(scenarios[currentLevel - 1]);
             resumeGame();
         }
 
@@ -407,8 +411,8 @@
             pauseGame();
 
             messageText.textContent = "¡Bienvenido a Atrapa el dinero! 💰";
-            messageDetail.innerHTML = `Atrapa el dinero y esquiva las bombas (💣). ¡Prepárate para viajar por 15 escenarios únicos!<br>El objetivo del Nivel 1 en <strong>${scenarios[0][0]}</strong> es $${levels[0]}.`;
-            nextLevelButton.textContent = "¡Empezar a Jugar!";
+            messageDetail.innerHTML = `Atrapa dinero y esquiva bombas (💣). ¡Viajarás por <strong>${levels.length}</strong> escenarios distintos!<br>Objetivo Nivel 1 en <strong>${scenarios[0][0]}</strong>: $${levels[0]}.`;
+            nextLevelButton.textContent = "¡Empezar!";
             nextLevelButton.onclick = () => {
                 gameMessage.style.display = 'none';
                 resumeGame();
@@ -416,7 +420,6 @@
             gameMessage.style.display = 'block';
         }
 
-        // Atajos: tecla Espacio pausa/reanuda (útil para testing)
         window.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
                 if (isPaused) resumeGame();
