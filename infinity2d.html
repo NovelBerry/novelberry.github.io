@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinity 2D Runner</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden; /* Oculta barras de desplazamiento */
+            background-color: #87CEEB; /* Color de cielo */
+            font-family: Arial, sans-serif;
+            color: #333;
+        }
+        canvas {
+            display: block; /* Elimina espacio extra debajo del canvas */
+            background-color: #ADD8E6; /* Un azul más claro para el fondo */
+            border: 1px solid #666;
+        }
+        #game-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        #instructions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        #game-over-screen {
+            display: none; /* Inicialmente oculto */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            text-align: center;
+            z-index: 100;
+        }
+        #game-over-screen button {
+            padding: 15px 30px;
+            font-size: 1em;
+            cursor: pointer;
+            margin-top: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+        #game-over-screen button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="game-info">Score: <span id="scoreDisplay">0</span></div>
+    <div id="instructions">
+        <h3>Controles:</h3>
+        <p><strong>Espacio / Clic izquierdo:</strong> Saltar</p>
+        <p><strong>'R' (después de Game Over):</strong> Reiniciar</p>
+    </div>
+
+    <div id="game-over-screen">
+        <h1>¡Game Over!</h1>
+        <p>Puntuación final: <span id="finalScoreDisplay">0</span></p>
+        <button id="restartButton">Volver a Jugar</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const finalScoreDisplay = document.getElementById('finalScoreDisplay');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const restartButton = document.getElementById('restartButton');
+
+        // Configuración del juego
+        const GAME_WIDTH = window.innerWidth;
+        const GAME_HEIGHT = window.innerHeight;
+        canvas.width = GAME_WIDTH;
+        canvas.height = GAME_HEIGHT;
+
+        const GRAVITY = 0.5;
+        const JUMP_POWER = -12;
+        const PLAYER_SIZE = 40;
+        const PLAYER_COLOR = '#FF5733'; // Naranja
+        const GROUND_HEIGHT = 50;
+        const GROUND_COLOR = '#4CAF50'; // Verde
+        const OBSTACLE_COLOR = '#36454F'; // Gris oscuro
+        const SCROLL_SPEED = 5; // Velocidad de desplazamiento del escenario
+        const OBSTACLE_MIN_GAP = 250;
+        const OBSTACLE_MAX_GAP = 500;
+        const OBSTACLE_MIN_WIDTH = 20;
+        const OBSTACLE_MAX_WIDTH = 80;
+        const OBSTACLE_MIN_HEIGHT = 30;
+        const OBSTACLE_MAX_HEIGHT = 100;
+
+        // Estado del juego
+        let player = {
+            x: 50,
+            y: GAME_HEIGHT - GROUND_HEIGHT - PLAYER_SIZE,
+            velocityY: 0,
+            isJumping: false
+        };
+        let obstacles = [];
+        let score = 0;
+        let gameOver = false;
+        let lastObstacleX = GAME_WIDTH; // Posición donde se generó el último obstáculo
+
+        // Funciones del juego
+        function resetGame() {
+            player = {
+                x: 50,
+                y: GAME_HEIGHT - GROUND_HEIGHT - PLAYER_SIZE,
+                velocityY: 0,
+                isJumping: false
+            };
+            obstacles = [];
+            score = 0;
+            gameOver = false;
+            lastObstacleX = GAME_WIDTH;
+            scoreDisplay.textContent = score;
+            gameOverScreen.style.display = 'none';
+            gameLoop(); // Inicia el bucle del juego de nuevo
+        }
+
+        function drawPlayer() {
+            ctx.fillStyle = PLAYER_COLOR;
+            ctx.fillRect(player.x, player.y, PLAYER_SIZE, PLAYER_SIZE);
+        }
+
+        function drawGround() {
+            ctx.fillStyle = GROUND_COLOR;
+            ctx.fillRect(0, GAME_HEIGHT - GROUND_HEIGHT, GAME_WIDTH, GROUND_HEIGHT);
+        }
+
+        function drawObstacles() {
+            ctx.fillStyle = OBSTACLE_COLOR;
+            obstacles.forEach(obstacle => {
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            });
+        }
+
+        function updatePlayer() {
+            if (player.isJumping) {
+                player.velocityY += GRAVITY;
+                player.y += player.velocityY;
+
+                // Si el jugador aterriza
+                if (player.y >= GAME_HEIGHT - GROUND_HEIGHT - PLAYER_SIZE) {
+                    player.y = GAME_HEIGHT - GROUND_HEIGHT - PLAYER_SIZE;
+                    player.velocityY = 0;
+                    player.isJumping = false;
+                }
+            }
+        }
+
+        function generateObstacle() {
+            const width = OBSTACLE_MIN_WIDTH + Math.random() * (OBSTACLE_MAX_WIDTH - OBSTACLE_MIN_WIDTH);
+            const height = OBSTACLE_MIN_HEIGHT + Math.random() * (OBSTACLE_MAX_HEIGHT - OBSTACLE_MIN_HEIGHT);
+            const x = lastObstacleX + OBSTACLE_MIN_GAP + Math.random() * (OBSTACLE_MAX_GAP - OBSTACLE_MIN_GAP);
+            const y = GAME_HEIGHT - GROUND_HEIGHT - height;
+
+            obstacles.push({ x, y, width, height });
+            lastObstacleX = x + width; // Actualiza la posición del último obstáculo generado
+        }
+
+        function updateObstacles() {
+            // Mueve obstáculos y elimina los que están fuera de la pantalla
+            obstacles = obstacles.filter(obstacle => {
+                obstacle.x -= SCROLL_SPEED;
+                return obstacle.x + obstacle.width > 0;
+            });
+
+            // Genera nuevos obstáculos si el último está lo suficientemente lejos
+            if (obstacles.length === 0 || lastObstacleX < GAME_WIDTH - OBSTACLE_MIN_GAP) {
+                 generateObstacle();
+            }
+        }
+
+        function checkCollisions() {
+            obstacles.forEach(obstacle => {
+                if (
+                    player.x < obstacle.x + obstacle.width &&
+                    player.x + PLAYER_SIZE > obstacle.x &&
+                    player.y < obstacle.y + obstacle.height &&
+                    player.y + PLAYER_SIZE > obstacle.y
+                ) {
+                    gameOver = true;
+                }
+            });
+        }
+
+        function updateScore() {
+            score += 1;
+            scoreDisplay.textContent = Math.floor(score / 10); // Ajusta la puntuación para que no suba tan rápido
+        }
+
+        function gameLoop() {
+            if (gameOver) {
+                cancelAnimationFrame(gameLoop);
+                finalScoreDisplay.textContent = Math.floor(score / 10);
+                gameOverScreen.style.display = 'flex'; // Muestra la pantalla de Game Over
+                return;
+            }
+
+            // Limpiar canvas
+            ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            // Actualizar
+            updatePlayer();
+            updateObstacles();
+            checkCollisions();
+            updateScore();
+
+            // Dibujar
+            drawGround();
+            drawObstacles();
+            drawPlayer();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Manejo de eventos de entrada
+        function jump() {
+            if (!player.isJumping && !gameOver) {
+                player.velocityY = JUMP_POWER;
+                player.isJumping = true;
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                jump();
+            }
+            if (e.code === 'KeyR' && gameOver) {
+                resetGame();
+            }
+        });
+
+        canvas.addEventListener('click', () => {
+            jump();
+        });
+
+        restartButton.addEventListener('click', () => {
+            resetGame();
+        });
+
+        // Iniciar el juego al cargar la página
+        resetGame();
+    </script>
+</body>
+</html>
