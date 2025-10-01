@@ -3,37 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asistente de Desarrollo - NovelBerry</title>
+    <title>Asistente de Desarrollo - De NovelBerry</title>
     <style>
         body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
         #chat-container { background-color: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); padding: 20px; }
         #output { height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-bottom: 15px; background-color: #e9ecef; border-radius: 4px; }
-        .user-message { text-align: right; color: #007bff; margin-bottom: 10px; }
-        .ai-message { text-align: left; color: #28a745; margin-bottom: 10px; }
+        .user-message { text-align: right; color: #007bff; margin-bottom: 10px; padding: 5px 10px; background-color: #e0f7fa; border-radius: 10px 10px 0 10px; max-width: 75%; margin-left: auto; }
+        .ai-message { text-align: left; color: #28a745; margin-bottom: 10px; padding: 5px 10px; background-color: #d4edda; border-radius: 10px 10px 10px 0; max-width: 75%; }
         input[type="text"] { width: 80%; padding: 10px; border: 1px solid #ccc; border-radius: 4px 0 0 4px; }
         button { width: 18%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 0 4px 4px 0; cursor: pointer; }
         button:hover { background-color: #0056b3; }
+        #loading { font-style: italic; color: #6c757d; }
     </style>
+    
     <script type="module">
-
+        // Importa la clase GoogleGenAI
         import { GoogleGenAI } from "https://esm.run/@google/genai";
 
-
-        const API_KEY = "AIzaSyCWLpOdIYI69zOw52TDjjoe7MRPLKC4qhs"; 
+        // ***************************************************************
+        //  ADVERTENCIA DE SEGURIDAD: CLAVE API INCLUIDA PÚBLICAMENTE.
+        //  Cualquiera que vea este código podrá usar tu clave, lo que consumirá tu cuota.
+        //  Es un gran riesgo de seguridad, solo para pruebas.
+        // ***************************************************************
+        const API_KEY = "AIzaSyDCk3sH_mOcd2SSPYF8s32cc9Xgmsz_6mw"; 
         
-
+        // Inicializa el cliente de Gemini
         const ai = new GoogleGenAI(API_KEY);
-        const model = "gemini-2.5-flash"; 
+        const model = "gemini-2.5-flash"; // El modelo solicitado
 
-
+        // 1. EL PROMPT DE PERSONALIDAD BASE (CAPA DE PERSONALIDAD)
         const PERSONALITY_PROMPT = `
-            Eres **Asistente de NovelBerry**, un asistente de desarrollo y programación altamente especializado.
+            Eres **Asistente de NovelBerry**, un asistente de desarrollo y programación altamente especializado, que sirbe a los usuarios pero en especialmente eres el asistente de NovelBerry.
             Tu misión es ayudar a los usuarios con código, algoritmos, depuración, diseño de sistemas y tecnologías de desarrollo web/software.
             Tu tono debe ser **profesional, preciso, amigable y muy enfocado en la solución de problemas de programación.**
-            Cuando respondas, empieza siempre con una frase que refleje tu rol (ej: "Hola, NovelBerry al habla", "Como asistente de desarrollo NovelBerry...", "Permíteme analizar ese código...").
+            Cuando respondas, empieza siempre con una frase que refleje tu rol (ej: "Hola, asistente de novelBerry al habla", "Como asistente de desarrollo ...", "Permíteme analizar ese código...").
             Tu respuesta debe ser en español.
         `;
 
+        // 2. FUNCIÓN DE CHAT PRINCIPAL
         async function sendMessage() {
             const userInput = document.getElementById('user-input');
             const outputDiv = document.getElementById('output');
@@ -41,19 +48,19 @@
 
             if (message === "") return;
 
-
+            // Mostrar el mensaje del usuario
             outputDiv.innerHTML += `<div class="user-message">**Tú:** ${message}</div>`;
             userInput.value = '';
 
+            // Mostrar indicador de carga y asegurar el scroll
             outputDiv.innerHTML += `<div id="loading" class="ai-message">NovelBerry está pensando...</div>`;
             outputDiv.scrollTop = outputDiv.scrollHeight;
 
-
-
+            // 3. CAPA DE PRE-PERSONALIZACIÓN: Se combina la personalidad con la solicitud del usuario.
             const fullPrompt = `${PERSONALITY_PROMPT}\n\n---SOLICITUD DEL USUARIO---\n\n${message}`;
 
             try {
-          
+                // Llamada a la API de Gemini
                 const response = await ai.models.generateContent({
                     model: model,
                     contents: fullPrompt
@@ -61,26 +68,26 @@
                 
                 const aiResponseText = response.text;
 
-                
+                // Eliminar el indicador de carga
                 const loadingIndicator = document.getElementById('loading');
                 if (loadingIndicator) loadingIndicator.remove();
 
-             
+                // Mostrar la respuesta de la IA
                 outputDiv.innerHTML += `<div class="ai-message">**NovelBerry:** ${aiResponseText}</div>`;
 
             } catch (error) {
-               
+                // Eliminar el indicador de carga en caso de error
                 const loadingIndicator = document.getElementById('loading');
                 if (loadingIndicator) loadingIndicator.remove();
                 
                 console.error("Error al comunicarse con la API de Gemini:", error);
-                outputDiv.innerHTML += `<div class="ai-message" style="color: red;">**Error de API:** Lo siento, ocurrió un error. Revisa la consola o tu clave API.</div>`;
+                outputDiv.innerHTML += `<div class="ai-message" style="color: red;">**Error de API:** Lo siento, ocurrió un error (${error.message}). Revisa tu clave.</div>`;
             }
 
-            outputDiv.scrollTop = outputDiv.scrollHeight; 
+            outputDiv.scrollTop = outputDiv.scrollHeight; // Scroll al fondo
         }
 
-   
+        // Asignar la función al botón y a la tecla Enter
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('send-button').addEventListener('click', sendMessage);
             document.getElementById('user-input').addEventListener('keypress', (e) => {
@@ -88,13 +95,14 @@
                     sendMessage();
                 }
             });
-            document.getElementById('output').innerHTML = `<div class="ai-message">**NovelBerry:** ¡Hola! Soy NovelBerry, tu asistente de desarrollo. ¿En qué problema de programación o diseño puedo ayudarte hoy?</div>`;
+            // Mensaje de bienvenida inicial
+            document.getElementById('output').innerHTML = `<div class="ai-message">**NovelBerry:** ¡Hola! Soy NovelBerry, tu asistente de desarrollo. Estoy aquí para ayudarte con cualquier código, algoritmo o duda de programación. ¿Qué estás construyendo hoy?</div>`;
         });
     </script>
 </head>
 <body>
-    <h1>Asistente de Desarrollo de NovelBerry</h1>
-    <p>Asistente especializado en programación.</p>
+    <h1>Asistente de Desarrollo. De NovelBerry</h1>
+    <p>Asistente especializado en programación usando IA.</p>
     <div id="chat-container">
         <div id="output">
             </div>
