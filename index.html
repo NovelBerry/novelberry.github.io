@@ -14,25 +14,22 @@
     <script>
         document.getElementById('enterButton').addEventListener('click', function() {
             
-            // 1. DESBLOQUEO DE AUDIO: Crea y reproduce el archivo de audio subido.
-            // Esto es lo que "engaña" al navegador para que permita el autoplay en main.html.
+
             const audio = new Audio('musica_fondo.mp3'); 
             audio.loop = true;
             
             audio.play().then(() => {
-                // Al tener éxito, guardamos el estado de reproducción en la sesión del navegador
-                // para que main.html sepa que debe iniciar la música.
+
                 sessionStorage.setItem('playAudio', 'true');
                 
-                // 2. REDIRECCIÓN: Muestra la animación de salida (opcional) y navega a main.html.
-                // Usamos el 'splash-container' para asegurar que el estilo sea correcto.
+
                 document.querySelector('.splash-container').style.opacity = '0';
                 setTimeout(function() {
                     window.location.href = 'main.html';
-                }, 300); // Pequeño retraso para la animación de desvanecimiento
+                }, 300);
                 
             }).catch(e => {
-                 // Si falla la reproducción (rara vez pasa después de un clic), redirigimos de todas formas.
+   
                  window.location.href = 'main.html';
             });
         });
