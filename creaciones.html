@@ -8,24 +8,24 @@
     <link rel="stylesheet" href="style.css">
     
     <style>
-
+        /* REGLA CLAVE 1: Aseguramos que el elemento raíz pueda tener scroll */
         html {
-            height: 100%; 
-            overflow-y: scroll; 
+            height: 100%; /* Ocupa toda la altura de la ventana */
+            overflow-y: scroll; /* Permite el scroll vertical si es necesario */
         }
 
-
+        /* Estilos para el fondo futurista */
         body {
-       
+            /* SOLUCIÓN AL PROBLEMA DE SCROLL: Cambiamos display: flex a block. */
             display: block; 
             
-
+            /* LÍNEA CLAVE 2: Forzamos la aparición de la barra de desplazamiento */
             overflow-y: scroll !important; 
             height: 100%;
             min-height: 100vh; 
             margin: 0;
             
-
+            /* RUTA DE FONDO - RESTAURADO */
             background-image: url('fondo_creaciones.jpg'); 
             background-size: cover;
             background-position: center;
@@ -33,13 +33,13 @@
             color: white;
             font-family: Arial, sans-serif;
             
-
+            /* Aumentamos el padding superior e inferior */
             padding-top: 50px;
-            padding-bottom: 100px; 
+            padding-bottom: 100px; /* Espacio extra para que el reproductor no tape el contenido */
             position: relative;
         }
 
-
+        /* Contenedor principal de la página de creaciones */
         .creations-container {
             background-color: rgba(0, 0, 0, 0.75);
             padding: 30px;
@@ -53,27 +53,29 @@
         }
 
         .header-creaciones h1 {
-            color: var(--color-acento-celeste);
+            /* NOTA: Se asume que la variable --color-acento-celeste está en style.css */
+            color: var(--color-acento-celeste); 
             font-size: 2.5em;
             text-shadow: 0 0 8px #00ffff;
             margin-bottom: 20px;
         }
 
-     
+        /* Estilos para las tarjetas de proyecto */
         .project-card {
             background-color: rgba(255, 255, 255, 0.05);
             padding: 20px;
             margin-top: 30px;
             border-radius: 10px;
-            border-left: 5px solid var(--color-acento-celeste);
+            /* NOTA: Se asume que la variable --color-acento-celeste está en style.css */
+            border-left: 5px solid var(--color-acento-celeste); 
             text-align: left;
-
+            /* Transición para efectos de hover */
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-  
+        /* Efecto Hover para las tarjetas */
         .project-card:hover {
-            transform: translateY(-5px); 
-            box-shadow: 0 10px 25px rgba(0, 255, 255, 0.7); 
+            transform: translateY(-5px); /* Se levanta un poco */
+            box-shadow: 0 10px 25px rgba(0, 255, 255, 0.7); /* Sombra de neón más fuerte */
         }
 
         .project-card:last-child {
@@ -85,7 +87,8 @@
             height: auto;
             border-radius: 8px;
             margin-bottom: 15px;
-            border: 2px solid var(--color-acento-celeste);
+            /* NOTA: Se asume que la variable --color-acento-celeste está en style.css */
+            border: 2px solid var(--color-acento-celeste); 
         }
 
         .project-card h2 {
@@ -93,12 +96,12 @@
             margin-top: 0;
         }
 
-    
+        /* Estilo para el botón de Discord dentro de la tarjeta */
         .discord-btn {
             display: inline-block;
             margin-top: 15px;
             padding: 10px 20px;
-            background-color: #5865F2; 
+            background-color: #5865F2; /* Color Discord */
             color: white;
             text-decoration: none;
             border-radius: 5px;
@@ -111,12 +114,12 @@
             margin-right: 8px;
         }
         
-       
+        /* Estilo para el botón de Web (Verde Neón) - AÑADIDO PARA WINTED LAUNCHER */
         .web-btn {
             display: inline-block;
             margin-top: 15px;
             padding: 10px 20px;
-            background-color: #00ff00; 
+            background-color: #00ff00; /* Verde Neón */
             color: black;
             text-decoration: none;
             border-radius: 5px;
@@ -124,13 +127,14 @@
             font-weight: bold;
         }
         .web-btn:hover {
-            background-color: #80ff80; 
+            background-color: #80ff80; /* Verde Neón más claro */
         }
         .web-btn i {
             margin-right: 8px;
         }
 
 
+        /* Botón de regreso */
         .back-button {
             position: fixed;
             top: 20px;
@@ -148,32 +152,32 @@
             background-color: rgba(255, 255, 255, 0.2);
         }
         
-    
+        /* --- ESTILOS PARA EL REPRODUCTOR DE MÚSICA FUTURISTA --- */
         .audio-player-creations {
             width: 300px;
             margin-top: 20px;
             padding: 10px 0;
-            background: rgba(0, 0, 0, 0.5); 
+            background: rgba(0, 0, 0, 0.5); /* Fondo más oscuro */
             border-radius: 12px;
-            box-shadow: 0 0 10px #00ffff; 
+            box-shadow: 0 0 10px #00ffff; /* Sombra de neón azul */
             display: flex;
             justify-content: center;
             align-items: center;
-            position: fixed;
+            position: fixed; /* Lo fijamos en la esquina inferior */
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 100;
- 
+            /* Transición para efectos de hover */
             transition: box-shadow 0.3s ease, transform 0.3s ease;
         }
-      
+        /* Efecto Hover en el reproductor */
         .audio-player-creations:hover {
-            transform: translateX(-50%) translateY(-5px); 
-            box-shadow: 0 0 20px #ff00ff; 
+            transform: translateX(-50%) translateY(-5px); /* Se levanta sutilmente */
+            box-shadow: 0 0 20px #ff00ff; /* Cambia a neón magenta en hover */
         }
         #playPauseButtonCreations {
-            background-color: #ff00ff; /
+            background-color: #ff00ff; /* Color neón magenta */
             color: black;
             border: none;
             padding: 8px 15px;
@@ -183,7 +187,7 @@
             transition: background-color 0.2s;
         }
         #playPauseButtonCreations:hover {
-            background-color: #ff80ff; 
+            background-color: #ff80ff; /* Magenta más claro al pasar el ratón */
         }
         #audio-status-creations {
             color: white;
@@ -220,10 +224,10 @@
                 <i class="fab fa-discord"></i> Únete a Zephyros Arcadia
             </a>
         </div>
-        
+        
                 <div class="project-card">
             <h2>Winted Launcher</h2>
-            <img src="winted_launcher.jpj" alt="Logo de Winted Launcher"> 
+            <img src="winted_launcher.jpg" alt="Logo de Winted Launcher"> 
             <p><strong>Descripción:</strong> El mejor launcher de Minecraft. Winted Launcher te ofrece una experiencia de juego optimizada y segura. Accede rápidamente a tus versiones favoritas, gestiona tus mods con facilidad y disfruta de una interfaz moderna y fluida.</p>
             <p><strong>Enfoque:</strong> Optimización, seguridad y gestión de mods para jugadores de Minecraft.</p>
             <a href="https://wintedlauncher.vercel.app" target="_blank" class="web-btn">
@@ -243,32 +247,32 @@
     </div>
 
     <script>
-   
+        // 1. CONTROL DE LA MÚSICA EN LA PÁGINA DE CREACIONES
         const audioCreations = document.getElementById('futuristic-audio');
         const playPauseButtonCreations = document.getElementById('playPauseButtonCreations');
         const audioStatusCreations = document.getElementById('audio-status-creations');
 
-     
+        // ** LÓGICA DE INICIO AUTOMÁTICO (activada por el clic en main.html) **
         document.addEventListener('DOMContentLoaded', () => {
-       
+            // Verifica si la bandera fue establecida por el clic en el botón 'Mis Creaciones'
             if (sessionStorage.getItem('playFuturisticAudio') === 'true') {
                 
-   
+                // Eliminamos la bandera después de usarla
                 sessionStorage.removeItem('playFuturisticAudio'); 
 
-
+                // Intentamos iniciar la música
                 audioCreations.play().then(() => {
                     playPauseButtonCreations.innerHTML = '⏸️ Pause';
                     audioStatusCreations.textContent = 'Música Futurista';
                 }).catch(e => {
-     
+                    // Si el navegador bloquea el play, se queda en Play
                     playPauseButtonCreations.innerHTML = '▶️ Play';
                     audioStatusCreations.textContent = 'Música pausada';
                 });
             }
         });
 
-
+        // Función para manejar el clic en el botón de Play/Pause (Manual)
         playPauseButtonCreations.addEventListener('click', () => {
             if (audioCreations.paused) {
                 audioCreations.play();
@@ -281,12 +285,12 @@
             }
         });
 
-
+        // 2. SCRIPT PARA DESACTIVAR LA MÚSICA AL VOLVER A MAIN.HTML
         document.querySelector('.back-button').addEventListener('click', () => {
-
+            // Detenemos la música de la página de creaciones antes de salir
             audioCreations.pause();
             
-  
+            // Eliminamos la bandera de autoplay de la página principal para evitar conflictos
             sessionStorage.removeItem('playAudio'); 
         });
     </script>
