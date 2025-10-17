@@ -1,298 +1,299 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NovelBerryYT - Mis Creaciones</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-    
-    <style>
-        /* REGLA CLAVE 1: Aseguramos que el elemento raíz pueda tener scroll */
-        html {
-            height: 100%; /* Ocupa toda la altura de la ventana */
-            overflow-y: scroll; /* Permite el scroll vertical si es necesario */
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovelBerryYT - Mis Creaciones</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css"> 
+    
+    <style>
+        /* REGLA CLAVE 1: Aseguramos que el elemento raíz pueda tener scroll */
+        html {
+            height: 100%; /* Ocupa toda la altura de la ventana */
+            overflow-y: scroll; /* Permite el scroll vertical si es necesario */
+        }
 
-        /* Estilos para el fondo futurista */
-        body {
-            /* SOLUCIÓN AL PROBLEMA DE SCROLL: Cambiamos display: flex a block. */
-            display: block; 
-            
-            /* LÍNEA CLAVE 2: Forzamos la aparición de la barra de desplazamiento */
-            overflow-y: scroll !important; 
-            height: 100%;
-            min-height: 100vh; 
-            margin: 0;
-            
-            /* RUTA DE FONDO - RESTAURADO */
-            background-image: url('fondo_creaciones.jpg'); 
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            color: white;
-            font-family: Arial, sans-serif;
-            
-            /* Aumentamos el padding superior e inferior */
-            padding-top: 50px;
-            padding-bottom: 100px; /* Espacio extra para que el reproductor no tape el contenido */
-            position: relative;
-        }
+        /* Estilos para el fondo futurista */
+        body {
+            /* SOLUCIÓN AL PROBLEMA DE SCROLL: Cambiamos display: flex a block. */
+            display: block; 
+            
+            /* LÍNEA CLAVE 2: Forzamos la aparición de la barra de desplazamiento */
+            overflow-y: scroll !important; 
+            height: 100%;
+            min-height: 100vh; 
+            margin: 0;
+            
+            /* RUTA DE FONDO - RESTAURADO (YA INCLUIDO) */
+            background-image: url('fondo_creaciones.jpg'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+            font-family: Arial, sans-serif;
+            
+            /* Aumentamos el padding superior e inferior */
+            padding-top: 50px;
+            padding-bottom: 100px; /* Espacio extra para que el reproductor no tape el contenido */
+            position: relative;
+        }
 
-        /* Contenedor principal de la página de creaciones */
-        .creations-container {
-            background-color: rgba(0, 0, 0, 0.75);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); 
-            max-width: 900px;
-            width: 90%;
-            z-index: 5;
-            text-align: center;
-            margin: 50px auto 0; 
-        }
+        /* Contenedor principal de la página de creaciones */
+        .creations-container {
+            background-color: rgba(0, 0, 0, 0.75); /* Fondo oscuro transparente ('efecto botón transparente' exterior) */
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); 
+            max-width: 900px;
+            width: 90%;
+            z-index: 5;
+            text-align: center; /* Centra el título y el párrafo principal */
+            margin: 50px auto 0; 
+        }
 
-        .header-creaciones h1 {
-            /* NOTA: Se asume que la variable --color-acento-celeste está en style.css */
-            color: var(--color-acento-celeste); 
-            font-size: 2.5em;
-            text-shadow: 0 0 8px #00ffff;
-            margin-bottom: 20px;
-        }
+        .header-creaciones h1 {
+            color: var(--color-acento-celeste); 
+            font-size: 2.5em;
+            text-shadow: 0 0 8px #00ffff;
+            margin-bottom: 20px;
+        }
 
-        /* Estilos para las tarjetas de proyecto */
-        .project-card {
-            background-color: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            margin-top: 30px;
-            border-radius: 10px;
-            /* NOTA: Se asume que la variable --color-acento-celeste está en style.css */
-            border-left: 5px solid var(--color-acento-celeste); 
-            text-align: left;
-            /* Transición para efectos de hover */
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        /* Efecto Hover para las tarjetas */
-        .project-card:hover {
-            transform: translateY(-5px); /* Se levanta un poco */
-            box-shadow: 0 10px 25px rgba(0, 255, 255, 0.7); /* Sombra de neón más fuerte */
-        }
-
-        .project-card:last-child {
-            margin-bottom: 0;
-        }
-
-        .project-card img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            /* NOTA: Se asume que la variable --color-acento-celeste está en style.css */
-            border: 2px solid var(--color-acento-celeste); 
-        }
-
-        .project-card h2 {
-            color: #ff00ff;
-            margin-top: 0;
-        }
-
-        /* Estilo para el botón de Discord dentro de la tarjeta */
-        .discord-btn {
-            display: inline-block;
-            margin-top: 15px;
-            padding: 10px 20px;
-            background-color: #5865F2; /* Color Discord */
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.2s;
-        }
-        .discord-btn:hover {
-            background-color: #7289DA;
-        }
-        .discord-btn i {
-            margin-right: 8px;
-        }
+        /* Estilos para las tarjetas de proyecto */
+        .project-card {
+            background-color: rgba(255, 255, 255, 0.05); /* El "botón transparente" que rodea el contenido de cada proyecto */
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 10px;
+            border-left: 5px solid var(--color-acento-celeste); 
+            
+            /* CAMBIO CLAVE: Centrar el texto y los elementos internos (imágenes, botones, texto) */
+            text-align: center; 
+            
+            /* Transición para efectos de hover (ya incluida, da el efecto de "moverse un poco") */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
         
-        /* Estilo para el botón de Web (Verde Neón) - AÑADIDO PARA WINTED LAUNCHER */
-        .web-btn {
-            display: inline-block;
-            margin-top: 15px;
-            padding: 10px 20px;
-            background-color: #00ff00; /* Verde Neón */
-            color: black;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.2s;
+        /* Efecto Hover para las tarjetas (ya incluido, da el efecto de "moverse un poco") */
+        .project-card:hover {
+            transform: translateY(-5px); /* Se levanta un poco */
+            box-shadow: 0 10px 25px rgba(0, 255, 255, 0.7); /* Sombra de neón más fuerte */
+        }
+
+        .project-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .project-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 2px solid var(--color-acento-celeste); 
+        }
+
+        .project-card h2 {
+            color: #ff00ff;
+            margin-top: 0;
+        }
+
+        /* Estilos base de botón para Discord y Web */
+        .discord-btn, .web-btn {
+            display: inline-block;
+            margin: 15px 5px 0 5px; /* Ajustamos margen para separación si hay varios botones */
+            padding: 10px 20px;
+            color: white; /* Color de texto base (blanco) */
+            text-decoration: none;
+            border-radius: 5px;
+            transition: transform 0.3s ease, background-color 0.2s; /* Añadimos transform a la transición */
             font-weight: bold;
-        }
-        .web-btn:hover {
-            background-color: #80ff80; /* Verde Neón más claro */
-        }
-        .web-btn i {
-            margin-right: 8px;
-        }
+        }
 
+        /* Efecto de 'moverse un poco' al pasar el ratón para ambos botones */
+        .discord-btn:hover, .web-btn:hover {
+            transform: scale(1.05); /* Escala un poco el botón */
+        }
 
-        /* Botón de regreso */
-        .back-button {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            padding: 10px 15px;
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            border: 1px solid var(--color-acento-celeste);
-            transition: background-color 0.2s;
-            z-index: 10;
-        }
-        .back-button:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-        
-        /* --- ESTILOS PARA EL REPRODUCTOR DE MÚSICA FUTURISTA --- */
-        .audio-player-creations {
-            width: 300px;
-            margin-top: 20px;
-            padding: 10px 0;
-            background: rgba(0, 0, 0, 0.5); /* Fondo más oscuro */
-            border-radius: 12px;
-            box-shadow: 0 0 10px #00ffff; /* Sombra de neón azul */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: fixed; /* Lo fijamos en la esquina inferior */
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-            /* Transición para efectos de hover */
-            transition: box-shadow 0.3s ease, transform 0.3s ease;
-        }
-        /* Efecto Hover en el reproductor */
-        .audio-player-creations:hover {
-            transform: translateX(-50%) translateY(-5px); /* Se levanta sutilmente */
-            box-shadow: 0 0 20px #ff00ff; /* Cambia a neón magenta en hover */
-        }
-        #playPauseButtonCreations {
-            background-color: #ff00ff; /* Color neón magenta */
-            color: black;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.2s;
-        }
-        #playPauseButtonCreations:hover {
-            background-color: #ff80ff; /* Magenta más claro al pasar el ratón */
-        }
-        #audio-status-creations {
-            color: white;
-            margin-left: 10px;
-            font-size: 0.9em;
-        }
-    </style>
+        /* Estilo para el botón de Discord */
+        .discord-btn {
+            background-color: #5865F2; /* Color Discord */
+        }
+        .discord-btn:hover {
+            background-color: #7289DA;
+        }
+        
+        /* Estilo para el botón de Web (Verde Neón) */
+        .web-btn {
+            background-color: #00ff00; /* Verde Neón */
+            color: black; /* Texto negro para contraste */
+        }
+        .web-btn:hover {
+            background-color: #80ff80; /* Verde Neón más claro */
+        }
+        
+        .discord-btn i, .web-btn i {
+            margin-right: 8px;
+        }
+        
+        /* Botón de regreso */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            border: 1px solid var(--color-acento-celeste);
+            transition: background-color 0.2s, transform 0.3s ease; /* Añadimos transform */
+            z-index: 10;
+        }
+        .back-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05); /* Efecto de "moverse un poco" */
+        }
+        
+        /* --- ESTILOS PARA EL REPRODUCTOR DE MÚSICA FUTURISTA --- (Ya cumplen con el requisito de 'moverse') */
+        .audio-player-creations {
+            width: 300px;
+            margin-top: 20px;
+            padding: 10px 0;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            box-shadow: 0 0 10px #00ffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+        .audio-player-creations:hover {
+            transform: translateX(-50%) translateY(-5px); /* Se levanta sutilmente */
+            box-shadow: 0 0 20px #ff00ff;
+        }
+        #playPauseButtonCreations {
+            background-color: #ff00ff;
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.3s ease; /* Añadimos transform */
+        }
+        #playPauseButtonCreations:hover {
+            background-color: #ff80ff;
+            transform: scale(1.05); /* Efecto de "moverse un poco" */
+        }
+        #audio-status-creations {
+            color: white;
+            margin-left: 10px;
+            font-size: 0.9em;
+        }
+    </style>
 </head>
 <body>
-    <a href="main.html" class="back-button">← Volver al Perfil</a>
+    <a href="main.html" class="back-button">← Volver al Perfil</a>
 
-    <div class="creations-container">
-        <div class="header-creaciones">
-            <h1>Mis Creaciones</h1>
-            <p>Aquí puedes encontrar los proyectos de desarrollo en los que estoy trabajando.</p>
-        </div>
+    <div class="creations-container">
+        <div class="header-creaciones">
+            <h1>Mis Creaciones</h1>
+            <p>Aquí puedes encontrar los proyectos de desarrollo en los que estoy trabajando.</p>
+        </div>
 
-        <div class="project-card">
-            <h2>Winted Studio</h2>
-            <img src="winted_logo.jpg" alt="Logo de Winted Studio"> 
-            <p><strong>Descripción:</strong> Winted Studio es nuestro proyecto principal. Es un lugar donde creamos videojuegos de alta calidad y ofrecemos servicios profesionales de desarrollo.</p>
-            <p><strong>Enfoque:</strong> Desarrollo de los mejores videojuegos y provisión de servicios de desarrollo.</p>
-            <a href="https://discord.gg/vMFpFMedSP" target="_blank" class="discord-btn">
-                <i class="fab fa-discord"></i> Únete a Winted Studio
-            </a>
-        </div>
+        <div class="project-card">
+            <h2>Winted Studio</h2>
+            <img src="winted_logo.jpg" alt="Logo de Winted Studio"> 
+            <p><strong>Descripción:</strong> Winted Studio es nuestro proyecto principal. Es un lugar donde creamos videojuegos de alta calidad y ofrecemos servicios profesionales de desarrollo.</p>
+            <p><strong>Enfoque:</strong> Desarrollo de los mejores videojuegos y provisión de servicios de desarrollo.</p>
+            <a href="https://discord.gg/vMFpFMedSP" target="_blank" class="discord-btn">
+                <i class="fab fa-discord"></i> Únete a Winted Studio
+            </a>
+        </div>
 
-        <div class="project-card">
-            <h2>Zephyros Arcadia</h2>
-            <img src="zephyros_logo.jpg" alt="Logo de Zephyros Arcadia"> 
-            <p><strong>Descripción:</strong> ¡Una comunidad y lugar donde cualquiera es bienvenido! Nuestro enfoque principal es crear un espacio acogedor y amigable para todos.</p>
-            <p><strong>Enfoque:</strong> Comunidad, amistad y un espacio abierto para todos.</p>
-            <a href="https://discord.gg/Jg53eZCr82" target="_blank" class="discord-btn">
-                <i class="fab fa-discord"></i> Únete a Zephyros Arcadia
-            </a>
-        </div>
-        
-                <div class="project-card">
-            <h2>Winted Launcher</h2>
-            <img src="winted_launcher.jpg" alt="Logo de Winted Launcher"> 
-            <p><strong>Descripción:</strong> El mejor launcher de Minecraft. Winted Launcher te ofrece una experiencia de juego optimizada y segura. Accede rápidamente a tus versiones favoritas, gestiona tus mods con facilidad y disfruta de una interfaz moderna y fluida.</p>
-            <p><strong>Enfoque:</strong> Optimización, seguridad y gestión de mods para jugadores de Minecraft.</p>
-            <a href="https://wintedlauncher.vercel.app" target="_blank" class="web-btn">
-                <i class="fas fa-globe"></i> Visitar la Web
-            </a>
-        </div>
-            </div>
+        <div class="project-card">
+            <h2>Zephyros Arcadia</h2>
+            <img src="zephyros_logo.jpg" alt="Logo de Zephyros Arcadia"> 
+            <p><strong>Descripción:</strong> ¡Una comunidad y lugar donde cualquiera es bienvenido! Nuestro enfoque principal es crear un espacio acogedor y amigable para todos.</p>
+            <p><strong>Enfoque:</strong> Comunidad, amistad y un espacio abierto para todos.</p>
+            <a href="https://discord.gg/Jg53eZCr82" target="_blank" class="discord-btn">
+                <i class="fab fa-discord"></i> Únete a Zephyros Arcadia
+            </a>
+        </div>
+        
+        <div class="project-card">
+            <h2>Winted Launcher</h2>
+            <img src="winted_launcher.jpg" alt="Logo de Winted Launcher"> 
+            <p><strong>Descripción:</strong> El mejor launcher de Minecraft. Winted Launcher te ofrece una experiencia de juego optimizada y segura. Accede rápidamente a tus versiones favoritas, gestiona tus mods con facilidad y disfruta de una interfaz moderna y fluida.</p>
+            <p><strong>Enfoque:</strong> Optimización, seguridad y gestión de mods para jugadores de Minecraft.</p>
+            <a href="https://wintedlauncher.vercel.app" target="_blank" class="web-btn">
+                <i class="fas fa-globe"></i> Visitar la Web
+            </a>
+        </div>
+    </div>
 
-    <div class="audio-player-creations">
-        <audio id="futuristic-audio" loop>
-            <source src="musica_futurista.mp3" type="audio/mp3">
-        </audio>
-        <button id="playPauseButtonCreations">
-            ▶️ Play
-        </button>
-        <span id="audio-status-creations">Música Futurista</span>
-    </div>
+    <div class="audio-player-creations">
+        <audio id="futuristic-audio" loop>
+            <source src="musica_futurista.mp3" type="audio/mp3">
+        </audio>
+        <button id="playPauseButtonCreations">
+            ▶️ Play
+        </button>
+        <span id="audio-status-creations">Música Futurista</span>
+    </div>
 
-    <script>
-        // 1. CONTROL DE LA MÚSICA EN LA PÁGINA DE CREACIONES
-        const audioCreations = document.getElementById('futuristic-audio');
-        const playPauseButtonCreations = document.getElementById('playPauseButtonCreations');
-        const audioStatusCreations = document.getElementById('audio-status-creations');
+    <script>
+        // 1. CONTROL DE LA MÚSICA EN LA PÁGINA DE CREACIONES
+        const audioCreations = document.getElementById('futuristic-audio');
+        const playPauseButtonCreations = document.getElementById('playPauseButtonCreations');
+        const audioStatusCreations = document.getElementById('audio-status-creations');
 
-        // ** LÓGICA DE INICIO AUTOMÁTICO (activada por el clic en main.html) **
-        document.addEventListener('DOMContentLoaded', () => {
-            // Verifica si la bandera fue establecida por el clic en el botón 'Mis Creaciones'
-            if (sessionStorage.getItem('playFuturisticAudio') === 'true') {
-                
-                // Eliminamos la bandera después de usarla
-                sessionStorage.removeItem('playFuturisticAudio'); 
+        // ** LÓGICA DE INICIO AUTOMÁTICO (activada por el clic en main.html) **
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verifica si la bandera fue establecida por el clic en el botón 'Mis Creaciones'
+            if (sessionStorage.getItem('playFuturisticAudio') === 'true') {
+                
+                // Eliminamos la bandera después de usarla
+                sessionStorage.removeItem('playFuturisticAudio'); 
 
-                // Intentamos iniciar la música
-                audioCreations.play().then(() => {
-                    playPauseButtonCreations.innerHTML = '⏸️ Pause';
-                    audioStatusCreations.textContent = 'Música Futurista';
-                }).catch(e => {
-                    // Si el navegador bloquea el play, se queda en Play
-                    playPauseButtonCreations.innerHTML = '▶️ Play';
-                    audioStatusCreations.textContent = 'Música pausada';
-                });
-            }
-        });
+                // Intentamos iniciar la música
+                audioCreations.play().then(() => {
+                    playPauseButtonCreations.innerHTML = '⏸️ Pause';
+                    audioStatusCreations.textContent = 'Música Futurista';
+                }).catch(e => {
+                    // Si el navegador bloquea el play, se queda en Play
+                    playPauseButtonCreations.innerHTML = '▶️ Play';
+                    audioStatusCreations.textContent = 'Música pausada';
+                });
+            }
+        });
 
-        // Función para manejar el clic en el botón de Play/Pause (Manual)
-        playPauseButtonCreations.addEventListener('click', () => {
-            if (audioCreations.paused) {
-                audioCreations.play();
-                playPauseButtonCreations.innerHTML = '⏸️ Pause';
-                audioStatusCreations.textContent = 'Música Futurista';
-            } else {
-                audioCreations.pause();
-                playPauseButtonCreations.innerHTML = '▶️ Play';
-                audioStatusCreations.textContent = 'Música pausada';
-            }
-        });
+        // Función para manejar el clic en el botón de Play/Pause (Manual)
+        playPauseButtonCreations.addEventListener('click', () => {
+            if (audioCreations.paused) {
+                audioCreations.play();
+                playPauseButtonCreations.innerHTML = '⏸️ Pause';
+                audioStatusCreations.textContent = 'Música Futurista';
+            } else {
+                audioCreations.pause();
+                playPauseButtonCreations.innerHTML = '▶️ Play';
+                audioStatusCreations.textContent = 'Música pausada';
+            }
+        });
 
-        // 2. SCRIPT PARA DESACTIVAR LA MÚSICA AL VOLVER A MAIN.HTML
-        document.querySelector('.back-button').addEventListener('click', () => {
-            // Detenemos la música de la página de creaciones antes de salir
-            audioCreations.pause();
-            
-            // Eliminamos la bandera de autoplay de la página principal para evitar conflictos
-            sessionStorage.removeItem('playAudio'); 
-        });
-    </script>
+        // 2. SCRIPT PARA DESACTIVAR LA MÚSICA AL VOLVER A MAIN.HTML
+        document.querySelector('.back-button').addEventListener('click', () => {
+            // Detenemos la música de la página de creaciones antes de salir
+            audioCreations.pause();
+            
+            // Eliminamos la bandera de autoplay de la página principal para evitar conflictos
+            sessionStorage.removeItem('playAudio'); 
+        });
+    </script>
 </body>
 </html>
