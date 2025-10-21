@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comentarios</title>
+    <style>
+        /* Estilo base */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0; /* Fondo gris claro */
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        /* Contenedor del botón */
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* Estilo del botón */
+        #addCommentBtn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #addCommentBtn:hover {
+            background-color: #0056b3;
+        }
+
+        /* Cuadrícula de comentarios (Grid) */
+        #comment-grid {
+            display: grid;
+            /* 4 columnas en desktop */
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px; /* Espacio entre tarjetas */
+        }
+
+        /* Tarjeta de comentario individual */
+        .comment-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            
+            /* Efecto de movimiento (hover) */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* El efecto que pediste al pasar el mouse */
+        .comment-card:hover {
+            transform: translateY(-5px); /* Se mueve hacia arriba */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .comment-card h4 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .comment-card p {
+            margin-bottom: 0;
+            color: #555;
+            font-size: 14px;
+        }
+
+        /* Responsive: Si la pantalla es pequeña, cambia a 2 columnas */
+        @media (max-width: 900px) {
+            #comment-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Responsive: Si la pantalla es muy pequeña (móvil), cambia a 1 columna */
+        @media (max-width: 600px) {
+            #comment-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Sección de Comentarios</h1>
+
+    <div class="controls">
+        <button id="addCommentBtn">Agregar Comentario</button>
+    </div>
+
+    <div id="comment-grid">
+        </div>
+
+    <script>
+        // Lista de 20 comentarios por defecto
+        const defaultComments = [
+const defaultComments = [
+            { name: "Lucas", text: "Le pedí un bot de seguridad para discord por 1 dolar y la vdd me hizo algo super bueno. Recomendado." },
+            { name: "Zzzzz", text: "Buen dev. Los comandos del bot se entienden fácil y el código se ve bien." },
+            { name: "Itachi", text: "Contraté una web y la terminó rápido. Entendió al toque lo que quería." },
+            { name: "Data", text: "Los plugins de MC que hace están bien optimizados. El server va mucho mejor ahora 10/10" },
+            { name: "jack1654", text: "Bien." },
+            { name: "Anonimud", text: "La calidad de la web está piola. Diseños modernos y todo funciona." },
+            { name: "DeleteUser", text: "He trabajado con él en varios proyectos y desarolla todo muy good Solo que algunos dias no contesta por estudios XD" },
+            { name: "Foxty", text: "El bot de 1usd que me hizo es mejor que varios premium que cuestan 10 veces más. Un pro." },
+            { name: "Frank0", text: "Uso su bot en mi comunidad y los comandos custom son un éxito." },
+            { name: "CupCat", text: "Me hizo un plugin de economía pa minecraft. Cero bugs por ahora. Buena calidad." },
+            { name: "Leo", text: "El dev es atento, y por 1 dolar me dio un bot que vale oro. La seguridad funciona 10/10." },
+            { name: "Depp", text: "También soy dev de discord y la vdd q trabaja rápido y bien. Profesional." },
+            { name: "Random", text: "Necesitaba un plugin custom para mi server de MC y lo hizo super rápido. Me ayudó caleta como admin." },
+            { name: "Nose", text: "Ta bien." },
+            { name: "Blazzing", text: "Los comandos del bot están rotísimos, tiene muchas funciones útiles. Y por un precio regalado." },
+            { name: "SkOne", text: "Si buscas plugins de MC o bots de Discord, este es tu tipo. Calidad asegurada." },
+            { name: "TTxklol", text: "Nos ayudó a conectar un bot de discord con la web. Quedó impeque, sabe mucho." },
+            { name: "Luffy", text: "El bot de seguridad de 1 dolar ha parado todos los raids. Es increíble lo que hace." },
+            { name: "Sea", text: "Sus proyectos (webs, bots, plugins) siempre tienen buena calidad. Se nota que le pone empeño." },
+            { name: "Tester", text: "Probé su último plugin de MC y está joya. Optimizado y los comandos son fáciles." }
+        ];
+        ];
+
+        // Función para crear una tarjeta de comentario en el HTML
+        function createCommentCard(name, text) {
+            const card = document.createElement('div');
+            card.className = 'comment-card';
+
+            const nameEl = document.createElement('h4');
+            nameEl.textContent = name;
+
+            const textEl = document.createElement('p');
+            textEl.textContent = text;
+
+            card.appendChild(nameEl);
+            card.appendChild(textEl);
+            return card;
+        }
+
+        // Función para mostrar todos los comentarios
+        function displayComments() {
+            const grid = document.getElementById('comment-grid');
+            grid.innerHTML = ''; // Limpiar la cuadrícula
+
+            // Mostrar los comentarios por defecto
+            for (const comment of defaultComments) {
+                const card = createCommentCard(comment.name, comment.text);
+                grid.appendChild(card);
+            }
+        }
+
+        // Función para agregar un nuevo comentario (temporalmente)
+        function handleAddComment() {
+            const name = prompt("Nombre del que comenta:");
+            const commentText = prompt("Escribe tu comentario:");
+
+            if (name && commentText) {
+                // Si el usuario ingresó ambos datos
+                const grid = document.getElementById('comment-grid');
+                const newCard = createCommentCard(name, commentText);
+                
+                // Añade la nueva tarjeta al inicio de la cuadrícula
+                grid.prepend(newCard); 
+            } else if (name || commentText) {
+                // Si el usuario canceló o dejó algo en blanco
+                alert("Debes ingresar un nombre y un comentario para continuar.");
+            }
+        }
+
+        // Cargar los comentarios iniciales cuando la página esté lista
+        document.addEventListener('DOMContentLoaded', displayComments);
+
+        // Asignar la función al botón
+        document.getElementById('addCommentBtn').addEventListener('click', handleAddComment);
+
+    </script>
+</body>
+</html>
